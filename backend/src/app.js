@@ -19,9 +19,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
-  : true; // reflect request origin by default
+const corsOrigin =
+  process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.trim().length > 0
+    ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
+    : (origin, callback) => callback(null, true); // reflect any origin
 
 app.use(
   helmet({
@@ -30,10 +31,12 @@ app.use(
 );
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: corsOrigin,
     credentials: true,
+    optionsSuccessStatus: 200,
   })
 );
+app.options("*", cors({ origin: corsOrigin, credentials: true }));
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -56,4 +59,3 @@ app.get("/health", (_req, res) => {
 app.use(errorHandler);
 
 export default app;
-
