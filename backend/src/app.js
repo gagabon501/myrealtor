@@ -36,7 +36,7 @@ app.use(
     optionsSuccessStatus: 200,
   })
 );
-app.options("*", cors({ origin: corsOrigin, credentials: true }));
+app.options(/.*/, cors({ origin: corsOrigin, credentials: true }));
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
