@@ -9,6 +9,7 @@ import {
   Typography,
   Button,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import PropertyCard from "../components/PropertyCard";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -19,6 +20,8 @@ const Properties = () => {
   const [notice, setNotice] = useState("");
   const [filters, setFilters] = useState({ search: "", location: "", minPrice: "", maxPrice: "" });
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const canManage = ["staff", "admin"].includes(user?.role);
 
   const loadProperties = () => {
     client
@@ -51,6 +54,21 @@ const Properties = () => {
   const applyFilters = (e) => {
     e.preventDefault();
     loadProperties();
+  };
+
+  const handleEdit = (property) => {
+    navigate(`/properties/${property._id}/edit`);
+  };
+
+  const handleDelete = async (property) => {
+    if (!window.confirm("Delete this property?")) return;
+    try {
+      await client.delete(`/properties/${property._id}`);
+      setNotice("Property deleted");
+      loadProperties();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete property");
+    }
   };
 
   return (
@@ -93,7 +111,13 @@ const Properties = () => {
       <Grid container spacing={2}>
         {properties.map((property) => (
           <Grid item xs={12} md={4} key={property._id}>
-            <PropertyCard property={property} onApply={handleApply} />
+            <PropertyCard
+              property={property}
+              onApply={handleApply}
+              canManage={canManage}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           </Grid>
         ))}
         {!properties.length && (

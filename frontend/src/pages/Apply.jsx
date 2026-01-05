@@ -1,0 +1,126 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import client from "../api/client";
+
+const Apply = () => {
+  const [properties, setProperties] = useState([]);
+  const [form, setForm] = useState({ propertyId: "", notes: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const navigate = useNavigate();
+
+  const selectedProperty = useMemo(
+    () => properties.find((p) => p._id === form.propertyId),
+    [properties, form.propertyId]
+  );
+
+  useEffect(() => {
+    client
+      .get("/properties", { params: { status: "AVAILABLE" } })
+      .then((res) => setProperties(res.data))
+      .catch(() => setError("Failed to load properties"));
+  }, []);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+    try {
+      await client.post("/applications", { propertyId: form.propertyId, notes: form.notes });
+      setSuccess("Application submitted. Redirecting to dashboard...");
+      setTimeout(() => navigate("/dashboard"), 1200);
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not submit application");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Container sx={{ py: 6, maxWidth: "800px" }}>
+      <Typography variant="h4" sx={{ mb: 2 }}>
+        Apply for Property Licensing
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        Select a property and submit your intent to proceed. You can upload supporting documents and track
+        compliance steps in your dashboard afterward.
+      </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+          {success}
+        </Alert>
+      )}
+
+      <Stack component="form" spacing={2} onSubmit={handleSubmit}>
+        <TextField
+          select
+          label="Choose property"
+          name="propertyId"
+          value={form.propertyId}
+          onChange={handleChange}
+          required
+        >
+          {properties.map((prop) => (
+            <MenuItem key={prop._id} value={prop._id}>
+              {prop.title} — {prop.location} — ₱{prop.price?.toLocaleString()}
+            </MenuItem>
+          ))}
+        </TextField>
+
+        <TextField
+          label="Notes (optional)"
+          name="notes"
+          multiline
+          minRows={3}
+          value={form.notes}
+          onChange={handleChange}
+        />
+
+        <Button type="submit" variant="contained" disabled={loading || !form.propertyId}>
+          {loading ? "Submitting..." : "Submit application"}
+        </Button>
+      </Stack>
+
+      {selectedProperty && (
+        <Card variant="outlined" sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="h6">{selectedProperty.title}</Typography>
+            <Typography color="text.secondary" sx={{ mb: 1 }}>
+              {selectedProperty.location}
+            </Typography>
+            <Typography sx={{ mb: 1 }}>₱{selectedProperty.price?.toLocaleString()}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {selectedProperty.description || "No description provided."}
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
+    </Container>
+  );
+};
+
+export default Apply;
+

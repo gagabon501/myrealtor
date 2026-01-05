@@ -23,6 +23,19 @@ const TopBar = () => {
           </Button>
           {user ? (
             <>
+              <Button component={Link} to="/apply">
+                Apply
+              </Button>
+              {["staff", "admin"].includes(user.role) && (
+                <Button component={Link} to="/properties/new">
+                  Add Property
+                </Button>
+              )}
+              {user.role === "admin" && (
+                <Button component={Link} to="/users">
+                  Users
+                </Button>
+              )}
               <Button component={Link} to="/dashboard">
                 Dashboard
               </Button>

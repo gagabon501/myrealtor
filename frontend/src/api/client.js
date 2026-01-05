@@ -5,9 +5,10 @@ const fallbackHost =
     ? `${window.location.protocol}//${window.location.hostname}:5000/api`
     : "http://localhost:5000/api";
 
-const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || fallbackHost,
-});
+const baseURL = import.meta.env.VITE_API_URL || fallbackHost;
+const apiBase = baseURL.replace(/\/api\/?$/, "");
+
+const client = axios.create({ baseURL });
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
@@ -17,5 +18,6 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
+export { apiBase };
 export default client;
 

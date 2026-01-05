@@ -6,6 +6,10 @@ import Register from "./pages/Register";
 import Properties from "./pages/Properties";
 import Dashboard from "./pages/Dashboard";
 import StaffDashboard from "./pages/StaffDashboard";
+import Apply from "./pages/Apply";
+import NewProperty from "./pages/NewProperty";
+import EditProperty from "./pages/EditProperty";
+import ManageUsers from "./pages/ManageUsers";
 import TopBar from "./components/TopBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
@@ -29,6 +33,14 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
+            path="/apply"
+            element={
+              <ProtectedRoute>
+                <Apply />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
@@ -41,6 +53,30 @@ const App = () => {
             element={
               <ProtectedRoute roles={["staff", "admin"]}>
                 <StaffDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/properties/new"
+            element={
+              <ProtectedRoute roles={["staff", "admin"]}>
+                <NewProperty />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/properties/:id/edit"
+            element={
+              <ProtectedRoute roles={["staff", "admin"]}>
+                <EditProperty />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <ManageUsers />
               </ProtectedRoute>
             }
           />
