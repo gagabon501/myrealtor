@@ -18,13 +18,12 @@ services:
       - mongo
     labels:
       - "traefik.enable=true"
-
-      # HTTPS router
       - "traefik.http.routers.myrealtor-api.rule=Host(`apimyrealtor.nodesafe.cloud`)"
       - "traefik.http.routers.myrealtor-api.entrypoints=websecure"
       - "traefik.http.routers.myrealtor-api.tls=true"
-      - "traefik.http.routers.myrealtor-api.tls.certresolver=CERTRESOLVER_NAME"
+      - "traefik.http.routers.myrealtor-api.tls.certresolver=mytlschallenge"
       - "traefik.http.services.myrealtor-api.loadbalancer.server.port=3000"
+
     networks:
       - internal
       - traefik
@@ -37,6 +36,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.myrealtor-web.tls.certresolver=mytlschallenge"
 
       # HTTPS router
       - "traefik.http.routers.myrealtor-web.rule=Host(`myrealtor.nodesafe.cloud`)"
