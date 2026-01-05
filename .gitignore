@@ -1,5 +1,6 @@
 **/node_modules
 frontend/build
 backend/.env
+backend/src/uploads
 frontend/.env*
 .DS_Store

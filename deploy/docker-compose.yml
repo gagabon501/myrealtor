@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file:
+      - ../backend/example.env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/myrealtor
+      - JWT_SECRET=${JWT_SECRET:-super-secret-key}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../backend/src/uploads:/app/src/uploads
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:5000/api
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    ports:
+      - "4173:4173"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
+
