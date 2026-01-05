@@ -4,10 +4,16 @@ import { recordAudit } from "../utils/audit.js";
 
 export const listProperties = async (req, res, next) => {
   try {
-    const { location, status } = req.query;
+    const { location, status, minPrice, maxPrice, search } = req.query;
     const query = {};
     if (location) query.location = new RegExp(location, "i");
+    if (search) query.title = new RegExp(search, "i");
     if (status) query.status = status;
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
 
     const properties = await Property.find(query).sort({ createdAt: -1 });
     res.json(properties);

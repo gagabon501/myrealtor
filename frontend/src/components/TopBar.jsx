@@ -26,6 +26,11 @@ const TopBar = () => {
               <Button component={Link} to="/dashboard">
                 Dashboard
               </Button>
+              {["staff", "admin"].includes(user.role) && (
+                <Button component={Link} to="/staff">
+                  Staff
+                </Button>
+              )}
               <Button onClick={handleLogout}>Logout</Button>
             </>
           ) : (

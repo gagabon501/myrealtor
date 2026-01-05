@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Properties from "./pages/Properties";
 import Dashboard from "./pages/Dashboard";
+import StaffDashboard from "./pages/StaffDashboard";
 import TopBar from "./components/TopBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
@@ -32,6 +33,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff"
+            element={
+              <ProtectedRoute roles={["staff", "admin"]}>
+                <StaffDashboard />
               </ProtectedRoute>
             }
           />

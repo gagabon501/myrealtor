@@ -17,6 +17,7 @@ const documentSchema = new mongoose.Schema(
     path: String,
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     uploadedAt: { type: Date, default: Date.now },
+    notes: String,
   },
   { timestamps: true }
 );

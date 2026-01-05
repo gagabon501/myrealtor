@@ -44,18 +44,25 @@ Key Backend Endpoints (JWT protected where noted)
 - `POST /api/applications` – create application (client)
 - `GET /api/applications/me` – my applications (client)
 - `GET /api/applications` – all (staff/admin)
-- `PUT /api/applications/:id/stage` – update stage (staff/admin)
+- `GET /api/applications/:id` – detail (owner or staff/admin)
+- `PUT /api/applications/:id/stage` – update stage/regulatory status/assignment (staff/admin)
 - `POST /api/documents` – upload document (auth, multipart)
-- `GET /api/documents/:applicationId` – list documents (auth)
+- `GET /api/documents/:applicationId` – list documents (auth; owner or staff)
+- `PUT /api/documents/:id/status` – approve/reject document (staff/admin)
 - `POST /api/payments` – record mock payment (auth)
-- `GET /api/payments/:applicationId` – list payments (auth)
+- `GET /api/payments/:applicationId` – list payments (auth; owner or staff)
+- `PUT /api/payments/:id/status` – mark payment success/fail (staff/admin)
+- `POST /api/compliance` – create compliance task (staff/admin)
+- `GET /api/compliance/:applicationId` – list compliance tasks (owner or staff/admin)
+- `PUT /api/compliance/:id` – update compliance task status (staff/admin)
 - `GET /api/audit` – audit logs (admin)
 
 Frontend Flows
 --------------
-- Public listing browser with apply button.
-- Client auth, dashboard with application status, payment trigger, and document upload form.
-- Top navigation with login/logout and dashboard link.
+- Public listing browser with search/location/price filters + apply button.
+- Client dashboard: application status/regulatory status, document upload and list, compliance tasks, payment history and mock payment trigger.
+- Staff dashboard (role staff/admin): workflow updates, assignment, compliance task creation, document approvals, payment confirmations.
+- Top navigation with login/logout, dashboard, and staff link for elevated roles.
 
 Notes and Limitations
 ---------------------

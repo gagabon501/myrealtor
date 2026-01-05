@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
   Button,
   Card,
   CardContent,
+  Chip,
   Container,
+  Divider,
   Grid,
   MenuItem,
   Stack,
@@ -18,17 +20,59 @@ import { useAuth } from "../context/AuthContext";
 const Dashboard = () => {
   const { user } = useAuth();
   const [applications, setApplications] = useState([]);
+  const [selectedAppId, setSelectedAppId] = useState("");
+  const [documents, setDocuments] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [docPayload, setDocPayload] = useState({ applicationId: "", type: "" });
   const [file, setFile] = useState(null);
 
+  const selectedApp = useMemo(
+    () => applications.find((app) => app._id === selectedAppId),
+    [applications, selectedAppId]
+  );
+
   const loadApplications = async () => {
     try {
       const res = await client.get("/applications/me");
       setApplications(res.data);
+      if (!selectedAppId && res.data.length) {
+        setSelectedAppId(res.data[0]._id);
+      }
     } catch (err) {
       setError("Failed to load applications");
+    }
+  };
+
+  const loadDocuments = async (applicationId) => {
+    if (!applicationId) return;
+    try {
+      const res = await client.get(`/documents/${applicationId}`);
+      setDocuments(res.data);
+    } catch (err) {
+      setError("Failed to load documents");
+    }
+  };
+
+  const loadPayments = async (applicationId) => {
+    if (!applicationId) return;
+    try {
+      const res = await client.get(`/payments/${applicationId}`);
+      setPayments(res.data);
+    } catch (err) {
+      setError("Failed to load payments");
+    }
+  };
+
+  const loadTasks = async (applicationId) => {
+    if (!applicationId) return;
+    try {
+      const res = await client.get(`/compliance/${applicationId}`);
+      setTasks(res.data);
+    } catch (err) {
+      setError("Failed to load compliance tasks");
     }
   };
 
@@ -36,10 +80,20 @@ const Dashboard = () => {
     loadApplications();
   }, []);
 
+  useEffect(() => {
+    if (selectedAppId) {
+      loadDocuments(selectedAppId);
+      loadPayments(selectedAppId);
+      loadTasks(selectedAppId);
+      setDocPayload((prev) => ({ ...prev, applicationId: selectedAppId }));
+    }
+  }, [selectedAppId]);
+
   const submitPayment = async (applicationId) => {
     try {
-      await client.post("/payments", { applicationId, amount: 5000 });
+      await client.post("/payments", { applicationId, amount: 5000, gateway: "mock" });
       setMessage("Payment recorded");
+      await loadPayments(applicationId);
     } catch (err) {
       setError("Payment failed");
     }
@@ -60,8 +114,9 @@ const Dashboard = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMessage("Document uploaded");
-      setDocPayload({ applicationId: "", type: "" });
+      setDocPayload({ applicationId: selectedAppId, type: "" });
       setFile(null);
+      await loadDocuments(selectedAppId);
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed");
     }
@@ -94,15 +149,26 @@ const Dashboard = () => {
           </Typography>
           <Stack spacing={2}>
             {applications.map((app) => (
-              <Card key={app._id} variant="outlined">
+              <Card
+                key={app._id}
+                variant={app._id === selectedAppId ? "elevation" : "outlined"}
+                onClick={() => setSelectedAppId(app._id)}
+                sx={{ cursor: "pointer" }}
+              >
                 <CardContent>
                   <Typography variant="subtitle1">
                     {app.propertyId?.title || "Property"} • {app.stage}
                   </Typography>
+                  <Typography color="text.secondary">
+                    Regulatory: {app.regulatoryStatus || "NOT_STARTED"}
+                  </Typography>
                   <Typography color="text.secondary">Status: {app.status}</Typography>
-                  <Button sx={{ mt: 1 }} size="small" onClick={() => submitPayment(app._id)}>
-                    Pay reservation
-                  </Button>
+                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                    <Button size="small" onClick={() => submitPayment(app._id)}>
+                      Pay reservation
+                    </Button>
+                    <Chip label={app.assignedTo ? `Assigned to ${app.assignedTo.email}` : "Unassigned"} />
+                  </Stack>
                 </CardContent>
               </Card>
             ))}
@@ -150,11 +216,72 @@ const Dashboard = () => {
                   {file.name}
                 </Typography>
               )}
-              <Button type="submit" variant="contained">
+              <Button type="submit" variant="contained" disabled={!docPayload.applicationId}>
                 Upload
               </Button>
             </Stack>
           </Box>
+        </Grid>
+      </Grid>
+
+      <Divider sx={{ my: 4 }} />
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Documents
+          </Typography>
+          <Stack spacing={1.5}>
+            {documents.map((doc) => (
+              <Card key={doc._id} variant="outlined">
+                <CardContent>
+                  <Typography variant="subtitle2">{doc.type}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {doc.fileName} • {doc.status}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+            {!documents.length && <Typography color="text.secondary">No documents yet.</Typography>}
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Compliance tasks
+          </Typography>
+          <Stack spacing={1.5}>
+            {tasks.map((task) => (
+              <Card key={task._id} variant="outlined">
+                <CardContent>
+                  <Typography variant="subtitle2">{task.title}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {task.agency} • {task.status}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+            {!tasks.length && <Typography color="text.secondary">No compliance tasks yet.</Typography>}
+          </Stack>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Payments
+          </Typography>
+          <Stack spacing={1.5}>
+            {payments.map((pay) => (
+              <Card key={pay._id} variant="outlined">
+                <CardContent>
+                  <Typography variant="subtitle2">{pay.reference}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {pay.amount} • {pay.status}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+            {!payments.length && <Typography color="text.secondary">No payments yet.</Typography>}
+          </Stack>
         </Grid>
       </Grid>
     </Container>

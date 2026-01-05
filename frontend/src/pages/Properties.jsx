@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Container, Grid, Typography, Alert, Snackbar } from "@mui/material";
+import {
+  Alert,
+  Container,
+  Grid,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+  Button,
+} from "@mui/material";
 import PropertyCard from "../components/PropertyCard";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -8,13 +17,18 @@ const Properties = () => {
   const [properties, setProperties] = useState([]);
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState("");
+  const [filters, setFilters] = useState({ search: "", location: "", minPrice: "", maxPrice: "" });
   const { user } = useAuth();
 
-  useEffect(() => {
+  const loadProperties = () => {
     client
-      .get("/properties")
+      .get("/properties", { params: filters })
       .then((res) => setProperties(res.data))
       .catch(() => setError("Failed to load properties"));
+  };
+
+  useEffect(() => {
+    loadProperties();
   }, []);
 
   const handleApply = async (property) => {
@@ -30,11 +44,47 @@ const Properties = () => {
     }
   };
 
+  const handleFilterChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
+
+  const applyFilters = (e) => {
+    e.preventDefault();
+    loadProperties();
+  };
+
   return (
     <Container sx={{ py: 4 }}>
       <Typography variant="h4" sx={{ mb: 3 }}>
         Properties
       </Typography>
+      <Stack
+        component="form"
+        direction={{ xs: "column", md: "row" }}
+        spacing={2}
+        sx={{ mb: 2 }}
+        onSubmit={applyFilters}
+      >
+        <TextField label="Keyword" name="search" value={filters.search} onChange={handleFilterChange} />
+        <TextField label="Location" name="location" value={filters.location} onChange={handleFilterChange} />
+        <TextField
+          label="Min price"
+          name="minPrice"
+          type="number"
+          value={filters.minPrice}
+          onChange={handleFilterChange}
+        />
+        <TextField
+          label="Max price"
+          name="maxPrice"
+          type="number"
+          value={filters.maxPrice}
+          onChange={handleFilterChange}
+        />
+        <Button type="submit" variant="contained">
+          Filter
+        </Button>
+      </Stack>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -46,6 +96,11 @@ const Properties = () => {
             <PropertyCard property={property} onApply={handleApply} />
           </Grid>
         ))}
+        {!properties.length && (
+          <Grid item xs={12}>
+            <Typography color="text.secondary">No properties found.</Typography>
+          </Grid>
+        )}
       </Grid>
       <Snackbar
         open={Boolean(notice)}
