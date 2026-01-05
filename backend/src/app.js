@@ -52,6 +52,9 @@ app.use("/api/audit", auditRoutes);
 app.use("/api/compliance", complianceRoutes);
 app.use("/api/users", userRoutes);
 
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });

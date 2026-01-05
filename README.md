@@ -58,6 +58,7 @@ docker compose up --build
 - `GET /api/users` – list users (admin)
 - `PUT /api/users/:id/role` – update user role (admin)
 - `GET /api/audit` – audit logs (admin)
+- `GET /api/health` – API health check
 
 ## Frontend Flows
 
