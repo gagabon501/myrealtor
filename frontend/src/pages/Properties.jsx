@@ -36,7 +36,8 @@ const Properties = () => {
 
   const handleApply = async (property) => {
     if (!user) {
-      setNotice("Please login before applying.");
+      setNotice("Please register to continue your application.");
+      navigate("/register");
       return;
     }
     try {

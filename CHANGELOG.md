@@ -5,6 +5,10 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Unreleased]
 - Pending changes not yet tagged.
 
+## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
+- Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
+- Property apply flow now forces registration for unauthenticated users (redirects to register).
+
 ## [Backend 1.1.16 / Frontend 0.2.16] – Compose updates
 - Compose/deploy tweaks for current infrastructure.
 
