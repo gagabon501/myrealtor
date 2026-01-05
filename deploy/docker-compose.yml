@@ -55,3 +55,4 @@ networks:
     driver: bridge
   traefik:
     external: true
+    name: root_default
