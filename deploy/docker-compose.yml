@@ -1,43 +1,51 @@
-version: "3.9"
-
 services:
   mongo:
     image: mongo:7
-    restart: always
-    ports:
-      - "27017:27017"
+    restart: unless-stopped
     volumes:
-      - mongo-data:/data/db
+      - mongo_data:/data/db
+    networks:
+      - internal
 
-  backend:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+  api:
+    build: ../backend
+    restart: unless-stopped
     env_file:
-      - ../backend/example.env
+      - .env.prod
     environment:
-      - MONGO_URI=mongodb://mongo:27017/myrealtor
-      - JWT_SECRET=${JWT_SECRET:-super-secret-key}
-    ports:
-      - "5000:5000"
-    volumes:
-      - ../backend/src/uploads:/app/src/uploads
+      - PORT=3000
     depends_on:
       - mongo
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.myrealtor-api.rule=Host(`apimyrealtor.nodesafe.cloud`)"
+      - "traefik.http.routers.myrealtor-api.entrypoints=websecure"
+      - "traefik.http.routers.myrealtor-api.tls=true"
+      - "traefik.http.services.myrealtor-api.loadbalancer.server.port=3000"
+    networks:
+      - internal
+      - traefik
 
   frontend:
     build:
       context: ../frontend
-      dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://localhost:5000/api
-    environment:
-      - VITE_API_URL=http://localhost:5000/api
-    ports:
-      - "4173:4173"
-    depends_on:
-      - backend
+        - VITE_API_URL=https://apimyrealtor.nodesafe.cloud
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.myrealtor-web.rule=Host(`myrealtor.nodesafe.cloud`)"
+      - "traefik.http.routers.myrealtor-web.entrypoints=websecure"
+      - "traefik.http.routers.myrealtor-web.tls=true"
+      - "traefik.http.services.myrealtor-web.loadbalancer.server.port=80"
+    networks:
+      - traefik
 
 volumes:
-  mongo-data:
+  mongo_data:
 
+networks:
+  internal:
+    driver: bridge
+  traefik:
+    external: true
