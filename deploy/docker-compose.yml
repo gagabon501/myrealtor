@@ -18,14 +18,15 @@ services:
       - mongo
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=root_default"
       - "traefik.http.routers.myrealtor-api.rule=Host(`apimyrealtor.nodesafe.cloud`)"
       - "traefik.http.routers.myrealtor-api.entrypoints=websecure"
       - "traefik.http.routers.myrealtor-api.tls=true"
       - "traefik.http.routers.myrealtor-api.tls.certresolver=mytlschallenge"
       - "traefik.http.services.myrealtor-api.loadbalancer.server.port=5000"
     networks:
-      - internal
       - root_default
+      - internal
 
   frontend:
     build:
