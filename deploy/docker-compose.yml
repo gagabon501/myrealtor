@@ -22,7 +22,7 @@ services:
       - "traefik.http.routers.myrealtor-api.entrypoints=websecure"
       - "traefik.http.routers.myrealtor-api.tls=true"
       - "traefik.http.routers.myrealtor-api.tls.certresolver=mytlschallenge"
-      - "traefik.http.services.myrealtor-api.loadbalancer.server.port=3000"
+      - "traefik.http.services.myrealtor-api.loadbalancer.server.port=5000"
 
     networks:
       - internal
@@ -32,7 +32,7 @@ services:
     build:
       context: ../frontend
       args:
-        - VITE_API_URL=https://apimyrealtor.nodesafe.cloud
+        - VITE_API_URL=https://apimyrealtor.nodesafe.cloud/api
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
