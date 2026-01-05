@@ -42,7 +42,7 @@ services:
       - "traefik.http.routers.myrealtor-web.rule=Host(`myrealtor.nodesafe.cloud`)"
       - "traefik.http.routers.myrealtor-web.entrypoints=websecure"
       - "traefik.http.routers.myrealtor-web.tls=true"
-      - "traefik.http.routers.myrealtor-web.tls.certresolver=CERTRESOLVER_NAME"
+      - "traefik.http.routers.myrealtor-web.tls.certresolver=mytlschallenge"
       - "traefik.http.services.myrealtor-web.loadbalancer.server.port=80"
     networks:
       - traefik
