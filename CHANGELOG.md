@@ -69,6 +69,12 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.35 / Frontend 0.2.35] – CTA label
 - Shortened the apply CTA label to one line (“Start Application”).
 
+## [Backend 1.1.36 / Frontend 0.2.36] – Services PRD coverage (initial)
+- Added models and endpoints for brokerage interest, appraisal, titling, and consultancy requests.
+- Property supports earnest money flag and buyer interest capture.
+- Services page with forms for appraisal, titling/transfer, and consultancy.
+- Added property interest flow and services nav link.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

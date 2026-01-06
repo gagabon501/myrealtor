@@ -44,6 +44,10 @@ export const createProperty = async (req, res, next) => {
     const imagePaths =
       req.files?.map((file) => `/uploads/properties/${file.filename}`)?.slice(0, 4) || [];
     const payload = { ...req.body };
+    if (req.body.earnestMoneyRequired !== undefined) {
+      payload.earnestMoneyRequired =
+        req.body.earnestMoneyRequired === "true" || req.body.earnestMoneyRequired === true;
+    }
     if (imagePaths.length) payload.images = imagePaths;
     const property = await Property.create(payload);
     await recordAudit({
@@ -67,6 +71,10 @@ export const updateProperty = async (req, res, next) => {
     const newImages = req.files?.map((file) => `/uploads/properties/${file.filename}`) || [];
 
     const update = { ...req.body };
+    if (req.body.earnestMoneyRequired !== undefined) {
+      update.earnestMoneyRequired =
+        req.body.earnestMoneyRequired === "true" || req.body.earnestMoneyRequired === true;
+    }
     const options = { new: true };
 
     const property = await Property.findById(req.params.id);

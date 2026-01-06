@@ -10,6 +10,8 @@ import Apply from "./pages/Apply";
 import NewProperty from "./pages/NewProperty";
 import EditProperty from "./pages/EditProperty";
 import ManageUsers from "./pages/ManageUsers";
+import Services from "./pages/Services";
+import PropertyInterest from "./pages/PropertyInterest";
 import TopBar from "./components/TopBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
@@ -72,6 +74,8 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/services" element={<Services />} />
+          <Route path="/properties/:id/interest" element={<PropertyInterest />} />
           <Route
             path="/users"
             element={

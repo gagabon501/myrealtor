@@ -68,6 +68,9 @@ const TopBar = () => {
           <Button component={Link} to="/properties">
             Properties
           </Button>
+          <Button component={Link} to="/services">
+            Services
+          </Button>
           {user ? (
             <>
               <Button component={Link} to="/apply">

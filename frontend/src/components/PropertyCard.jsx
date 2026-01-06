@@ -60,8 +60,11 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
         <Typography variant="h6">{property.title}</Typography>
         <Typography color="text.secondary">{property.location}</Typography>
         <Typography sx={{ my: 1 }}>₱{property.price?.toLocaleString()}</Typography>
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
           <Chip label={property.status} color="primary" size="small" />
+          {property.earnestMoneyRequired && (
+            <Chip label="Earnest money required" color="warning" size="small" />
+          )}
         </Stack>
       </CardContent>
       {property.description && (
@@ -110,6 +113,11 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
           {onApply && (
             <Button size="small" onClick={() => onApply(property)}>
               Apply
+            </Button>
+          )}
+          {!canManage && (
+            <Button size="small" component="a" href={`/properties/${property._id}/interest`}>
+              Interested
             </Button>
           )}
           {canManage && (

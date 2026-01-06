@@ -13,6 +13,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import auditRoutes from "./routes/auditRoutes.js";
 import complianceRoutes from "./routes/complianceRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import serviceRoutes from "./routes/serviceRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -57,6 +58,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/compliance", complianceRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/services", serviceRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
