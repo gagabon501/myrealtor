@@ -107,6 +107,9 @@ const Home = () => {
           </Grid>
         </Grid>
       </Container>
+      <Box sx={{ textAlign: "center", color: "rgba(255,255,255,0.7)", pb: 3 }}>
+        <Typography variant="body2">© {new Date().getFullYear()} Gilberto Gabon. All rights reserved.</Typography>
+      </Box>
     </Box>
   );
 };

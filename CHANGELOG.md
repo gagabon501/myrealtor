@@ -47,6 +47,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.29 / Frontend 0.2.29] – Responsive two-column layout
 - Properties page now uses a CSS grid to enforce two columns on medium screens and above, single column on small screens.
 
+## [Backend 1.1.30 / Frontend 0.2.30] – Landing footer
+- Added a copyright notice for Gilberto Gabon on the landing page.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).
