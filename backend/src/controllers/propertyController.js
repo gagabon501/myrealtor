@@ -41,9 +41,10 @@ export const createProperty = async (req, res, next) => {
   }
 
   try {
-    const imagePath = req.file ? `/uploads/properties/${req.file.filename}` : undefined;
+    const imagePaths =
+      req.files?.map((file) => `/uploads/properties/${file.filename}`)?.slice(0, 4) || [];
     const payload = { ...req.body };
-    if (imagePath) payload.images = [imagePath];
+    if (imagePaths.length) payload.images = imagePaths;
     const property = await Property.create(payload);
     await recordAudit({
       actor: req.user.id,
@@ -63,31 +64,28 @@ export const updateProperty = async (req, res, next) => {
   }
 
   try {
-    const imagePath = req.file ? `/uploads/properties/${req.file.filename}` : null;
+    const newImages = req.files?.map((file) => `/uploads/properties/${file.filename}`) || [];
 
     const update = { ...req.body };
     const options = { new: true };
-    let property;
 
-    if (imagePath) {
-      property = await Property.findByIdAndUpdate(
-        req.params.id,
-        { $set: update, $push: { images: imagePath } },
-        options
-      );
-    } else {
-      property = await Property.findByIdAndUpdate(req.params.id, update, options);
+    const property = await Property.findById(req.params.id);
+    if (!property) return res.status(404).json({ message: "Property not found" });
+
+    let mergedImages = property.images || [];
+    if (newImages.length) {
+      mergedImages = [...mergedImages, ...newImages].slice(0, 4);
+      update.images = mergedImages;
     }
 
-    if (!property)
-      return res.status(404).json({ message: "Property not found" });
+    const updated = await Property.findByIdAndUpdate(req.params.id, update, options);
 
     await recordAudit({
       actor: req.user.id,
       action: "PROPERTY_UPDATED",
-      context: { propertyId: property._id.toString() },
+      context: { propertyId: updated._id.toString() },
     });
-    res.json(property);
+    res.json(updated);
   } catch (err) {
     next(err);
   }

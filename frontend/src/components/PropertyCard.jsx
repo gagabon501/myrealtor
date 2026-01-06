@@ -24,7 +24,8 @@ const normalizeImageUrl = (image) => {
 };
 
 const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
-  const imageUrl = normalizeImageUrl(property.images?.[0]);
+  const images = property.images || [];
+  const imageUrl = normalizeImageUrl(images[0]);
   return (
     <Card variant="outlined">
       {imageUrl && (
@@ -64,6 +65,31 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
             </>
           )}
         </CardActions>
+      )}
+      {images.length > 1 && (
+        <Stack direction="row" spacing={1} sx={{ p: 1, pt: 0, flexWrap: "wrap" }}>
+          {images.slice(1, 4).map((img, idx) => {
+            const thumb = normalizeImageUrl(img);
+            return (
+              <CardActionArea
+                key={img + idx}
+                component="a"
+                href={thumb}
+                target="_blank"
+                rel="noreferrer"
+                sx={{ width: 72 }}
+              >
+                <CardMedia
+                  component="img"
+                  height="56"
+                  image={thumb}
+                  alt={`${property.title} thumbnail ${idx + 1}`}
+                  sx={{ objectFit: "cover", borderRadius: 1 }}
+                />
+              </CardActionArea>
+            );
+          })}
+        </Stack>
       )}
     </Card>
   );

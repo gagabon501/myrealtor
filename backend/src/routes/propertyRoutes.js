@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
   filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { files: 4 } });
 
 router.get("/", listProperties);
 router.get("/:id", getProperty);
@@ -32,7 +32,7 @@ router.post(
   "/",
   authenticate,
   authorizeRoles("staff", "admin"),
-  upload.single("image"),
+  upload.array("images", 4),
   [body("title").notEmpty(), body("location").notEmpty(), body("price").isNumeric()],
   createProperty
 );
@@ -41,7 +41,7 @@ router.put(
   "/:id",
   authenticate,
   authorizeRoles("staff", "admin"),
-  upload.single("image"),
+  upload.array("images", 4),
   [body("title").optional(), body("location").optional(), body("price").optional().isNumeric()],
   updateProperty
 );

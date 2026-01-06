@@ -5,6 +5,11 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Unreleased]
 - Pending changes not yet tagged.
 
+## [Backend 1.1.19 / Frontend 0.2.19] – Multi-image properties
+- Allow up to 4 images per property (create/update).
+- Property cards show primary image with clickable thumbnails; new/edit forms support multi-upload with previews.
+- Apply flow already enforces registration before submitting applications.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

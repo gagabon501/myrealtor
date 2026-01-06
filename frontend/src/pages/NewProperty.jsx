@@ -8,6 +8,8 @@ import {
   Stack,
   TextField,
   Typography,
+  ImageList,
+  ImageListItem,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import client from "../api/client";
@@ -22,7 +24,7 @@ const NewProperty = () => {
     status: "AVAILABLE",
     description: "",
   });
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,7 @@ const NewProperty = () => {
     try {
       const data = new FormData();
       Object.entries(form).forEach(([key, value]) => data.append(key, value));
-      if (file) data.append("image", file);
+      files.slice(0, 4).forEach((file) => data.append("images", file));
       await client.post("/properties", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -119,18 +121,26 @@ const NewProperty = () => {
             onChange={handleChange}
           />
           <Button variant="outlined" component="label">
-            {file ? "Change photo" : "Select photo"}
+            {files.length ? "Change photos (up to 4)" : "Select photos (up to 4)"}
             <input
               type="file"
               accept="image/*"
               hidden
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              multiple
+              onChange={(e) => {
+                const incoming = Array.from(e.target.files || []);
+                setFiles(incoming.slice(0, 4));
+              }}
             />
           </Button>
-          {file && (
-            <Typography variant="body2" color="text.secondary">
-              {file.name}
-            </Typography>
+          {files.length > 0 && (
+            <ImageList cols={4} gap={8} sx={{ width: "100%", maxWidth: 520 }}>
+              {files.map((file, idx) => (
+                <ImageListItem key={file.name + idx}>
+                  <img src={URL.createObjectURL(file)} alt={file.name} loading="lazy" />
+                </ImageListItem>
+              ))}
+            </ImageList>
           )}
           <Button type="submit" variant="contained" disabled={loading}>
             {loading ? "Saving..." : "Create property"}

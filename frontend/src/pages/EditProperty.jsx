@@ -8,9 +8,12 @@ import {
   Stack,
   TextField,
   Typography,
+  ImageList,
+  ImageListItem,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import client from "../api/client";
+import { apiBase } from "../api/client";
 
 const statuses = ["AVAILABLE", "RESERVED", "SOLD"];
 
@@ -23,7 +26,8 @@ const EditProperty = () => {
     status: "AVAILABLE",
     description: "",
   });
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -41,6 +45,7 @@ const EditProperty = () => {
           status: p.status || "AVAILABLE",
           description: p.description || "",
         });
+        setExistingImages(p.images || []);
       })
       .catch(() => setError("Failed to load property"));
   }, [id]);
@@ -57,7 +62,7 @@ const EditProperty = () => {
     try {
       const data = new FormData();
       Object.entries(form).forEach(([key, value]) => data.append(key, value));
-      if (file) data.append("image", file);
+      files.slice(0, 4).forEach((file) => data.append("images", file));
       await client.put(`/properties/${id}`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -131,19 +136,44 @@ const EditProperty = () => {
             value={form.description}
             onChange={handleChange}
           />
+          {existingImages.length > 0 && (
+            <>
+              <Typography variant="subtitle2" color="text.secondary">
+                Existing photos
+              </Typography>
+              <ImageList cols={4} gap={8} sx={{ width: "100%", maxWidth: 520 }}>
+                {existingImages.map((img, idx) => {
+                  const full = img.startsWith("http") ? img : `${apiBase}${img.startsWith("/") ? "" : "/"}${img}`;
+                  return (
+                    <ImageListItem key={img + idx}>
+                      <img src={full} alt={`existing-${idx}`} loading="lazy" />
+                    </ImageListItem>
+                  );
+                })}
+              </ImageList>
+            </>
+          )}
           <Button variant="outlined" component="label">
-            {file ? "Change photo" : "Add another photo"}
+            {files.length ? "Change photos (adds up to 4)" : "Add photos (up to 4 total)"}
             <input
               type="file"
               accept="image/*"
               hidden
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              multiple
+              onChange={(e) => {
+                const incoming = Array.from(e.target.files || []);
+                setFiles(incoming.slice(0, 4));
+              }}
             />
           </Button>
-          {file && (
-            <Typography variant="body2" color="text.secondary">
-              {file.name}
-            </Typography>
+          {files.length > 0 && (
+            <ImageList cols={4} gap={8} sx={{ width: "100%", maxWidth: 520 }}>
+              {files.map((file, idx) => (
+                <ImageListItem key={file.name + idx}>
+                  <img src={URL.createObjectURL(file)} alt={file.name} loading="lazy" />
+                </ImageListItem>
+              ))}
+            </ImageList>
           )}
           <Button type="submit" variant="contained" disabled={loading}>
             {loading ? "Saving..." : "Update property"}
