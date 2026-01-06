@@ -30,6 +30,14 @@ All notable changes to this project are documented here. Version numbers refer t
 - Docker Compose mounts `uploads_data` to keep images across deploys.
 - Property upload paths honor `UPLOADS_ROOT` when provided.
 
+## [Backend 1.1.25 / Frontend 0.2.25] – Upload volume and bumps
+- Persist uploads volume; version alignment.
+
+## [Backend 1.1.26 / Frontend 0.2.26] – Property gallery polish
+- Property cards layout tightened; thumbnail styling improved and grid stretches cards evenly.
+- New/Edit property forms now keep up to 4 selected images at once (no need for multiple passes).
+- Upload root still uses persistent volume configuration.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

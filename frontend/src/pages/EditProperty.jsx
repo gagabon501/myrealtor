@@ -162,7 +162,7 @@ const EditProperty = () => {
               multiple
               onChange={(e) => {
                 const incoming = Array.from(e.target.files || []);
-                setFiles(incoming.slice(0, 4));
+                setFiles((prev) => [...prev, ...incoming].slice(0, 4));
               }}
             />
           </Button>

@@ -114,7 +114,7 @@ const Properties = () => {
           {error}
         </Alert>
       )}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} alignItems="stretch">
         {properties.map((property) => (
           <Grid item xs={12} md={4} key={property._id}>
             <PropertyCard

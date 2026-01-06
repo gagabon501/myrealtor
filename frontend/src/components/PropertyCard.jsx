@@ -42,7 +42,7 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
         display: "flex",
         flexDirection: "column",
         borderRadius: 2,
-        boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+        boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
       }}
     >
       {imageUrl && (
@@ -70,13 +70,16 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
             {images.slice(1, 4).map((img, idx) => {
               const thumb = normalizeImageUrl(img);
               return (
-                <ImageListItem key={img + idx} sx={{ overflow: "hidden", borderRadius: 1 }}>
+                <ImageListItem
+                  key={img + idx}
+                  sx={{ overflow: "hidden", borderRadius: 1, border: "1px solid rgba(0,0,0,0.04)" }}
+                >
                   <CardActionArea component="a" href={thumb} target="_blank" rel="noreferrer">
                     <img
                       src={thumb}
                       alt={`${property.title} thumbnail ${idx + 1}`}
                       loading="lazy"
-                      style={{ width: "100%", height: 72, objectFit: "cover" }}
+                      style={{ width: "100%", height: 72, objectFit: "cover", display: "block" }}
                     />
                   </CardActionArea>
                 </ImageListItem>
