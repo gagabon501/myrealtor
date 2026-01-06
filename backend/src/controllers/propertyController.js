@@ -77,6 +77,21 @@ export const createProperty = async (req, res, next) => {
         ?.map((file) => `/uploads/properties/${file.filename}`)
         ?.slice(0, 4) || [];
     const payload = { ...req.body };
+    if (payload.status) {
+      const normalized = payload.status.toUpperCase();
+      const allowed = [
+        "DRAFT",
+        "AVAILABLE",
+        "RESERVED",
+        "UNDER_NEGOTIATION",
+        "SOLD",
+        "ARCHIVED",
+      ];
+      if (!allowed.includes(normalized)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      payload.status = normalized;
+    }
     if (req.body.earnestMoneyRequired !== undefined) {
       payload.earnestMoneyRequired =
         req.body.earnestMoneyRequired === "true" ||
@@ -106,6 +121,21 @@ export const updateProperty = async (req, res, next) => {
       req.files?.map((file) => `/uploads/properties/${file.filename}`) || [];
 
     const update = { ...req.body };
+    if (update.status) {
+      const normalized = update.status.toUpperCase();
+      const allowed = [
+        "DRAFT",
+        "AVAILABLE",
+        "RESERVED",
+        "UNDER_NEGOTIATION",
+        "SOLD",
+        "ARCHIVED",
+      ];
+      if (!allowed.includes(normalized)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      update.status = normalized;
+    }
     if (req.body.earnestMoneyRequired !== undefined) {
       update.earnestMoneyRequired =
         req.body.earnestMoneyRequired === "true" ||

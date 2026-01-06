@@ -98,6 +98,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.42 / Frontend 0.2.42] – Listing rules housekeeping
 - Retained public/admin listing rules; version alignment.
 
+## [Backend 1.1.43 / Frontend 0.2.43] – Status validation
+- Property create/update now normalizes and validates status against the enum; invalid values return 400.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
