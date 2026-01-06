@@ -7,7 +7,7 @@ const propertySchema = new mongoose.Schema(
     price: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["AVAILABLE", "RESERVED", "SOLD"],
+      enum: ["DRAFT", "AVAILABLE", "RESERVED", "UNDER_NEGOTIATION", "SOLD", "ARCHIVED"],
       default: "AVAILABLE",
     },
     description: String,
