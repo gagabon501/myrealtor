@@ -17,6 +17,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.21 / Frontend 0.2.21] – Property rendering fix
 - Handle legacy properties whose `images` value is a single string to avoid render crashes and ensure cards always show.
 
+## [Backend 1.1.22 / Frontend 0.2.22] – Branding polish
+- Added a more prominent MyRealtor PH logo/wordmark in the top bar linking to home.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

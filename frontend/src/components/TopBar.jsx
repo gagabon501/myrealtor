@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Typography, Button, Stack } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Stack, Box } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -14,9 +14,42 @@ const TopBar = () => {
   return (
     <AppBar position="static" color="transparent" elevation={0} sx={{ mb: 2 }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6" component={Link} to="/" sx={{ textDecoration: "none" }}>
-          MyRealtor PH
-        </Typography>
+        <Box
+          component={Link}
+          to="/"
+          sx={{
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 1,
+            py: 0.5,
+            borderRadius: 1.5,
+            transition: "all 0.2s ease",
+            "&:hover": {
+              backgroundColor: "rgba(25, 118, 210, 0.08)",
+            },
+          }}
+        >
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #1d4ed8, #0f172a)",
+              display: "grid",
+              placeItems: "center",
+              color: "#fff",
+              fontWeight: 800,
+              letterSpacing: -0.5,
+            }}
+          >
+            MR
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a" }}>
+            MyRealtor PH
+          </Typography>
+        </Box>
         <Stack direction="row" spacing={1}>
           <Button component={Link} to="/properties">
             Properties
