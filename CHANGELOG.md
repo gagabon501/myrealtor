@@ -91,6 +91,10 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.40 / Frontend 0.2.40] – Admin property listing
 - Added GET `/api/properties/admin` protected for staff/admin, reusing property listing logic.
 
+## [Backend 1.1.41 / Frontend 0.2.41] – Public-safe listing defaults
+- Public property listing defaults to AVAILABLE when status is omitted and rejects DRAFT/ARCHIVED requests.
+- Status query normalized to uppercase; admin listing remains unrestricted.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

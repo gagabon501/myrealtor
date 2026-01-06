@@ -10,7 +10,16 @@ export const listProperties = async (req, res, next) => {
     const query = {};
     if (location) query.location = new RegExp(location, "i");
     if (search) query.title = new RegExp(search, "i");
-    if (status) query.status = status;
+    if (status) {
+      const normalized = status.toUpperCase();
+      const forbidden = ["DRAFT", "ARCHIVED"];
+      if (!req.user && forbidden.includes(normalized)) {
+        return res.status(403).json({ message: "Status not available" });
+      }
+      query.status = normalized;
+    } else if (!req.user) {
+      query.status = "AVAILABLE";
+    }
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
