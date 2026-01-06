@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Container,
-  Grid,
-  Snackbar,
-  Stack,
-  TextField,
-  Typography,
-  Button,
-} from "@mui/material";
+import { Alert, Container, Snackbar, Stack, TextField, Typography, Button, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import PropertyCard from "../components/PropertyCard";
 import client from "../api/client";
@@ -114,24 +105,30 @@ const Properties = () => {
           {error}
         </Alert>
       )}
-      <Grid container spacing={3} alignItems="stretch">
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+          gap: 3,
+          alignItems: "stretch",
+        }}
+      >
         {properties.map((property) => (
-          <Grid item xs={12} md={6} key={property._id}>
-            <PropertyCard
-              property={property}
-              onApply={handleApply}
-              canManage={canManage}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </Grid>
+          <PropertyCard
+            key={property._id}
+            property={property}
+            onApply={handleApply}
+            canManage={canManage}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
         ))}
-        {!properties.length && (
-          <Grid item xs={12}>
-            <Typography color="text.secondary">No properties found.</Typography>
-          </Grid>
-        )}
-      </Grid>
+      </Box>
+      {!properties.length && (
+        <Typography color="text.secondary" sx={{ mt: 2 }}>
+          No properties found.
+        </Typography>
+      )}
       <Snackbar
         open={Boolean(notice)}
         autoHideDuration={4000}
