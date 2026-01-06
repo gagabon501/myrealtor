@@ -116,7 +116,7 @@ const Properties = () => {
       )}
       <Grid container spacing={3} alignItems="stretch">
         {properties.map((property) => (
-          <Grid item xs={12} md={4} key={property._id}>
+          <Grid item xs={12} md={6} key={property._id}>
             <PropertyCard
               property={property}
               onApply={handleApply}
