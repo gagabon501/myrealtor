@@ -8,6 +8,8 @@ import {
   Stack,
   CardMedia,
   CardActionArea,
+  ImageList,
+  ImageListItem,
 } from "@mui/material";
 import { apiBase } from "../api/client";
 
@@ -27,12 +29,21 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
   const images = property.images || [];
   const imageUrl = normalizeImageUrl(images[0]);
   return (
-    <Card variant="outlined">
+    <Card
+      variant="outlined"
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 2,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+      }}
+    >
       {imageUrl && (
         <CardActionArea component="a" href={imageUrl} target="_blank" rel="noreferrer">
           <CardMedia
             component="img"
-            height="160"
+            height="190"
             image={imageUrl}
             alt={property.title}
             sx={{ objectFit: "cover" }}
@@ -47,8 +58,29 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
           <Chip label={property.status} color="primary" size="small" />
         </Stack>
       </CardContent>
+      {images.length > 1 && (
+        <Box sx={{ px: 2, pb: 1 }}>
+          <ImageList cols={3} gap={8} sx={{ width: "100%" }}>
+            {images.slice(1, 4).map((img, idx) => {
+              const thumb = normalizeImageUrl(img);
+              return (
+                <ImageListItem key={img + idx} sx={{ overflow: "hidden", borderRadius: 1 }}>
+                  <CardActionArea component="a" href={thumb} target="_blank" rel="noreferrer">
+                    <img
+                      src={thumb}
+                      alt={`${property.title} thumbnail ${idx + 1}`}
+                      loading="lazy"
+                      style={{ width: "100%", height: 72, objectFit: "cover" }}
+                    />
+                  </CardActionArea>
+                </ImageListItem>
+              );
+            })}
+          </ImageList>
+        </Box>
+      )}
       {(onApply || canManage) && (
-        <CardActions>
+        <CardActions sx={{ mt: "auto" }}>
           {onApply && (
             <Button size="small" onClick={() => onApply(property)}>
               Apply
@@ -65,31 +97,6 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
             </>
           )}
         </CardActions>
-      )}
-      {images.length > 1 && (
-        <Stack direction="row" spacing={1} sx={{ p: 1, pt: 0, flexWrap: "wrap" }}>
-          {images.slice(1, 4).map((img, idx) => {
-            const thumb = normalizeImageUrl(img);
-            return (
-              <CardActionArea
-                key={img + idx}
-                component="a"
-                href={thumb}
-                target="_blank"
-                rel="noreferrer"
-                sx={{ width: 72 }}
-              >
-                <CardMedia
-                  component="img"
-                  height="56"
-                  image={thumb}
-                  alt={`${property.title} thumbnail ${idx + 1}`}
-                  sx={{ objectFit: "cover", borderRadius: 1 }}
-                />
-              </CardActionArea>
-            );
-          })}
-        </Stack>
       )}
     </Card>
   );

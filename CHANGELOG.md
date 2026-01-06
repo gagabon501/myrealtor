@@ -10,6 +10,10 @@ All notable changes to this project are documented here. Version numbers refer t
 - Property cards show primary image with clickable thumbnails; new/edit forms support multi-upload with previews.
 - Apply flow already enforces registration before submitting applications.
 
+## [Backend 1.1.20 / Frontend 0.2.20] – Property card polish
+- Improved property card layout, spacing, and thumbnail presentation (up to 3 thumbs).
+- Slightly enhanced properties page header and spacing.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

@@ -74,9 +74,14 @@ const Properties = () => {
 
   return (
     <Container sx={{ py: 4 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Properties
-      </Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          Properties
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Browse listings and apply—registration required to proceed.
+        </Typography>
+      </Stack>
       <Stack
         component="form"
         direction={{ xs: "column", md: "row" }}
@@ -109,7 +114,7 @@ const Properties = () => {
           {error}
         </Alert>
       )}
-      <Grid container spacing={2}>
+      <Grid container spacing={3}>
         {properties.map((property) => (
           <Grid item xs={12} md={4} key={property._id}>
             <PropertyCard
