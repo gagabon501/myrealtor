@@ -49,7 +49,7 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
         <CardActionArea component="a" href={imageUrl} target="_blank" rel="noreferrer">
           <CardMedia
             component="img"
-            height="190"
+            sx={{ height: { xs: 180, md: 210 } }}
             image={imageUrl}
             alt={property.title}
             sx={{ objectFit: "cover" }}

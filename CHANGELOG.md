@@ -50,6 +50,11 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.30 / Frontend 0.2.30] – Landing footer
 - Added a copyright notice for Gilberto Gabon on the landing page.
 
+## [Backend 1.1.31 / Frontend 0.2.31] – Mobile polish
+- Landing hero centered and button stacks improved on mobile; footer retained.
+- Property cards get responsive image heights; filter fields now full width on small screens.
+- Properties grid continues responsive layout (2 columns on md+, 1 on small).
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

@@ -14,34 +14,57 @@ import { Link } from "react-router-dom";
 const Home = () => {
   return (
     <Box sx={{ background: "linear-gradient(135deg, #0f172a 0%, #1d4ed8 50%, #0f172a 100%)", color: "#fff" }}>
-      <Container sx={{ py: 8 }}>
-        <Grid container spacing={6} alignItems="center">
+      <Container sx={{ py: { xs: 4, md: 8 } }}>
+        <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center" direction={{ xs: "column-reverse", md: "row" }}>
           <Grid item xs={12} md={6}>
-            <Typography variant="overline" sx={{ letterSpacing: 2, color: "rgba(255,255,255,0.7)" }}>
+            <Typography
+              variant="overline"
+              sx={{ letterSpacing: 2, color: "rgba(255,255,255,0.7)", textAlign: { xs: "center", md: "left" } }}
+            >
               MyRealtor PH
             </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 800, lineHeight: 1.1, mb: 2 }}>
+            <Typography
+              variant="h3"
+              sx={{ fontWeight: 800, lineHeight: 1.1, mb: 2, textAlign: { xs: "center", md: "left" } }}
+            >
               Discover, apply, and own property with confidence.
             </Typography>
-            <Typography variant="h6" sx={{ color: "rgba(255,255,255,0.85)", mb: 4 }}>
+            <Typography
+              variant="h6"
+              sx={{ color: "rgba(255,255,255,0.85)", mb: 4, textAlign: { xs: "center", md: "left" } }}
+            >
               Seamless listings, secure applications, compliance tracking, and payments—purpose-built
               for the Philippine market.
             </Typography>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { xs: "stretch", sm: "center" } }}>
               <Button
                 variant="contained"
                 color="secondary"
                 component={Link}
                 to="/properties"
                 size="large"
+                fullWidth
+                sx={{ maxWidth: { sm: 220 } }}
               >
                 Browse properties
               </Button>
-              <Button variant="outlined" color="inherit" component={Link} to="/apply" size="large">
+              <Button
+                variant="outlined"
+                color="inherit"
+                component={Link}
+                to="/apply"
+                size="large"
+                fullWidth
+                sx={{ maxWidth: { sm: 220 } }}
+              >
                 Start an application
               </Button>
             </Stack>
-            <Stack direction="row" spacing={2} sx={{ mt: 4, color: "rgba(255,255,255,0.8)" }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              sx={{ mt: 4, color: "rgba(255,255,255,0.8)", textAlign: { xs: "center", md: "left" } }}
+            >
               <Box>
                 <Typography variant="h5" sx={{ fontWeight: 700 }}>
                   End-to-end
@@ -62,7 +85,7 @@ const Home = () => {
               </Box>
             </Stack>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} sx={{ width: "100%" }}>
             <Card
               sx={{
                 background: "#0b1224",

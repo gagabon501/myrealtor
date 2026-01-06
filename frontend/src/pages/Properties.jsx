@@ -80,9 +80,10 @@ const Properties = () => {
         sx={{ mb: 2 }}
         onSubmit={applyFilters}
       >
-        <TextField label="Keyword" name="search" value={filters.search} onChange={handleFilterChange} />
-        <TextField label="Location" name="location" value={filters.location} onChange={handleFilterChange} />
+        <TextField fullWidth label="Keyword" name="search" value={filters.search} onChange={handleFilterChange} />
+        <TextField fullWidth label="Location" name="location" value={filters.location} onChange={handleFilterChange} />
         <TextField
+          fullWidth
           label="Min price"
           name="minPrice"
           type="number"
@@ -90,13 +91,14 @@ const Properties = () => {
           onChange={handleFilterChange}
         />
         <TextField
+          fullWidth
           label="Max price"
           name="maxPrice"
           type="number"
           value={filters.maxPrice}
           onChange={handleFilterChange}
         />
-        <Button type="submit" variant="contained">
+        <Button type="submit" variant="contained" sx={{ minWidth: { md: 120 } }}>
           Filter
         </Button>
       </Stack>
