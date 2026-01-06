@@ -8,16 +8,37 @@ export const listProperties = async (req, res, next) => {
   try {
     const { location, status, minPrice, maxPrice, search } = req.query;
     const query = {};
+    const isAdmin = !!req.user;
+    const allowedAdmin = [
+      "DRAFT",
+      "AVAILABLE",
+      "RESERVED",
+      "UNDER_NEGOTIATION",
+      "SOLD",
+      "ARCHIVED",
+    ];
+    const allowedPublic = [
+      "AVAILABLE",
+      "RESERVED",
+      "UNDER_NEGOTIATION",
+      "SOLD",
+    ];
+
     if (location) query.location = new RegExp(location, "i");
     if (search) query.title = new RegExp(search, "i");
     if (status) {
       const normalized = status.toUpperCase();
-      const forbidden = ["DRAFT", "ARCHIVED"];
-      if (!req.user && forbidden.includes(normalized)) {
-        return res.status(403).json({ message: "Status not available" });
+      if (!isAdmin) {
+        if (!allowedPublic.includes(normalized)) {
+          return res
+            .status(400)
+            .json({ message: "Invalid public status filter" });
+        }
+      } else if (!allowedAdmin.includes(normalized)) {
+        return res.status(400).json({ message: "Invalid status filter" });
       }
       query.status = normalized;
-    } else if (!req.user) {
+    } else if (!isAdmin) {
       query.status = "AVAILABLE";
     }
     if (minPrice || maxPrice) {
@@ -36,7 +57,8 @@ export const listProperties = async (req, res, next) => {
 export const getProperty = async (req, res, next) => {
   try {
     const property = await Property.findById(req.params.id);
-    if (!property) return res.status(404).json({ message: "Property not found" });
+    if (!property)
+      return res.status(404).json({ message: "Property not found" });
     res.json(property);
   } catch (err) {
     next(err);
@@ -51,11 +73,14 @@ export const createProperty = async (req, res, next) => {
 
   try {
     const imagePaths =
-      req.files?.map((file) => `/uploads/properties/${file.filename}`)?.slice(0, 4) || [];
+      req.files
+        ?.map((file) => `/uploads/properties/${file.filename}`)
+        ?.slice(0, 4) || [];
     const payload = { ...req.body };
     if (req.body.earnestMoneyRequired !== undefined) {
       payload.earnestMoneyRequired =
-        req.body.earnestMoneyRequired === "true" || req.body.earnestMoneyRequired === true;
+        req.body.earnestMoneyRequired === "true" ||
+        req.body.earnestMoneyRequired === true;
     }
     if (imagePaths.length) payload.images = imagePaths;
     const property = await Property.create(payload);
@@ -77,17 +102,20 @@ export const updateProperty = async (req, res, next) => {
   }
 
   try {
-    const newImages = req.files?.map((file) => `/uploads/properties/${file.filename}`) || [];
+    const newImages =
+      req.files?.map((file) => `/uploads/properties/${file.filename}`) || [];
 
     const update = { ...req.body };
     if (req.body.earnestMoneyRequired !== undefined) {
       update.earnestMoneyRequired =
-        req.body.earnestMoneyRequired === "true" || req.body.earnestMoneyRequired === true;
+        req.body.earnestMoneyRequired === "true" ||
+        req.body.earnestMoneyRequired === true;
     }
     const options = { new: true };
 
     const property = await Property.findById(req.params.id);
-    if (!property) return res.status(404).json({ message: "Property not found" });
+    if (!property)
+      return res.status(404).json({ message: "Property not found" });
 
     let mergedImages = property.images || [];
     if (newImages.length) {
@@ -95,7 +123,11 @@ export const updateProperty = async (req, res, next) => {
       update.images = mergedImages;
     }
 
-    const updated = await Property.findByIdAndUpdate(req.params.id, update, options);
+    const updated = await Property.findByIdAndUpdate(
+      req.params.id,
+      update,
+      options
+    );
 
     await recordAudit({
       actor: req.user.id,
@@ -111,12 +143,16 @@ export const updateProperty = async (req, res, next) => {
 export const deleteProperty = async (req, res, next) => {
   try {
     const property = await Property.findByIdAndDelete(req.params.id);
-    if (!property) return res.status(404).json({ message: "Property not found" });
+    if (!property)
+      return res.status(404).json({ message: "Property not found" });
 
     // Best-effort cleanup of images
     if (property.images?.length) {
       property.images.forEach((imgPath) => {
-        const absolute = path.resolve("src", imgPath.replace("/uploads/", "uploads/"));
+        const absolute = path.resolve(
+          "src",
+          imgPath.replace("/uploads/", "uploads/")
+        );
         fs.unlink(absolute, () => {});
       });
     }
@@ -131,4 +167,3 @@ export const deleteProperty = async (req, res, next) => {
     next(err);
   }
 };
-

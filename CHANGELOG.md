@@ -95,6 +95,9 @@ All notable changes to this project are documented here. Version numbers refer t
 - Public property listing defaults to AVAILABLE when status is omitted and rejects DRAFT/ARCHIVED requests.
 - Status query normalized to uppercase; admin listing remains unrestricted.
 
+## [Backend 1.1.42 / Frontend 0.2.42] – Listing rules housekeeping
+- Retained public/admin listing rules; version alignment.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
