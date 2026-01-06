@@ -24,6 +24,8 @@ services:
       - "traefik.http.routers.myrealtor-api.tls=true"
       - "traefik.http.routers.myrealtor-api.tls.certresolver=mytlschallenge"
       - "traefik.http.services.myrealtor-api.loadbalancer.server.port=5000"
+    volumes:
+      - uploads_data:/app/uploads
     networks:
       - root_default
       - internal
@@ -46,6 +48,7 @@ services:
 
 volumes:
   mongo_data:
+  uploads_data:
 
 networks:
   internal:

@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import authRoutes from "./routes/authRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
@@ -41,7 +42,11 @@ app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/uploads", express.static(path.join(__dirname, "./uploads")));
+const uploadsRoot = process.env.UPLOADS_ROOT || path.resolve(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsRoot)) {
+  fs.mkdirSync(uploadsRoot, { recursive: true });
+}
+app.use("/uploads", express.static(uploadsRoot));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertyRoutes);

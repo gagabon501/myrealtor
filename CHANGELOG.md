@@ -25,6 +25,11 @@ All notable changes to this project are documented here. Version numbers refer t
 - Registration enforces matching email/password before submit.
 - Sends a welcome email to the user and CCs admin recipients when SMTP is configured.
 
+## [Backend 1.1.24 / Frontend 0.2.24] – Persisted property images
+- Store uploads under a persistent `/app/uploads` volume and serve from `/uploads`.
+- Docker Compose mounts `uploads_data` to keep images across deploys.
+- Property upload paths honor `UPLOADS_ROOT` when provided.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

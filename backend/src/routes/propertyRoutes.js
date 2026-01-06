@@ -14,7 +14,9 @@ import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
 const router = Router();
 
-const uploadsDir = path.resolve("src/uploads/properties");
+const uploadsDir = process.env.UPLOADS_ROOT
+  ? path.join(process.env.UPLOADS_ROOT, "properties")
+  : path.resolve("uploads/properties");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
