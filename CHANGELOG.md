@@ -88,6 +88,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.39 / Frontend 0.2.39] – Property status enum
 - Property status enum expanded: DRAFT, AVAILABLE, RESERVED, UNDER_NEGOTIATION, SOLD, ARCHIVED (default AVAILABLE).
 
+## [Backend 1.1.40 / Frontend 0.2.40] – Admin property listing
+- Added GET `/api/properties/admin` protected for staff/admin, reusing property listing logic.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

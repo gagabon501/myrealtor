@@ -28,6 +28,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { files: 4 } });
 
 router.get("/", listProperties);
+router.get(
+  "/admin",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  listProperties
+);
 router.get("/:id", getProperty);
 
 router.post(
