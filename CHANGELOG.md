@@ -75,6 +75,9 @@ All notable changes to this project are documented here. Version numbers refer t
 - Services page with forms for appraisal, titling/transfer, and consultancy.
 - Added property interest flow and services nav link.
 
+## [Backend 1.1.37 / Frontend 0.2.37] – Housekeeping
+- Added gitignore entry for local rules file; version alignment.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

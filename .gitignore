@@ -3,4 +3,5 @@ backend/.env
 deploy/.env.prod
 node_modules
 dist
+.cursorrules
 
