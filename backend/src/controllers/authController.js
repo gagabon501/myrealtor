@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
 import User from "../models/User.js";
 import { recordAudit } from "../utils/audit.js";
+import { sendRegistrationEmail } from "../utils/email.js";
 
 const signToken = (user) =>
   jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -30,6 +31,7 @@ export const register = async (req, res, next) => {
 
     const token = signToken(user);
     await recordAudit({ actor: user._id.toString(), action: "USER_REGISTERED" });
+    await sendRegistrationEmail({ to: user.email, name: user.profile?.fullName || user.email });
 
     res.status(201).json({
       token,

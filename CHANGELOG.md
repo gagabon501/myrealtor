@@ -20,6 +20,11 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.22 / Frontend 0.2.22] – Branding polish
 - Added a more prominent MyRealtor PH logo/wordmark in the top bar linking to home.
 
+## [Backend 1.1.23 / Frontend 0.2.23] – Registration UX + welcome email
+- Registration form now includes email/password confirmation and show/hide toggles.
+- Registration enforces matching email/password before submit.
+- Sends a welcome email to the user and CCs admin recipients when SMTP is configured.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).
