@@ -6,6 +6,7 @@ import {
   Button,
   Chip,
   Stack,
+  Box,
   CardMedia,
   CardActionArea,
   ImageList,
@@ -26,7 +27,12 @@ const normalizeImageUrl = (image) => {
 };
 
 const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
-  const images = property.images || [];
+  const rawImages = property.images;
+  const images = Array.isArray(rawImages)
+    ? rawImages
+    : rawImages
+    ? [rawImages]
+    : [];
   const imageUrl = normalizeImageUrl(images[0]);
   return (
     <Card

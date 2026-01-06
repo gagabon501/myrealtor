@@ -14,6 +14,9 @@ All notable changes to this project are documented here. Version numbers refer t
 - Improved property card layout, spacing, and thumbnail presentation (up to 3 thumbs).
 - Slightly enhanced properties page header and spacing.
 
+## [Backend 1.1.21 / Frontend 0.2.21] – Property rendering fix
+- Handle legacy properties whose `images` value is a single string to avoid render crashes and ensure cards always show.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).
