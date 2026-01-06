@@ -42,7 +42,8 @@ app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-const uploadsRoot = process.env.UPLOADS_ROOT || path.resolve(process.cwd(), "uploads");
+const uploadsRoot =
+  process.env.UPLOADS_ROOT || path.resolve(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsRoot)) {
   fs.mkdirSync(uploadsRoot, { recursive: true });
 }
