@@ -49,13 +49,22 @@ const Home = () => {
                 Browse properties
               </Button>
               <Button
-                variant="outlined"
+                variant="contained"
                 color="inherit"
                 component={Link}
                 to="/apply"
                 size="large"
                 fullWidth
-                sx={{ maxWidth: { sm: 220 } }}
+                sx={{
+                  maxWidth: { sm: 220 },
+                  color: "#0f172a",
+                  background: "linear-gradient(135deg, #ffffff, #e0e7ff)",
+                  fontWeight: 700,
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #e0e7ff, #ffffff)",
+                  },
+                }}
               >
                 Start an application
               </Button>

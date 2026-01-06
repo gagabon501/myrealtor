@@ -63,6 +63,9 @@ All notable changes to this project are documented here. Version numbers refer t
 - Top bar wraps actions on small screens.
 - Properties container capped to `lg` with responsive filters and grid.
 
+## [Backend 1.1.34 / Frontend 0.2.34] – CTA polish
+- Enhanced “Start an application” button styling on the landing page with a premium gradient and hover state.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).
