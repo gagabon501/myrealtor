@@ -38,6 +38,9 @@ All notable changes to this project are documented here. Version numbers refer t
 - New/Edit property forms now keep up to 4 selected images at once (no need for multiple passes).
 - Upload root still uses persistent volume configuration.
 
+## [Backend 1.1.27 / Frontend 0.2.27] – Property details on cards
+- Property cards now show the description/comments added during creation.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

@@ -64,6 +64,23 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
           <Chip label={property.status} color="primary" size="small" />
         </Stack>
       </CardContent>
+      {property.description && (
+        <Box sx={{ px: 2, pb: 1 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              minHeight: 40,
+            }}
+          >
+            {property.description}
+          </Typography>
+        </Box>
+      )}
       {images.length > 1 && (
         <Box sx={{ px: 2, pb: 1 }}>
           <ImageList cols={3} gap={8} sx={{ width: "100%" }}>
