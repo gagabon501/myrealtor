@@ -13,7 +13,14 @@ const TopBar = () => {
 
   return (
     <AppBar position="static" color="transparent" elevation={0} sx={{ mb: 2 }}>
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 1,
+          flexWrap: { xs: "wrap", md: "nowrap" },
+        }}
+      >
         <Box
           component={Link}
           to="/"
@@ -50,7 +57,14 @@ const TopBar = () => {
             MyRealtor PH
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            flexWrap: "wrap",
+            justifyContent: { xs: "flex-start", md: "flex-end" },
+          }}
+        >
           <Button component={Link} to="/properties">
             Properties
           </Button>

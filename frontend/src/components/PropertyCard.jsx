@@ -38,6 +38,7 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
     <Card
       variant="outlined"
       sx={{
+        width: "100%",
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -82,7 +83,7 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
       )}
       {images.length > 1 && (
         <Box sx={{ px: 2, pb: 1 }}>
-          <ImageList cols={3} gap={8} sx={{ width: "100%" }}>
+          <ImageList cols={{ xs: 3, sm: 3, md: 3 }} gap={8} sx={{ width: "100%" }}>
             {images.slice(1, 4).map((img, idx) => {
               const thumb = normalizeImageUrl(img);
               return (

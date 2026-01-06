@@ -58,6 +58,11 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.32 / Frontend 0.2.32] – Build warning fix
 - Resolved duplicate `sx` prop on property card media to fix Vite/JSX warnings.
 
+## [Backend 1.1.33 / Frontend 0.2.33] – Responsive tweaks
+- Property cards forced full width with responsive thumbnails.
+- Top bar wraps actions on small screens.
+- Properties container capped to `lg` with responsive filters and grid.
+
 ## [Backend 1.1.18 / Frontend 0.2.18] – Landing refresh and auth gating
 - Redesigned landing page with a more engaging hero and prominent browse/apply CTAs.
 - Property apply flow now forces registration for unauthenticated users (redirects to register).

@@ -64,7 +64,7 @@ const Properties = () => {
   };
 
   return (
-    <Container sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Properties
