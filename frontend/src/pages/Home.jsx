@@ -66,7 +66,7 @@ const Home = () => {
                   },
                 }}
               >
-                Start an application
+                Start Application
               </Button>
             </Stack>
             <Stack
