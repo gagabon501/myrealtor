@@ -209,6 +209,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
+## [Backend 1.1.83 / Frontend 0.2.83] – Document registry export fix
+- Exported `USER_OWNED_MODULES` for document library routes to import, resolving runtime crash.
+
 ## [Backend 1.1.82 / Frontend 0.2.82] – Document library auth fixes
 - Document library POST now authenticates before uploads; GET honors optional auth to populate user context; DELETE adds route-level RBAC so only staff/admin can delete any doc and users may delete only their own uploads for user-owned modules.
 

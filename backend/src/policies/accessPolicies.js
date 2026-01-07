@@ -5,16 +5,14 @@ import ConsultancyRequest from "../models/ConsultancyRequest.js";
 const STAFF_ROLES = ["staff", "admin"];
 const STAFF_ONLY_MODULES = ["PROPERTY", "INQUIRY"];
 const SERVICE_MODULES = ["APPRAISAL", "TITLING", "CONSULTANCY"];
-export const USER_OWNED_MODULES = [
-  ...SERVICE_MODULES,
-  "PROPERTY_REQUEST",
-];
+export const USER_OWNED_MODULES = [...SERVICE_MODULES, "PROPERTY_REQUEST"];
 
 export const getRole = (req) => req.user?.role || "public";
 export const isStaff = (role) => STAFF_ROLES.includes(role);
 export const isAdmin = (role) => role === "admin";
 export const isUser = (role) => role === "user";
-export const isServiceModule = (module) => SERVICE_MODULES.includes(module || "");
+export const isServiceModule = (module) =>
+  SERVICE_MODULES.includes(module || "");
 
 export const resolveServiceModel = (module) => {
   if (module === "APPRAISAL") return AppraisalRequest;
@@ -78,4 +76,3 @@ export default {
   canInquiryAccess,
   ownsServiceRequest,
 };
-
