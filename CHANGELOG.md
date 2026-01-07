@@ -158,6 +158,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.62 / Frontend 0.2.62] – Document library routes
 - Added document library controller/routes and mounted at `/api/documents/library`.
 
+## [Backend 1.1.63 / Frontend 0.2.63] – Document model fix
+- Removed duplicate legacy Document schema and cleaned library mount path.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

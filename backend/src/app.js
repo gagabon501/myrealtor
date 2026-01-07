@@ -64,7 +64,6 @@ app.use("/api/compliance", complianceRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/inquiries", inquiryRoutes);
-app.use("/api/document-library", documentLibraryRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
