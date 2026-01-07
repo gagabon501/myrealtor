@@ -12,11 +12,11 @@ const router = Router();
 router.post(
   "/",
   [
-    body("propertyId").isMongoId(),
-    body("name").notEmpty(),
-    body("email").isEmail(),
-    body("phone").optional().isString(),
-    body("address").optional().isString(),
+    body("propertyId").notEmpty(),
+    body("buyer.name").notEmpty(),
+    body("buyer.address").notEmpty(),
+    body("buyer.phone").notEmpty(),
+    body("buyer.email").isEmail(),
     body("notes").optional().isString(),
   ],
   createInquiry
@@ -28,7 +28,7 @@ router.patch(
   "/:id/status",
   authenticate,
   authorizeRoles("staff", "admin"),
-  [param("id").isMongoId(), body("status").isIn(["NEW", "CONTACTED", "CLOSED"])],
+  [param("id").isMongoId(), body("status").notEmpty().isIn(["NEW", "CONTACTED", "CLOSED"])],
   updateInquiryStatus
 );
 

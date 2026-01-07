@@ -137,6 +137,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.55 / Frontend 0.2.55] – Inquiry controller rewrite
 - Inquiry controller now uses nested buyer fields, supports filters and search, populates properties, and audits status changes.
 
+## [Backend 1.1.56 / Frontend 0.2.56] – Inquiry route validations
+- Inquiry routes now validate nested buyer fields and status for Ticket 002; versions aligned.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
