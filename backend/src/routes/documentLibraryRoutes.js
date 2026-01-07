@@ -42,8 +42,13 @@ router.post("/", upload.array("files", 20), async (req, res, next) => {
   }
   if (isServiceModule(module) && !isStaff(role)) {
     if (!ownerId) return res.status(400).json({ message: "ownerId is required" });
-    const ok = await ownsServiceRequest({ module, ownerId, userId: req.user.id });
-    if (!ok) return res.status(403).json({ message: "Forbidden" });
+    const { found, owned } = await ownsServiceRequest({
+      module,
+      ownerId,
+      userId: req.user.id,
+    });
+    if (!found) return res.status(404).json({ message: "Service request not found" });
+    if (!owned) return res.status(403).json({ message: "Forbidden" });
   }
   return uploadDocuments(req, res, next);
 });
@@ -61,8 +66,9 @@ router.get("/", (req, res, next) => {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     if (!ownerId) return res.status(400).json({ message: "ownerId is required" });
     return ownsServiceRequest({ module, ownerId, userId: req.user.id })
-      .then((ok) => {
-        if (!ok) return res.status(403).json({ message: "Forbidden" });
+      .then(({ found, owned }) => {
+        if (!found) return res.status(404).json({ message: "Service request not found" });
+        if (!owned) return res.status(403).json({ message: "Forbidden" });
         return listDocuments(req, res, next);
       })
       .catch(next);

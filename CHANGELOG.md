@@ -206,6 +206,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.79 / Frontend 0.2.79] – Service docs delete-own
 - Service document routes now allow users to list/upload their own service requests and delete their own uploads; staff/admin retain full control. Frontend shows delete for owners on service modules.
 
+## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
+- Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 

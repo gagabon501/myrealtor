@@ -46,12 +46,13 @@ export const canInquiryAccess = ({ action, role }) => {
 };
 
 export const ownsServiceRequest = async ({ module, ownerId, userId }) => {
-  if (!userId || !ownerId) return false;
+  if (!userId || !ownerId) return { found: false, owned: false };
   const Model = resolveServiceModel(module);
-  if (!Model) return false;
+  if (!Model) return { found: false, owned: false };
   const doc = await Model.findById(ownerId).select("createdBy");
-  if (!doc) return false;
-  return String(doc.createdBy) === String(userId);
+  if (!doc) return { found: false, owned: false };
+  const owned = String(doc.createdBy) === String(userId);
+  return { found: true, owned };
 };
 
 export default {
