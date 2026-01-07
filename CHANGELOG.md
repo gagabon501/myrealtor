@@ -107,6 +107,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.45 / Frontend 0.2.45] – Card UX polish
 - Refined status gating on property cards with consistent messaging and friendly labels.
 
+## [Backend 1.1.46 / Frontend 0.2.46] – Card gating tweak
+- Final adjustments to property action gating and version alignment.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

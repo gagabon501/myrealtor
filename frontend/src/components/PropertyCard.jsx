@@ -156,7 +156,7 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
               onClick={() => onApply(property)}
               disabled={!actionable && !canManage}
             >
-              {actionable ? "Apply" : statusLabel}
+              {actionable || canManage ? "Apply" : statusLabel}
             </Button>
           )}
           {!canManage && actionable && (
