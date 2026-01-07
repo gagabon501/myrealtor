@@ -167,6 +167,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.65 / Frontend 0.2.65] – Library mount tweak
 - Aligned document library mount; version bump.
 
+## [Backend 1.1.67 / Frontend 0.2.67] – Document uploader cleanup
+- Consolidated DocumentUploader to a single implementation (description-required per file), aligned with `/document-library` API; includes document list component.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 
