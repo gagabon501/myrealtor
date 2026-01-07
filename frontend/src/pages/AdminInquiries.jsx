@@ -25,10 +25,13 @@ import client from "../api/client";
 import DocumentUploader from "../components/DocumentUploader";
 import DocumentList from "../components/DocumentList";
 import { MODULES, OWNER_TYPES, REGISTRY } from "../constants/documentLibrary";
+import { useAuth } from "../context/AuthContext";
 
 const statusOptions = ["NEW", "CONTACTED", "CLOSED"];
 
 const AdminInquiries = () => {
+  const { user } = useAuth();
+  const canManage = ["staff", "admin"].includes(user?.role);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,8 +54,11 @@ const AdminInquiries = () => {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    if (canManage) load();
+    else {
+      setLoading(false);
+    }
+  }, [canManage]);
 
   const openDocs = (row) => {
     setActiveInquiry(row);
@@ -88,6 +94,9 @@ const AdminInquiries = () => {
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
         Buyer Inquiries
       </Typography>
+      {!canManage && (
+        <Alert severity="error">Access denied. Staff/Admin only.</Alert>
+      )}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
@@ -97,7 +106,7 @@ const AdminInquiries = () => {
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
         </Box>
-      ) : (
+      ) : canManage ? (
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -163,7 +172,7 @@ const AdminInquiries = () => {
             )}
           </TableBody>
         </Table>
-      )}
+      ) : null}
       <Snackbar
         open={!!success}
         autoHideDuration={2000}

@@ -25,6 +25,7 @@ const normalizeUrl = (u) => {
 const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
   const { user } = useAuth();
   const canManage = ["staff", "admin"].includes(user?.role);
+  const isPublic = !user || !canManage;
 
   const [docs, setDocs] = useState([]);
   const [error, setError] = useState("");
@@ -35,8 +36,13 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
     setError("");
     setBusy(true);
     try {
+      const params = { module, ownerId };
+      // Public/user: restrict to PHOTO when module is PROPERTY
+      if (isPublic && module === "PROPERTY") {
+        params.category = "PHOTO";
+      }
       const res = await client.get("/document-library", {
-        params: { module, ownerId },
+        params,
       });
       setDocs(Array.isArray(res.data) ? res.data : res.data?.documents || []);
     } catch (err) {

@@ -176,14 +176,16 @@ const EditProperty = () => {
         {/* Documents (only once we have a real id) */}
         {property?._id && (
           <Stack spacing={2} sx={{ mt: 2 }}>
-            <DocumentUploader
-              module={MODULES.PROPERTY}
-              ownerType={OWNER_TYPES.PROPERTY}
-              ownerId={property._id}
-              categories={REGISTRY[MODULES.PROPERTY].categories}
-              defaultCategory={CATEGORIES.PROPERTY[0]}
-              onUploaded={() => setDocRefreshKey((k) => k + 1)}
-            />
+            {canManage && (
+              <DocumentUploader
+                module={MODULES.PROPERTY}
+                ownerType={OWNER_TYPES.PROPERTY}
+                ownerId={property._id}
+                categories={REGISTRY[MODULES.PROPERTY].categories}
+                defaultCategory={CATEGORIES.PROPERTY[0]}
+                onUploaded={() => setDocRefreshKey((k) => k + 1)}
+              />
+            )}
             <DocumentList
               module={MODULES.PROPERTY}
               ownerId={property._id}

@@ -191,6 +191,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.74 / Frontend 0.2.74] – Inquiry policy guard
 - Inquiry create now checks policy; list/status remain staff/admin; versions aligned.
 
+## [Backend 1.1.75 / Frontend 0.2.75] – Frontend gating for docs
+- DocumentUploader gated to staff/admin; public/user property lists restricted to PHOTO; admin inquiries now shows access denied for non-staff/admin.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 
