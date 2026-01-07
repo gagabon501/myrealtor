@@ -131,6 +131,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.53 / Frontend 0.2.53] – Admin inquiries page
 - Added admin/staff inquiries table with status updates and routing.
 
+## [Backend 1.1.54 / Frontend 0.2.54] – Buyer inquiry schema update
+- BuyerInquiry model now nests buyer details (name, address, phone, email) under `buyer` and retains status enum.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

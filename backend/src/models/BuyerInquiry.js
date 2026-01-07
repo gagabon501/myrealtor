@@ -3,10 +3,12 @@ import mongoose from "mongoose";
 const buyerInquirySchema = new mongoose.Schema(
   {
     propertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property", required: true },
-    name: { type: String, required: true },
-    address: String,
-    phone: String,
-    email: { type: String, required: true },
+    buyer: {
+      name: { type: String, required: true },
+      address: { type: String, required: true },
+      phone: { type: String, required: true },
+      email: { type: String, required: true },
+    },
     notes: String,
     status: {
       type: String,
