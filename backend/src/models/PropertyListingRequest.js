@@ -17,12 +17,15 @@ const propertyListingRequestSchema = new mongoose.Schema(
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     status: {
       type: String,
-      enum: ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"],
-      default: "SUBMITTED",
+      enum: ["DRAFT", "SUBMITTED", "ATS_PENDING", "ATS_APPROVED", "ATS_REJECTED"],
+      default: "ATS_PENDING",
     },
     propertyDraft: propertyDraftSchema,
     reviewerNotes: String,
     linkedPropertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property" },
+    atsApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    atsApprovedAt: Date,
+    atsRejectedReason: String,
   },
   { timestamps: true }
 );

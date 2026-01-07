@@ -14,6 +14,8 @@ import Services from "./pages/Services";
 import PropertyInterest from "./pages/PropertyInterest";
 import AdminInquiries from "./pages/AdminInquiries";
 import MyServiceDocuments from "./pages/MyServiceDocuments";
+import MyListingRequests from "./pages/MyListingRequests";
+import StaffListingRequests from "./pages/StaffListingRequests";
 import TopBar from "./components/TopBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
@@ -99,6 +101,22 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <MyServiceDocuments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sell/requests"
+            element={
+              <ProtectedRoute>
+                <MyListingRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/listing-requests"
+            element={
+              <ProtectedRoute roles={["staff", "admin"]}>
+                <StaffListingRequests />
               </ProtectedRoute>
             }
           />

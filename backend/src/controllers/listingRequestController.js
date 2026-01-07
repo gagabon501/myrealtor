@@ -1,9 +1,19 @@
 import { validationResult } from "express-validator";
 import PropertyListingRequest from "../models/PropertyListingRequest.js";
+import Document from "../models/Document.js";
 import { recordAudit } from "../utils/audit.js";
 
 const auditWrap = async ({ actor, action, context }) =>
   recordAudit({ actor, action, context });
+
+const ensureAtsDocumentExists = async (requestId) => {
+  const count = await Document.countDocuments({
+    module: "PROPERTY_REQUEST",
+    ownerId: requestId,
+    category: "ATTACHMENT",
+  });
+  return count > 0;
+};
 
 export const createListingRequest = async (req, res, next) => {
   try {
@@ -22,7 +32,7 @@ export const createListingRequest = async (req, res, next) => {
         tags: draft.tags,
         earnestMoneyRequired: draft.earnestMoneyRequired ?? false,
       },
-      status: "SUBMITTED",
+      status: "ATS_PENDING",
     };
     const doc = await PropertyListingRequest.create(payload);
     await auditWrap({
@@ -31,6 +41,61 @@ export const createListingRequest = async (req, res, next) => {
       context: { requestId: doc._id.toString() },
     });
     return res.status(201).json(doc);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const approveListingRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const exists = await ensureAtsDocumentExists(id);
+    if (!exists) {
+      return res.status(400).json({ message: "ATS document is required before approval" });
+    }
+    const doc = await PropertyListingRequest.findByIdAndUpdate(
+      id,
+      {
+        status: "ATS_APPROVED",
+        atsApprovedBy: req.user.id,
+        atsApprovedAt: new Date(),
+        atsRejectedReason: undefined,
+      },
+      { new: true }
+    );
+    if (!doc) return res.status(404).json({ message: "Listing request not found" });
+    await auditWrap({
+      actor: req.user.id,
+      action: "ATS_APPROVED",
+      context: { requestId: doc._id.toString() },
+    });
+    return res.json(doc);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const rejectListingRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body || {};
+    const doc = await PropertyListingRequest.findByIdAndUpdate(
+      id,
+      {
+        status: "ATS_REJECTED",
+        atsApprovedBy: undefined,
+        atsApprovedAt: undefined,
+        atsRejectedReason: reason,
+      },
+      { new: true }
+    );
+    if (!doc) return res.status(404).json({ message: "Listing request not found" });
+    await auditWrap({
+      actor: req.user.id,
+      action: "ATS_REJECTED",
+      context: { requestId: doc._id.toString(), reason },
+    });
+    return res.json(doc);
   } catch (err) {
     return next(err);
   }

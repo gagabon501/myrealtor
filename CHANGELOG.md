@@ -209,6 +209,11 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
+## [Backend 1.1.85 / Frontend 0.2.85] – ATS approval flow
+- Extended PropertyListingRequest statuses to ATS phases and added approval/rejection with audit logging and ATS document validation (PROPERTY_REQUEST / ATTACHMENT).
+- Staff endpoints to approve/reject; default status ATS_PENDING; tracked approval metadata.
+- Frontend pages for sellers (ATS upload panel on pending) and staff (list + approve/reject with doc view); nav links and routes added.
+
 ## [Backend 1.1.84 / Frontend 0.2.84] – Property listing requests (submit/view)
 - Added PropertyListingRequest model with required draft fields and submit/list/view endpoints (auth-gated, staff can list all; owners can view their own).
 - Validations for title/location/price and audits on submit/view.

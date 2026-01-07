@@ -76,6 +76,9 @@ const TopBar = () => {
               <Button component={Link} to="/apply">
                 Apply
               </Button>
+              <Button component={Link} to="/sell/requests">
+                My Listings
+              </Button>
               {["staff", "admin"].includes(user.role) && (
                 <Button component={Link} to="/properties/new">
                   Add Property
@@ -84,6 +87,11 @@ const TopBar = () => {
               {["staff", "admin"].includes(user.role) && (
                 <Button component={Link} to="/admin/inquiries">
                   Buyer Inquiries
+                </Button>
+              )}
+              {["staff", "admin"].includes(user.role) && (
+                <Button component={Link} to="/staff/listing-requests">
+                  Listing Requests
                 </Button>
               )}
               {user.role === "admin" && (

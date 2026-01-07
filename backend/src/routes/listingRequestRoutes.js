@@ -5,6 +5,8 @@ import {
   listMyListingRequests,
   listAllListingRequests,
   getListingRequest,
+  approveListingRequest,
+  rejectListingRequest,
 } from "../controllers/listingRequestController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
@@ -24,6 +26,18 @@ router.post(
 router.get("/mine", authenticate, listMyListingRequests);
 router.get("/", authenticate, authorizeRoles("staff", "admin"), listAllListingRequests);
 router.get("/:id", authenticate, getListingRequest);
+router.post(
+  "/:id/approve",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  approveListingRequest
+);
+router.post(
+  "/:id/reject",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  rejectListingRequest
+);
 
 export default router;
 
