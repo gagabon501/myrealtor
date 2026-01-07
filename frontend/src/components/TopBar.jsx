@@ -81,6 +81,11 @@ const TopBar = () => {
                   Add Property
                 </Button>
               )}
+              {["staff", "admin"].includes(user.role) && (
+                <Button component={Link} to="/admin/inquiries">
+                  Buyer Inquiries
+                </Button>
+              )}
               {user.role === "admin" && (
                 <Button component={Link} to="/users">
                   Users
