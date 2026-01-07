@@ -128,6 +128,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.52 / Frontend 0.2.52] – Property interest form update
 - Interest page now posts to `/inquiries`, shows property details, success snackbar, and redirects to properties.
 
+## [Backend 1.1.53 / Frontend 0.2.53] – Admin inquiries page
+- Added admin/staff inquiries table with status updates and routing.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

@@ -12,6 +12,7 @@ import EditProperty from "./pages/EditProperty";
 import ManageUsers from "./pages/ManageUsers";
 import Services from "./pages/Services";
 import PropertyInterest from "./pages/PropertyInterest";
+import AdminInquiries from "./pages/AdminInquiries";
 import TopBar from "./components/TopBar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
@@ -81,6 +82,14 @@ const App = () => {
             element={
               <ProtectedRoute roles={["admin"]}>
                 <ManageUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/inquiries"
+            element={
+              <ProtectedRoute roles={["staff", "admin"]}>
+                <AdminInquiries />
               </ProtectedRoute>
             }
           />
