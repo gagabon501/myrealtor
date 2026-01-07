@@ -209,6 +209,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
+## [Backend 1.1.88 / Frontend 0.2.88] – Fix create listing form crash
+- Removed stray earnest checkbox from create listing form to fix runtime crash; version bump.
+
 ## [Backend 1.1.87 / Frontend 0.2.87] – Earnest flag staff-only
 - Seller listing submissions no longer send or set earnestMoneyRequired (server defaults false).
 - Added staff/admin-only toggle to set earnestMoneyRequired via PATCH /listing-requests/:id/earnest with audit.

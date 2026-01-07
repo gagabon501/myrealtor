@@ -100,15 +100,6 @@ const CreateListingRequest = () => {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
           />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={earnestMoneyRequired}
-                onChange={(e) => setEarnestMoneyRequired(e.target.checked)}
-              />
-            }
-            label="Earnest money required"
-          />
           <Button
             type="submit"
             variant="contained"
