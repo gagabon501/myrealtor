@@ -8,6 +8,7 @@ const TopBar = () => {
   const isPublic = !user;
   const isClient = user?.role === "user";
   const isStaff = ["staff", "admin"].includes(user?.role);
+  const showServices = isPublic || isClient;
 
   const handleLogout = () => {
     logout();
@@ -71,7 +72,7 @@ const TopBar = () => {
           <Button component={Link} to="/properties">
             Properties
           </Button>
-          {isPublic && (
+          {showServices && (
             <Button component={Link} to="/services">
               Services
             </Button>
