@@ -194,6 +194,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.75 / Frontend 0.2.75] – Frontend gating for docs
 - DocumentUploader gated to staff/admin; public/user property lists restricted to PHOTO; admin inquiries now shows access denied for non-staff/admin.
 
+## [Backend 1.1.76 / Frontend 0.2.76] – RBAC hardening for documents
+- Document library LIST/UPLOAD/DELETE now staff/admin only; uploader/list hidden for non-staff on frontend; admin inquiries view blocked for non-staff/admin.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 

@@ -26,11 +26,7 @@ const optionalAuth = (req, res, next) => {
 
 router.post("/", optionalAuth, upload.array("files", 20), (req, res, next) => {
   const role = getRole(req);
-  const { module, category } = req.body || {};
-  if (!module) {
-    return res.status(400).json({ message: "module is required" });
-  }
-  if (!canDocumentAccess({ action: "UPLOAD", role, module, category })) {
+  if (!canDocumentAccess({ action: "UPLOAD", role })) {
     return res.status(403).json({ message: "Forbidden" });
   }
   return uploadDocuments(req, res, next);
@@ -38,11 +34,7 @@ router.post("/", optionalAuth, upload.array("files", 20), (req, res, next) => {
 
 router.get("/", (req, res, next) => {
   const role = getRole(req);
-  const { module, category } = req.query || {};
-  if (!module) {
-    return res.status(400).json({ message: "module is required" });
-  }
-  if (!canDocumentAccess({ action: "LIST", role, module, category })) {
+  if (!canDocumentAccess({ action: "LIST", role })) {
     return res.status(403).json({ message: "Forbidden" });
   }
   return listDocuments(req, res, next);
