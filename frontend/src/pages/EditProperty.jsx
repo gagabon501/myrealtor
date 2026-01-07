@@ -14,6 +14,8 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import client from "../api/client";
 import { apiBase } from "../api/client";
+import DocumentUploader from "../components/DocumentUploader";
+import DocumentList from "../components/DocumentList";
 
 const statuses = ["AVAILABLE", "RESERVED", "SOLD"];
 
@@ -31,6 +33,8 @@ const EditProperty = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [docRefreshKey, setDocRefreshKey] = useState(0);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,7 +90,11 @@ const EditProperty = () => {
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mb: 2 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}
@@ -143,7 +151,9 @@ const EditProperty = () => {
               </Typography>
               <ImageList cols={4} gap={8} sx={{ width: "100%", maxWidth: 520 }}>
                 {existingImages.map((img, idx) => {
-                  const full = img.startsWith("http") ? img : `${apiBase}${img.startsWith("/") ? "" : "/"}${img}`;
+                  const full = img.startsWith("http")
+                    ? img
+                    : `${apiBase}${img.startsWith("/") ? "" : "/"}${img}`;
                   return (
                     <ImageListItem key={img + idx}>
                       <img src={full} alt={`existing-${idx}`} loading="lazy" />
@@ -154,7 +164,9 @@ const EditProperty = () => {
             </>
           )}
           <Button variant="outlined" component="label">
-            {files.length ? "Change photos (adds up to 4)" : "Add photos (up to 4 total)"}
+            {files.length
+              ? "Change photos (adds up to 4)"
+              : "Add photos (up to 4 total)"}
             <input
               type="file"
               accept="image/*"
@@ -170,7 +182,11 @@ const EditProperty = () => {
             <ImageList cols={4} gap={8} sx={{ width: "100%", maxWidth: 520 }}>
               {files.map((file, idx) => (
                 <ImageListItem key={file.name + idx}>
-                  <img src={URL.createObjectURL(file)} alt={file.name} loading="lazy" />
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={file.name}
+                    loading="lazy"
+                  />
                 </ImageListItem>
               ))}
             </ImageList>
@@ -180,9 +196,24 @@ const EditProperty = () => {
           </Button>
         </Stack>
       </Box>
+      {property?._id && (
+        <Stack spacing={2} sx={{ mt: 3 }}>
+          <DocumentUploader
+            module="PROPERTY"
+            ownerType="Property"
+            ownerId={property._id}
+            defaultCategory="PHOTO"
+            onUploaded={() => setDocRefreshKey((k) => k + 1)}
+          />
+          <DocumentList
+            module="PROPERTY"
+            ownerId={property._id}
+            refreshKey={docRefreshKey}
+          />
+        </Stack>
+      )}
     </Container>
   );
 };
 
 export default EditProperty;
-
