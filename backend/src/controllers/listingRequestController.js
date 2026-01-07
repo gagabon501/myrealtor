@@ -30,7 +30,7 @@ export const createListingRequest = async (req, res, next) => {
         price: draft.price,
         description: draft.description,
         tags: draft.tags,
-        earnestMoneyRequired: draft.earnestMoneyRequired ?? false,
+        earnestMoneyRequired: false,
       },
       status: "ATS_PENDING",
     };
@@ -94,6 +94,27 @@ export const rejectListingRequest = async (req, res, next) => {
       actor: req.user.id,
       action: "ATS_REJECTED",
       context: { requestId: doc._id.toString(), reason },
+    });
+    return res.json(doc);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const setEarnestMoneyRequired = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { earnestMoneyRequired } = req.body || {};
+    const doc = await PropertyListingRequest.findByIdAndUpdate(
+      id,
+      { "propertyDraft.earnestMoneyRequired": Boolean(earnestMoneyRequired) },
+      { new: true }
+    );
+    if (!doc) return res.status(404).json({ message: "Listing request not found" });
+    await auditWrap({
+      actor: req.user.id,
+      action: "EARNEST_FLAG_UPDATED",
+      context: { requestId: doc._id.toString(), earnestMoneyRequired: Boolean(earnestMoneyRequired) },
     });
     return res.json(doc);
   } catch (err) {

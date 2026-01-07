@@ -16,6 +16,8 @@ import {
   TextField,
   Typography,
   Alert,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import client from "../api/client";
 import DocumentList from "../components/DocumentList";
@@ -82,6 +84,18 @@ const StaffListingRequests = () => {
     }
   };
 
+  const handleEarnestToggle = async (id, value) => {
+    setActionError("");
+    try {
+      const res = await client.patch(`/listing-requests/${id}/earnest`, {
+        earnestMoneyRequired: value,
+      });
+      setRequests((prev) => prev.map((r) => (r._id === id ? res.data : r)));
+    } catch (err) {
+      setActionError(err.response?.data?.message || "Update failed");
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: "grid", placeItems: "center", mt: 6 }}>
@@ -139,6 +153,16 @@ const StaffListingRequests = () => {
                   Rejection reason: {req.atsRejectedReason}
                 </Alert>
               )}
+              <FormControlLabel
+                sx={{ mt: 1 }}
+                control={
+                  <Switch
+                    checked={Boolean(req.propertyDraft?.earnestMoneyRequired)}
+                    onChange={(e) => handleEarnestToggle(req._id, e.target.checked)}
+                  />
+                }
+                label="Earnest money required"
+              />
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   ATS Documents

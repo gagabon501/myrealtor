@@ -3,9 +3,7 @@ import {
   Alert,
   Box,
   Button,
-  Checkbox,
   Container,
-  FormControlLabel,
   Snackbar,
   Stack,
   TextField,
@@ -21,7 +19,6 @@ const CreateListingRequest = () => {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
-  const [earnestMoneyRequired, setEarnestMoneyRequired] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -42,7 +39,6 @@ const CreateListingRequest = () => {
             .split(",")
             .map((t) => t.trim())
             .filter(Boolean),
-          earnestMoneyRequired,
         },
       };
       await client.post("/listing-requests", payload);
