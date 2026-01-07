@@ -25,6 +25,10 @@ const normalizeUrl = (u) => {
 const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
   const { user } = useAuth();
   const canManage = ["staff", "admin"].includes(user?.role);
+  const userId = user?.id || user?._id;
+  const isServiceModule = ["APPRAISAL", "TITLING", "CONSULTANCY"].includes(
+    module || ""
+  );
 
   const [docs, setDocs] = useState([]);
   const [error, setError] = useState("");
@@ -146,7 +150,8 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
                             View
                           </Button>
                         )}
-                        {canManage && (
+                        {(canManage ||
+                          (isServiceModule && userId && d.uploadedBy && String(d.uploadedBy) === String(userId))) && (
                           <Button
                             size="small"
                             color="error"

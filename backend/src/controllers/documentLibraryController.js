@@ -6,6 +6,7 @@ import { buildDocumentRecords } from "../utils/upload.js";
 import { recordAudit } from "../utils/audit.js";
 import { getUploadsRoot } from "../utils/upload.js";
 import { MODULE_LIST, REGISTRY } from "../constants/documentLibrary.js";
+import { getRole, isStaff, isServiceModule } from "../policies/accessPolicies.js";
 
 export const uploadDocuments = async (req, res, next) => {
   const errors = validationResult(req);
@@ -128,8 +129,16 @@ export const listDocuments = async (req, res, next) => {
 
 export const deleteDocument = async (req, res, next) => {
   try {
+    const role = getRole(req);
     const doc = await Document.findById(req.params.id);
     if (!doc) return res.status(404).json({ message: "Document not found" });
+
+    if (!isStaff(role)) {
+      // For service modules, allow the uploader to delete their own doc; otherwise forbid.
+      if (!isServiceModule(doc.module) || String(doc.uploadedBy) !== String(req.user?.id)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+    }
 
     if (doc.filePath) {
       const uploadsRoot = getUploadsRoot();

@@ -8,7 +8,12 @@ import {
 } from "../controllers/documentLibraryController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 import { createDiskStorage } from "../utils/upload.js";
-import { getRole, canDocumentAccess, assertServiceOwnership } from "../policies/accessPolicies.js";
+import {
+  getRole,
+  canDocumentAccess,
+  ownsServiceRequest,
+  isServiceModule,
+} from "../policies/accessPolicies.js";
 import { MODULES } from "../constants/documentLibrary.js";
 
 const router = Router();
@@ -25,26 +30,20 @@ const optionalAuth = (req, res, next) => {
   return next();
 };
 
-router.post("/", optionalAuth, upload.array("files", 20), (req, res, next) => {
+router.post("/", upload.array("files", 20), async (req, res, next) => {
   const role = getRole(req);
-  const { module } = req.body || {};
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const { module, ownerId } = req.body || {};
   if (!module) {
     return res.status(400).json({ message: "module is required" });
   }
   if (!canDocumentAccess({ action: "UPLOAD", role, module })) {
     return res.status(403).json({ message: "Forbidden" });
   }
-  // For service modules, enforce ownership for users
-  const serviceModules = [MODULES.APPRAISAL, MODULES.TITLING, MODULES.CONSULTANCY];
-  if (serviceModules.includes(module) && role === "user") {
-    const ownerId = req.body.ownerId;
+  if (isServiceModule(module) && !isStaff(role)) {
     if (!ownerId) return res.status(400).json({ message: "ownerId is required" });
-    return assertServiceOwnership({ module, ownerId, userId: req.user?.id })
-      .then((ok) => {
-        if (!ok) return res.status(403).json({ message: "Forbidden" });
-        return uploadDocuments(req, res, next);
-      })
-      .catch(next);
+    const ok = await ownsServiceRequest({ module, ownerId, userId: req.user.id });
+    if (!ok) return res.status(403).json({ message: "Forbidden" });
   }
   return uploadDocuments(req, res, next);
 });
@@ -58,10 +57,10 @@ router.get("/", (req, res, next) => {
   if (!canDocumentAccess({ action: "LIST", role, module })) {
     return res.status(403).json({ message: "Forbidden" });
   }
-  const serviceModules = [MODULES.APPRAISAL, MODULES.TITLING, MODULES.CONSULTANCY];
-  if (serviceModules.includes(module) && role === "user") {
+  if (isServiceModule(module) && !isStaff(role)) {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     if (!ownerId) return res.status(400).json({ message: "ownerId is required" });
-    return assertServiceOwnership({ module, ownerId, userId: req.user?.id })
+    return ownsServiceRequest({ module, ownerId, userId: req.user.id })
       .then((ok) => {
         if (!ok) return res.status(403).json({ message: "Forbidden" });
         return listDocuments(req, res, next);
@@ -75,7 +74,6 @@ router.get("/meta", documentLibraryMeta);
 router.delete(
   "/:id",
   authenticate,
-  authorizeRoles("staff", "admin"),
   deleteDocument
 );
 

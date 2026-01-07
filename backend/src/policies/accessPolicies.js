@@ -1,14 +1,23 @@
 import AppraisalRequest from "../models/AppraisalRequest.js";
 import TitlingRequest from "../models/TitlingRequest.js";
 import ConsultancyRequest from "../models/ConsultancyRequest.js";
+
 const STAFF_ROLES = ["staff", "admin"];
+const STAFF_ONLY_MODULES = ["PROPERTY", "INQUIRY"];
+const SERVICE_MODULES = ["APPRAISAL", "TITLING", "CONSULTANCY"];
 
 export const getRole = (req) => req.user?.role || "public";
 export const isStaff = (role) => STAFF_ROLES.includes(role);
 export const isAdmin = (role) => role === "admin";
+export const isUser = (role) => role === "user";
+export const isServiceModule = (module) => SERVICE_MODULES.includes(module || "");
 
-const STAFF_ONLY_MODULES = ["PROPERTY", "INQUIRY"];
-const SERVICE_MODULES = ["APPRAISAL", "TITLING", "CONSULTANCY"];
+export const resolveServiceModel = (module) => {
+  if (module === "APPRAISAL") return AppraisalRequest;
+  if (module === "TITLING") return TitlingRequest;
+  if (module === "CONSULTANCY") return ConsultancyRequest;
+  return null;
+};
 
 // Document library: PROPERTY/INQUIRY staff only; service modules allow staff or user (ownership checked elsewhere).
 export const canDocumentAccess = ({ action, role, module }) => {
@@ -17,10 +26,11 @@ export const canDocumentAccess = ({ action, role, module }) => {
   if (![...STAFF_ONLY_MODULES, ...SERVICE_MODULES].includes(m)) return false;
   if (["LIST", "UPLOAD"].includes(action)) {
     if (STAFF_ONLY_MODULES.includes(m)) return isStaff(r);
-    if (SERVICE_MODULES.includes(m)) return isStaff(r) || r === "user";
+    if (SERVICE_MODULES.includes(m)) return isStaff(r) || isUser(r);
   }
   if (action === "DELETE") {
-    return isStaff(r);
+    if (STAFF_ONLY_MODULES.includes(m)) return isStaff(r);
+    if (SERVICE_MODULES.includes(m)) return isStaff(r) || isUser(r);
   }
   return false;
 };
@@ -35,16 +45,11 @@ export const canInquiryAccess = ({ action, role }) => {
   return false;
 };
 
-export const assertServiceOwnership = async ({ module, ownerId, userId }) => {
+export const ownsServiceRequest = async ({ module, ownerId, userId }) => {
   if (!userId || !ownerId) return false;
-  let doc = null;
-  if (module === "APPRAISAL") {
-    doc = await AppraisalRequest.findById(ownerId).select("createdBy");
-  } else if (module === "TITLING") {
-    doc = await TitlingRequest.findById(ownerId).select("createdBy");
-  } else if (module === "CONSULTANCY") {
-    doc = await ConsultancyRequest.findById(ownerId).select("createdBy");
-  }
+  const Model = resolveServiceModel(module);
+  if (!Model) return false;
+  const doc = await Model.findById(ownerId).select("createdBy");
   if (!doc) return false;
   return String(doc.createdBy) === String(userId);
 };
@@ -53,8 +58,11 @@ export default {
   getRole,
   isStaff,
   isAdmin,
+  isUser,
+  isServiceModule,
+  resolveServiceModel,
   canDocumentAccess,
   canInquiryAccess,
-  assertServiceOwnership,
+  ownsServiceRequest,
 };
 
