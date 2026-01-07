@@ -209,6 +209,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
+## [Backend 1.1.81 / Frontend 0.2.81] – Service doc RBAC finalize
+- Document library enforces auth + ownership for service modules (list/upload/delete); staff/admin unrestricted; PROPERTY/INQUIRY remain staff/admin only. Delete button shows for service doc owners.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 
