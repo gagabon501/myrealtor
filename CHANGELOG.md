@@ -122,6 +122,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.50 / Frontend 0.2.50] – Inquiry routes
 - Added inquiry routes with validation and role protection for Ticket 002.
 
+## [Backend 1.1.51 / Frontend 0.2.51] – Inquiry route mount
+- Mounted inquiry routes at `/api/inquiries`; version alignment.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
