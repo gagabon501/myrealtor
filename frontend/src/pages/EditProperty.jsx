@@ -4,23 +4,30 @@ import {
   Box,
   Button,
   Container,
-  MenuItem,
   Stack,
   TextField,
   Typography,
-  ImageList,
-  ImageListItem,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import client from "../api/client";
-import { apiBase } from "../api/client";
+import { useAuth } from "../context/AuthContext";
+
 import DocumentUploader from "../components/DocumentUploader";
 import DocumentList from "../components/DocumentList";
 
-const statuses = ["AVAILABLE", "RESERVED", "SOLD"];
-
 const EditProperty = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const canManage = ["staff", "admin"].includes(user?.role);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const [property, setProperty] = useState(null);
+
+  // form state (adjust to match your fields)
   const [form, setForm] = useState({
     title: "",
     location: "",
@@ -28,190 +35,156 @@ const EditProperty = () => {
     status: "AVAILABLE",
     description: "",
   });
-  const [files, setFiles] = useState([]);
-  const [existingImages, setExistingImages] = useState([]);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
+
   const [docRefreshKey, setDocRefreshKey] = useState(0);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    client
-      .get(`/properties/${id}`)
-      .then((res) => {
+    if (!canManage) {
+      setError("You are not allowed to edit properties.");
+      setLoading(false);
+      return;
+    }
+
+    const load = async () => {
+      setError("");
+      setLoading(true);
+      try {
+        const res = await client.get(`/properties/${id}`);
         const p = res.data;
+        setProperty(p);
         setForm({
           title: p.title || "",
           location: p.location || "",
-          price: p.price || "",
-          status: p.status || "AVAILABLE",
+          price: p.price ?? "",
+          status: String(p.status || "AVAILABLE").toUpperCase(),
           description: p.description || "",
         });
-        setExistingImages(p.images || []);
-      })
-      .catch(() => setError("Failed to load property"));
-  }, [id]);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load property");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+    if (id) load();
+  }, [id, canManage]);
+
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
+    setError("");
+    setSuccess("");
     try {
-      const data = new FormData();
-      Object.entries(form).forEach(([key, value]) => data.append(key, value));
-      files.slice(0, 4).forEach((file) => data.append("images", file));
-      await client.put(`/properties/${id}`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await client.put(`/properties/${id}`, {
+        ...form,
+        price: Number(form.price),
       });
       setSuccess("Property updated");
-      setTimeout(() => navigate("/properties"), 1200);
+      // optional: navigate back
+      // navigate("/properties");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update property");
-    } finally {
-      setLoading(false);
     }
   };
 
-  return (
-    <Container sx={{ py: 6, maxWidth: "900px" }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        Edit Property
-      </Typography>
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert
-          severity="success"
-          sx={{ mb: 2 }}
-          onClose={() => setSuccess(null)}
-        >
-          {success}
-        </Alert>
-      )}
+  if (loading) {
+    return (
+      <Container sx={{ py: 4 }}>
+        <Typography>Loading property...</Typography>
+      </Container>
+    );
+  }
 
-      <Box component="form" onSubmit={handleSubmit}>
-        <Stack spacing={2}>
-          <TextField
-            label="Title"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Location"
-            name="location"
-            value={form.location}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            label="Price"
-            name="price"
-            type="number"
-            value={form.price}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            select
-            label="Status"
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-          >
-            {statuses.map((status) => (
-              <MenuItem key={status} value={status}>
-                {status}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Description"
-            name="description"
-            multiline
-            minRows={3}
-            value={form.description}
-            onChange={handleChange}
-          />
-          {existingImages.length > 0 && (
-            <>
-              <Typography variant="subtitle2" color="text.secondary">
-                Existing photos
-              </Typography>
-              <ImageList cols={4} gap={8} sx={{ width: "100%", maxWidth: 520 }}>
-                {existingImages.map((img, idx) => {
-                  const full = img.startsWith("http")
-                    ? img
-                    : `${apiBase}${img.startsWith("/") ? "" : "/"}${img}`;
-                  return (
-                    <ImageListItem key={img + idx}>
-                      <img src={full} alt={`existing-${idx}`} loading="lazy" />
-                    </ImageListItem>
-                  );
-                })}
-              </ImageList>
-            </>
-          )}
-          <Button variant="outlined" component="label">
-            {files.length
-              ? "Change photos (adds up to 4)"
-              : "Add photos (up to 4 total)"}
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              multiple
-              onChange={(e) => {
-                const incoming = Array.from(e.target.files || []);
-                setFiles((prev) => [...prev, ...incoming].slice(0, 4));
-              }}
+  if (error && !property) {
+    return (
+      <Container sx={{ py: 4 }}>
+        <Alert severity="error">{error}</Alert>
+        <Button
+          sx={{ mt: 2 }}
+          variant="outlined"
+          onClick={() => navigate("/properties")}
+        >
+          Back to Properties
+        </Button>
+      </Container>
+    );
+  }
+
+  return (
+    <Container sx={{ py: 4 }}>
+      <Stack spacing={2}>
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          Edit Property
+        </Typography>
+
+        {error && <Alert severity="error">{error}</Alert>}
+        {success && <Alert severity="success">{success}</Alert>}
+
+        <Box component="form" onSubmit={handleSubmit}>
+          <Stack spacing={2}>
+            <TextField
+              label="Title"
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              required
             />
-          </Button>
-          {files.length > 0 && (
-            <ImageList cols={4} gap={8} sx={{ width: "100%", maxWidth: 520 }}>
-              {files.map((file, idx) => (
-                <ImageListItem key={file.name + idx}>
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    loading="lazy"
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
-          )}
-          <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? "Saving..." : "Update property"}
-          </Button>
-        </Stack>
-      </Box>
-      {property?._id && (
-        <Stack spacing={2} sx={{ mt: 3 }}>
-          <DocumentUploader
-            module="PROPERTY"
-            ownerType="Property"
-            ownerId={property._id}
-            defaultCategory="PHOTO"
-            onUploaded={() => setDocRefreshKey((k) => k + 1)}
-          />
-          <DocumentList
-            module="PROPERTY"
-            ownerId={property._id}
-            refreshKey={docRefreshKey}
-          />
-        </Stack>
-      )}
+            <TextField
+              label="Location"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Price"
+              name="price"
+              type="number"
+              value={form.price}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Status"
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+            />
+            <TextField
+              label="Description"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              multiline
+              minRows={3}
+            />
+
+            <Button type="submit" variant="contained">
+              Save
+            </Button>
+          </Stack>
+        </Box>
+
+        {/* Documents (only once we have a real id) */}
+        {property?._id && (
+          <Stack spacing={2} sx={{ mt: 2 }}>
+            <DocumentUploader
+              module="PROPERTY"
+              ownerType="Property"
+              ownerId={property._id}
+              defaultCategory="PHOTO"
+              onUploaded={() => setDocRefreshKey((k) => k + 1)}
+            />
+            <DocumentList
+              module="PROPERTY"
+              ownerId={property._id}
+              refreshKey={docRefreshKey}
+            />
+          </Stack>
+        )}
+      </Stack>
     </Container>
   );
 };
