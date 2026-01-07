@@ -5,6 +5,7 @@ import { validationResult } from "express-validator";
 import { buildDocumentRecords } from "../utils/upload.js";
 import { recordAudit } from "../utils/audit.js";
 import { getUploadsRoot } from "../utils/upload.js";
+import { MODULE_LIST, REGISTRY } from "../constants/documentLibrary.js";
 
 export const uploadDocuments = async (req, res, next) => {
   const errors = validationResult(req);
@@ -20,6 +21,22 @@ export const uploadDocuments = async (req, res, next) => {
     if (!module || !ownerType || !ownerId) {
       return res.status(400).json({
         message: "module, ownerType, ownerId, and category are required",
+      });
+    }
+    if (!MODULE_LIST.includes(module)) {
+      return res
+        .status(400)
+        .json({ message: `Invalid module. Allowed: ${MODULE_LIST.join(", ")}` });
+    }
+    const registry = REGISTRY[module];
+    if (!registry?.ownerTypes.includes(ownerType)) {
+      return res.status(400).json({
+        message: `Invalid ownerType for module ${module}. Allowed: ${registry.ownerTypes.join(", ")}`,
+      });
+    }
+    if (category && !registry.categories.includes(category)) {
+      return res.status(400).json({
+        message: `Invalid category for module ${module}. Allowed: ${registry.categories.join(", ")}`,
       });
     }
 
@@ -87,7 +104,14 @@ export const listDocuments = async (req, res, next) => {
   try {
     const { module, ownerType, ownerId, category } = req.query;
     const query = {};
-    if (module) query.module = module;
+    if (module) {
+      if (!MODULE_LIST.includes(module)) {
+        return res
+          .status(400)
+          .json({ message: `Invalid module. Allowed: ${MODULE_LIST.join(", ")}` });
+      }
+      query.module = module;
+    }
     if (ownerType) query.ownerType = ownerType;
     if (ownerId) query.ownerId = ownerId;
     if (category) query.category = category;
@@ -127,4 +151,11 @@ export const deleteDocument = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+export const documentLibraryMeta = (_req, res) => {
+  res.json({
+    modules: MODULE_LIST,
+    registry: REGISTRY,
+  });
 };

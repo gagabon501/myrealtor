@@ -4,6 +4,7 @@ import {
   uploadDocuments,
   listDocuments,
   deleteDocument,
+  documentLibraryMeta,
 } from "../controllers/documentLibraryController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 import { createDiskStorage } from "../utils/upload.js";
@@ -25,6 +26,7 @@ const optionalAuth = (req, res, next) => {
 router.post("/", optionalAuth, upload.array("files", 20), uploadDocuments);
 
 router.get("/", listDocuments);
+router.get("/meta", documentLibraryMeta);
 
 router.delete(
   "/:id",

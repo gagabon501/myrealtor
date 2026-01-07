@@ -11,6 +11,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { MODULES, OWNER_TYPES, CATEGORIES, REGISTRY } from "../constants/documentLibrary";
 
 import DocumentUploader from "../components/DocumentUploader";
 import DocumentList from "../components/DocumentList";
@@ -171,14 +172,15 @@ const EditProperty = () => {
         {property?._id && (
           <Stack spacing={2} sx={{ mt: 2 }}>
             <DocumentUploader
-              module="PROPERTY"
-              ownerType="Property"
+              module={MODULES.PROPERTY}
+              ownerType={OWNER_TYPES.PROPERTY}
               ownerId={property._id}
-              defaultCategory="PHOTO"
+              categories={REGISTRY[MODULES.PROPERTY].categories}
+              defaultCategory={CATEGORIES.PROPERTY[0]}
               onUploaded={() => setDocRefreshKey((k) => k + 1)}
             />
             <DocumentList
-              module="PROPERTY"
+              module={MODULES.PROPERTY}
               ownerId={property._id}
               refreshKey={docRefreshKey}
             />

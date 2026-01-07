@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import client, { apiBase } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { REGISTRY } from "../constants/documentLibrary";
 
 const normalizeUrl = (u) => {
   if (!u) return null;

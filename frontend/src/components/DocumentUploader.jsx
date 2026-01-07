@@ -12,18 +12,21 @@ import {
   MenuItem,
 } from "@mui/material";
 import client from "../api/client";
-
-const DEFAULT_CATEGORIES = ["PHOTO", "DOCUMENT", "ID", "OTHER"];
+import { REGISTRY } from "../constants/documentLibrary";
 
 const DocumentUploader = ({
   module,
   ownerType,
   ownerId,
-  categories = DEFAULT_CATEGORIES,
-  defaultCategory = "PHOTO",
+  categories,
+  defaultCategory,
   onUploaded,
 }) => {
-  const [category, setCategory] = useState(defaultCategory);
+  const derivedCategories =
+    categories || REGISTRY[module]?.categories || ["ATTACHMENT", "PHOTO"];
+  const [category, setCategory] = useState(
+    defaultCategory || derivedCategories[0] || ""
+  );
   const [files, setFiles] = useState([]);
   const [descriptions, setDescriptions] = useState([]);
   const [labels, setLabels] = useState([]);
@@ -124,7 +127,7 @@ const DocumentUploader = ({
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
-              {categories.map((c) => (
+              {derivedCategories.map((c) => (
                 <MenuItem key={c} value={c}>
                   {c}
                 </MenuItem>

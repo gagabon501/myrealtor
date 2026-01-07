@@ -182,6 +182,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.71 / Frontend 0.2.71] – Uploads cleanup
 - Removed committed uploads artifacts and ignored `backend/uploads/`.
 
+## [Backend 1.1.72 / Frontend 0.2.72] – Document registry
+- Added shared document registry constants (modules/ownerTypes/categories) backend/frontend, meta endpoint, and validation hardening for document library.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 

@@ -24,6 +24,7 @@ import {
 import client from "../api/client";
 import DocumentUploader from "../components/DocumentUploader";
 import DocumentList from "../components/DocumentList";
+import { MODULES, OWNER_TYPES, REGISTRY } from "../constants/documentLibrary";
 
 const statusOptions = ["NEW", "CONTACTED", "CLOSED"];
 
@@ -188,15 +189,15 @@ const AdminInquiries = () => {
           {activeInquiry && (
             <Box sx={{ display: "grid", gap: 2 }}>
               <DocumentUploader
-                module="INQUIRY"
-                ownerType="BuyerInquiry"
+                module={MODULES.INQUIRY}
+                ownerType={OWNER_TYPES.BUYER_INQUIRY}
                 ownerId={activeInquiry._id}
-                categories={["ATTACHMENT", "PHOTO"]}
-                defaultCategory="ATTACHMENT"
+                categories={REGISTRY[MODULES.INQUIRY].categories}
+                defaultCategory={REGISTRY[MODULES.INQUIRY].categories[0]}
                 onUploaded={handleUploaded}
               />
               <DocumentList
-                module="INQUIRY"
+                module={MODULES.INQUIRY}
                 ownerId={activeInquiry._id}
                 refreshKey={refreshKey}
               />

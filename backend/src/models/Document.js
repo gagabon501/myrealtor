@@ -1,19 +1,9 @@
 import mongoose from "mongoose";
+import { MODULE_LIST } from "../constants/documentLibrary.js";
 
 const documentSchema = new mongoose.Schema(
   {
-    module: {
-      type: String,
-      enum: [
-        "ATS",
-        "PROPERTY",
-        "APPRAISAL",
-        "TITLE_TRANSFER",
-        "INQUIRY",
-        "OTHER",
-      ],
-      required: true,
-    },
+    module: { type: String, enum: MODULE_LIST, required: true },
     ownerType: { type: String, required: true },
     ownerId: { type: mongoose.Schema.Types.ObjectId, required: true },
     category: String,
