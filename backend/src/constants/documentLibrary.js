@@ -25,4 +25,3 @@ export const REGISTRY = {
 };
 
 export const MODULE_LIST = Object.values(MODULES);
-

@@ -11,7 +11,12 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { MODULES, OWNER_TYPES, CATEGORIES, REGISTRY } from "../constants/documentLibrary";
+import {
+  MODULES,
+  OWNER_TYPES,
+  CATEGORIES,
+  REGISTRY,
+} from "../constants/documentLibrary";
 
 import DocumentUploader from "../components/DocumentUploader";
 import DocumentList from "../components/DocumentList";

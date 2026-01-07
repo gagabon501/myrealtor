@@ -24,19 +24,23 @@ export const uploadDocuments = async (req, res, next) => {
       });
     }
     if (!MODULE_LIST.includes(module)) {
-      return res
-        .status(400)
-        .json({ message: `Invalid module. Allowed: ${MODULE_LIST.join(", ")}` });
+      return res.status(400).json({
+        message: `Invalid module. Allowed: ${MODULE_LIST.join(", ")}`,
+      });
     }
     const registry = REGISTRY[module];
     if (!registry?.ownerTypes.includes(ownerType)) {
       return res.status(400).json({
-        message: `Invalid ownerType for module ${module}. Allowed: ${registry.ownerTypes.join(", ")}`,
+        message: `Invalid ownerType for module ${module}. Allowed: ${registry.ownerTypes.join(
+          ", "
+        )}`,
       });
     }
     if (category && !registry.categories.includes(category)) {
       return res.status(400).json({
-        message: `Invalid category for module ${module}. Allowed: ${registry.categories.join(", ")}`,
+        message: `Invalid category for module ${module}. Allowed: ${registry.categories.join(
+          ", "
+        )}`,
       });
     }
 
@@ -106,9 +110,9 @@ export const listDocuments = async (req, res, next) => {
     const query = {};
     if (module) {
       if (!MODULE_LIST.includes(module)) {
-        return res
-          .status(400)
-          .json({ message: `Invalid module. Allowed: ${MODULE_LIST.join(", ")}` });
+        return res.status(400).json({
+          message: `Invalid module. Allowed: ${MODULE_LIST.join(", ")}`,
+        });
       }
       query.module = module;
     }

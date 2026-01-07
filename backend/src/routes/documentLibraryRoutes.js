@@ -8,6 +8,7 @@ import {
 } from "../controllers/documentLibraryController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 import { createDiskStorage } from "../utils/upload.js";
+import { getRole, canDocumentAccess } from "../policies/accessPolicies.js";
 
 const router = Router();
 
@@ -23,9 +24,29 @@ const optionalAuth = (req, res, next) => {
   return next();
 };
 
-router.post("/", optionalAuth, upload.array("files", 20), uploadDocuments);
+router.post("/", optionalAuth, upload.array("files", 20), (req, res, next) => {
+  const role = getRole(req);
+  const { module, category } = req.body || {};
+  if (!module) {
+    return res.status(400).json({ message: "module is required" });
+  }
+  if (!canDocumentAccess({ action: "UPLOAD", role, module, category })) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  return uploadDocuments(req, res, next);
+});
 
-router.get("/", listDocuments);
+router.get("/", (req, res, next) => {
+  const role = getRole(req);
+  const { module, category } = req.query || {};
+  if (!module) {
+    return res.status(400).json({ message: "module is required" });
+  }
+  if (!canDocumentAccess({ action: "LIST", role, module, category })) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  return listDocuments(req, res, next);
+});
 router.get("/meta", documentLibraryMeta);
 
 router.delete(
