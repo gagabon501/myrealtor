@@ -143,6 +143,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.57 / Frontend 0.2.57] – Property interest payload fix
 - Property interest form now sends nested buyer payload to `/inquiries` with required fields; versions aligned.
 
+## [Backend 1.1.58 / Frontend 0.2.58] – Admin inquiries UX
+- Admin inquiries table now shows created date, property title, buyer contact, and supports optimistic status updates with feedback.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

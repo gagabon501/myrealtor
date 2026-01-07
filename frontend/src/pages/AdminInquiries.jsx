@@ -14,6 +14,7 @@ import {
   TableRow,
   Typography,
   CircularProgress,
+  Snackbar,
 } from "@mui/material";
 import client from "../api/client";
 
@@ -23,6 +24,7 @@ const AdminInquiries = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -42,12 +44,15 @@ const AdminInquiries = () => {
   }, []);
 
   const handleStatusChange = async (id, status) => {
+    const prev = rows.find((r) => r._id === id)?.status;
+    setRows((prevRows) => prevRows.map((row) => (row._id === id ? { ...row, status } : row)));
     try {
       await client.patch(`/inquiries/${id}/status`, { status });
-      setRows((prev) =>
-        prev.map((row) => (row._id === id ? { ...row, status } : row))
-      );
+      setSuccess("Status updated");
     } catch (err) {
+      setRows((prevRows) =>
+        prevRows.map((row) => (row._id === id ? { ...row, status: prev } : row))
+      );
       setError(err.response?.data?.message || "Failed to update status");
     }
   };
@@ -70,45 +75,33 @@ const AdminInquiries = () => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Buyer</TableCell>
-              <TableCell>Contact</TableCell>
+              <TableCell>Created</TableCell>
               <TableCell>Property</TableCell>
-              <TableCell>Notes</TableCell>
+              <TableCell>Buyer</TableCell>
+              <TableCell>Phone</TableCell>
+              <TableCell>Email</TableCell>
               <TableCell>Status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row._id}>
+                <TableCell>{new Date(row.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <Typography variant="subtitle2">{row.name}</Typography>
+                  <Typography variant="body2">
+                    {row.propertyId?.title || row.propertyId || "—"}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="subtitle2">
+                    {row.buyer?.name || "—"}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {row.address}
+                    {row.buyer?.address || "—"}
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.email}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {row.phone}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{row.propertyId}</Typography>
-                </TableCell>
-                <TableCell sx={{ maxWidth: 240 }}>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {row.notes}
-                  </Typography>
-                </TableCell>
+                <TableCell>{row.buyer?.phone || "—"}</TableCell>
+                <TableCell>{row.buyer?.email || "—"}</TableCell>
                 <TableCell>
                   <FormControl size="small" fullWidth>
                     <InputLabel>Status</InputLabel>
@@ -129,7 +122,7 @@ const AdminInquiries = () => {
             ))}
             {!rows.length && (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <Typography variant="body2" color="text.secondary">
                     No inquiries yet.
                   </Typography>
@@ -139,6 +132,16 @@ const AdminInquiries = () => {
           </TableBody>
         </Table>
       )}
+      <Snackbar
+        open={!!success}
+        autoHideDuration={2000}
+        onClose={() => setSuccess(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="success" onClose={() => setSuccess(null)} sx={{ width: "100%" }}>
+          {success}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
