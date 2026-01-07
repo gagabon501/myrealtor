@@ -17,6 +17,7 @@ import serviceRoutes from "./routes/serviceRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import documentLibraryRoutes from "./routes/documentLibraryRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import documentLibraryRoutes from "./routes/documentLibraryRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -63,6 +64,7 @@ app.use("/api/compliance", complianceRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/inquiries", inquiryRoutes);
+app.use("/api/document-library", documentLibraryRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
