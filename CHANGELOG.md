@@ -200,6 +200,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.77 / Frontend 0.2.77] – RBAC alignment update
 - Document library policy clarified: PROPERTY/INQUIRY list/upload/delete staff/admin only; module required; frontend doc components staff/admin only.
 
+## [Backend 1.1.78 / Frontend 0.2.78] – Service docs ownership (004b)
+- Added service modules (APPRAISAL/TITLING/CONSULTANCY) to registry; document library enforces user ownership for service docs (list/upload) and staff/admin delete; service requests now require auth and store createdBy; added MyServiceDocuments page for users.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 

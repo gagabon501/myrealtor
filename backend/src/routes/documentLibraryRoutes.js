@@ -8,7 +8,8 @@ import {
 } from "../controllers/documentLibraryController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 import { createDiskStorage } from "../utils/upload.js";
-import { getRole, canDocumentAccess } from "../policies/accessPolicies.js";
+import { getRole, canDocumentAccess, assertServiceOwnership } from "../policies/accessPolicies.js";
+import { MODULES } from "../constants/documentLibrary.js";
 
 const router = Router();
 
@@ -33,17 +34,39 @@ router.post("/", optionalAuth, upload.array("files", 20), (req, res, next) => {
   if (!canDocumentAccess({ action: "UPLOAD", role, module })) {
     return res.status(403).json({ message: "Forbidden" });
   }
+  // For service modules, enforce ownership for users
+  const serviceModules = [MODULES.APPRAISAL, MODULES.TITLING, MODULES.CONSULTANCY];
+  if (serviceModules.includes(module) && role === "user") {
+    const ownerId = req.body.ownerId;
+    if (!ownerId) return res.status(400).json({ message: "ownerId is required" });
+    return assertServiceOwnership({ module, ownerId, userId: req.user?.id })
+      .then((ok) => {
+        if (!ok) return res.status(403).json({ message: "Forbidden" });
+        return uploadDocuments(req, res, next);
+      })
+      .catch(next);
+  }
   return uploadDocuments(req, res, next);
 });
 
 router.get("/", (req, res, next) => {
   const role = getRole(req);
-  const { module } = req.query || {};
+  const { module, ownerId } = req.query || {};
   if (!module) {
     return res.status(400).json({ message: "module is required" });
   }
   if (!canDocumentAccess({ action: "LIST", role, module })) {
     return res.status(403).json({ message: "Forbidden" });
+  }
+  const serviceModules = [MODULES.APPRAISAL, MODULES.TITLING, MODULES.CONSULTANCY];
+  if (serviceModules.includes(module) && role === "user") {
+    if (!ownerId) return res.status(400).json({ message: "ownerId is required" });
+    return assertServiceOwnership({ module, ownerId, userId: req.user?.id })
+      .then((ok) => {
+        if (!ok) return res.status(403).json({ message: "Forbidden" });
+        return listDocuments(req, res, next);
+      })
+      .catch(next);
   }
   return listDocuments(req, res, next);
 });

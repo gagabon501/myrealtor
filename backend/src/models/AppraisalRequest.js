@@ -11,6 +11,7 @@ const documentSchema = new mongoose.Schema(
 const appraisalRequestSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     name: { type: String, required: true },
     address: String,
     email: { type: String, required: true },

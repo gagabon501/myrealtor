@@ -9,6 +9,7 @@ import TitlingRequest from "../models/TitlingRequest.js";
 import ConsultancyRequest from "../models/ConsultancyRequest.js";
 import Property from "../models/Property.js";
 import { recordAudit } from "../utils/audit.js";
+import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -61,6 +62,7 @@ router.post(
 
 router.post(
   "/appraisal",
+  authenticate,
   upload.array("documents", 10),
   [
     body("name").notEmpty(),
@@ -101,6 +103,8 @@ router.post(
         rate,
         upfront,
         remaining,
+        createdBy: req.user.id,
+        userId: req.user.id,
       });
       res.status(201).json(reqDoc);
     } catch (err) {
@@ -111,6 +115,7 @@ router.post(
 
 router.post(
   "/titling",
+  authenticate,
   upload.array("documents", 20),
   [body("name").notEmpty(), body("email").isEmail(), body("propertyLocation").notEmpty()],
   async (req, res, next) => {
@@ -128,6 +133,8 @@ router.post(
         propertyLocation: req.body.propertyLocation,
         appointment: req.body.appointment,
         documents,
+        createdBy: req.user.id,
+        userId: req.user.id,
       });
       res.status(201).json(rec);
     } catch (err) {
@@ -138,6 +145,7 @@ router.post(
 
 router.post(
   "/consultancy",
+  authenticate,
   [body("name").notEmpty(), body("email").isEmail()],
   async (req, res, next) => {
     try {
@@ -147,6 +155,8 @@ router.post(
         phone: req.body.phone,
         topic: req.body.topic,
         appointment: req.body.appointment,
+        createdBy: req.user.id,
+        userId: req.user.id,
       });
       res.status(201).json(rec);
     } catch (err) {
