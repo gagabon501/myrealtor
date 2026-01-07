@@ -17,7 +17,23 @@ export const uploadDocuments = async (req, res, next) => {
     if (!files.length) {
       return res.status(400).json({ message: "No files uploaded" });
     }
-    const descriptions = req.body.descriptions;
+    if (!module || !ownerType || !ownerId) {
+      return res.status(400).json({ message: "module, ownerType, ownerId, and category are required" });
+    }
+
+    // Normalize descriptions to array matching files length
+    const descRaw = req.body.descriptions ?? req.body.description;
+    const descArray = Array.isArray(descRaw) ? descRaw : descRaw !== undefined ? [descRaw] : [];
+    if (!descArray.length) {
+      return res.status(400).json({ message: "Document description is required for each file" });
+    }
+    if (descArray.length !== files.length) {
+      return res.status(400).json({ message: "Descriptions count must match uploaded files" });
+    }
+    if (descArray.some((d) => !d || !String(d).trim())) {
+      return res.status(400).json({ message: "Document description is required for each file" });
+    }
+
     const labels = req.body.labels;
     const docsToCreate = buildDocumentRecords({
       files,
@@ -25,7 +41,7 @@ export const uploadDocuments = async (req, res, next) => {
       ownerType,
       ownerId,
       category,
-      descriptions,
+      descriptions: descArray,
       labels,
       uploadedBy: req.user?.id,
       subDir: "documents",
@@ -38,6 +54,15 @@ export const uploadDocuments = async (req, res, next) => {
     });
     res.status(201).json(created);
   } catch (err) {
+    if (err?.name === "ValidationError") {
+      return res.status(400).json({ message: err.message });
+    }
+    if (err?.message?.includes("Descriptions count")) {
+      return res.status(400).json({ message: "Descriptions count must match uploaded files" });
+    }
+    if (err?.message?.includes("Document description")) {
+      return res.status(400).json({ message: "Document description is required for each file" });
+    }
     next(err);
   }
 };

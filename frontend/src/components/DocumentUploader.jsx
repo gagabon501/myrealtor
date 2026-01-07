@@ -72,7 +72,7 @@ const DocumentUploader = ({
       fd.append("module", module);
       fd.append("ownerType", ownerType);
       fd.append("ownerId", ownerId);
-      fd.append("category", category);
+      if (category) fd.append("category", category);
 
       files.forEach((file, idx) => {
         fd.append("files", file);

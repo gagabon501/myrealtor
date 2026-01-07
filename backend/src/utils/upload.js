@@ -49,14 +49,14 @@ export const buildDocumentRecords = ({
   const fileList = coerceToArray(files);
   const descList = coerceToArray(descriptions);
   if (fileList.length !== descList.length) {
-    throw new Error("Descriptions count must match files count");
+    throw new Error("Descriptions count must match uploaded files");
   }
   const labelList = coerceToArray(labels);
 
   return fileList.map((file, idx) => {
     const description = descList[idx];
     if (!description || typeof description !== "string" || !description.trim()) {
-      throw new Error("Description is required for each file");
+      throw new Error("Document description is required for each file");
     }
     const label = labelList[idx] || file.originalname;
     return {
