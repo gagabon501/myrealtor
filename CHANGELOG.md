@@ -149,6 +149,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.59 / Frontend 0.2.59] – Nav link for inquiries
 - Added Buyer Inquiries nav button for staff/admin roles.
 
+## [Backend 1.1.60 / Frontend 0.2.60] – Document model
+- Added Document model with module/owner fields, file metadata, and indexes.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
