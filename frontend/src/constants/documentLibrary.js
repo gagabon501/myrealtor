@@ -1,16 +1,26 @@
 export const MODULES = {
   PROPERTY: "PROPERTY",
   INQUIRY: "INQUIRY",
+  APPRAISAL: "APPRAISAL",
+  TITLING: "TITLING",
+  CONSULTANCY: "CONSULTANCY",
+  PROPERTY_REQUEST: "PROPERTY_REQUEST",
 };
 
 export const OWNER_TYPES = {
   PROPERTY: "Property",
   BUYER_INQUIRY: "BuyerInquiry",
+  USER: "User",
+  PROPERTY_REQUEST: "PropertyListingRequest",
 };
 
 export const CATEGORIES = {
   PROPERTY: ["PHOTO", "ATTACHMENT"],
   INQUIRY: ["ATTACHMENT", "PHOTO"],
+  APPRAISAL: ["ATTACHMENT", "PHOTO"],
+  TITLING: ["ATTACHMENT", "PHOTO"],
+  CONSULTANCY: ["ATTACHMENT", "PHOTO"],
+  PROPERTY_REQUEST: ["ATTACHMENT", "PHOTO"],
 };
 
 export const REGISTRY = {
@@ -21,6 +31,22 @@ export const REGISTRY = {
   [MODULES.INQUIRY]: {
     ownerTypes: [OWNER_TYPES.BUYER_INQUIRY],
     categories: CATEGORIES.INQUIRY,
+  },
+  [MODULES.APPRAISAL]: {
+    ownerTypes: [OWNER_TYPES.USER],
+    categories: CATEGORIES.APPRAISAL,
+  },
+  [MODULES.TITLING]: {
+    ownerTypes: [OWNER_TYPES.USER],
+    categories: CATEGORIES.TITLING,
+  },
+  [MODULES.CONSULTANCY]: {
+    ownerTypes: [OWNER_TYPES.USER],
+    categories: CATEGORIES.CONSULTANCY,
+  },
+  [MODULES.PROPERTY_REQUEST]: {
+    ownerTypes: [OWNER_TYPES.PROPERTY_REQUEST],
+    categories: CATEGORIES.PROPERTY_REQUEST,
   },
 };
 

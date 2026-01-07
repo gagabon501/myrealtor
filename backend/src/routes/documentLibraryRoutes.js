@@ -13,8 +13,10 @@ import {
   canDocumentAccess,
   ownsServiceRequest,
   isServiceModule,
+  USER_OWNED_MODULES,
 } from "../policies/accessPolicies.js";
 import { MODULES } from "../constants/documentLibrary.js";
+import PropertyListingRequest from "../models/PropertyListingRequest.js";
 
 const router = Router();
 
@@ -40,15 +42,23 @@ router.post("/", upload.array("files", 20), async (req, res, next) => {
   if (!canDocumentAccess({ action: "UPLOAD", role, module })) {
     return res.status(403).json({ message: "Forbidden" });
   }
-  if (isServiceModule(module) && !isStaff(role)) {
+  if (USER_OWNED_MODULES.includes(module) && !isStaff(role)) {
     if (!ownerId) return res.status(400).json({ message: "ownerId is required" });
-    const { found, owned } = await ownsServiceRequest({
-      module,
-      ownerId,
-      userId: req.user.id,
-    });
-    if (!found) return res.status(404).json({ message: "Service request not found" });
-    if (!owned) return res.status(403).json({ message: "Forbidden" });
+    if (module === MODULES.PROPERTY_REQUEST) {
+      const reqDoc = await PropertyListingRequest.findById(ownerId).select("createdBy");
+      if (!reqDoc) return res.status(404).json({ message: "Service request not found" });
+      if (String(reqDoc.createdBy) !== String(req.user.id)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+    } else if (isServiceModule(module)) {
+      const { found, owned } = await ownsServiceRequest({
+        module,
+        ownerId,
+        userId: req.user.id,
+      });
+      if (!found) return res.status(404).json({ message: "Service request not found" });
+      if (!owned) return res.status(403).json({ message: "Forbidden" });
+    }
   }
   return uploadDocuments(req, res, next);
 });
@@ -62,9 +72,21 @@ router.get("/", (req, res, next) => {
   if (!canDocumentAccess({ action: "LIST", role, module })) {
     return res.status(403).json({ message: "Forbidden" });
   }
-  if (isServiceModule(module) && !isStaff(role)) {
+  if (USER_OWNED_MODULES.includes(module) && !isStaff(role)) {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     if (!ownerId) return res.status(400).json({ message: "ownerId is required" });
+    if (module === MODULES.PROPERTY_REQUEST) {
+      return PropertyListingRequest.findById(ownerId)
+        .select("createdBy")
+        .then((rec) => {
+          if (!rec) return res.status(404).json({ message: "Service request not found" });
+          if (String(rec.createdBy) !== String(req.user.id)) {
+            return res.status(403).json({ message: "Forbidden" });
+          }
+          return listDocuments(req, res, next);
+        })
+        .catch(next);
+    }
     return ownsServiceRequest({ module, ownerId, userId: req.user.id })
       .then(({ found, owned }) => {
         if (!found) return res.status(404).json({ message: "Service request not found" });

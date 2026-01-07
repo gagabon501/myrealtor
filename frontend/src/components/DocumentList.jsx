@@ -29,6 +29,7 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
   const isServiceModule = ["APPRAISAL", "TITLING", "CONSULTANCY"].includes(
     module || ""
   );
+  const isPropertyRequest = module === "PROPERTY_REQUEST";
 
   const [docs, setDocs] = useState([]);
   const [error, setError] = useState("");
@@ -151,7 +152,10 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
                           </Button>
                         )}
                         {(canManage ||
-                          (isServiceModule && userId && d.uploadedBy && String(d.uploadedBy) === String(userId))) && (
+                          ((isServiceModule || isPropertyRequest) &&
+                            userId &&
+                            d.uploadedBy &&
+                            String(d.uploadedBy) === String(userId))) && (
                           <Button
                             size="small"
                             color="error"

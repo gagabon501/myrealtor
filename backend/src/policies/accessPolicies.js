@@ -5,6 +5,10 @@ import ConsultancyRequest from "../models/ConsultancyRequest.js";
 const STAFF_ROLES = ["staff", "admin"];
 const STAFF_ONLY_MODULES = ["PROPERTY", "INQUIRY"];
 const SERVICE_MODULES = ["APPRAISAL", "TITLING", "CONSULTANCY"];
+const USER_OWNED_MODULES = [
+  ...SERVICE_MODULES,
+  "PROPERTY_REQUEST",
+];
 
 export const getRole = (req) => req.user?.role || "public";
 export const isStaff = (role) => STAFF_ROLES.includes(role);
@@ -16,6 +20,7 @@ export const resolveServiceModel = (module) => {
   if (module === "APPRAISAL") return AppraisalRequest;
   if (module === "TITLING") return TitlingRequest;
   if (module === "CONSULTANCY") return ConsultancyRequest;
+  if (module === "PROPERTY_REQUEST") return null; // handled separately if needed
   return null;
 };
 
@@ -23,14 +28,14 @@ export const resolveServiceModel = (module) => {
 export const canDocumentAccess = ({ action, role, module }) => {
   const r = role || "public";
   const m = module || "";
-  if (![...STAFF_ONLY_MODULES, ...SERVICE_MODULES].includes(m)) return false;
+  if (![...STAFF_ONLY_MODULES, ...USER_OWNED_MODULES].includes(m)) return false;
   if (["LIST", "UPLOAD"].includes(action)) {
     if (STAFF_ONLY_MODULES.includes(m)) return isStaff(r);
-    if (SERVICE_MODULES.includes(m)) return isStaff(r) || isUser(r);
+    if (USER_OWNED_MODULES.includes(m)) return isStaff(r) || isUser(r);
   }
   if (action === "DELETE") {
     if (STAFF_ONLY_MODULES.includes(m)) return isStaff(r);
-    if (SERVICE_MODULES.includes(m)) return isStaff(r) || isUser(r);
+    if (USER_OWNED_MODULES.includes(m)) return isStaff(r) || isUser(r);
   }
   return false;
 };
@@ -48,11 +53,17 @@ export const canInquiryAccess = ({ action, role }) => {
 export const ownsServiceRequest = async ({ module, ownerId, userId }) => {
   if (!userId || !ownerId) return { found: false, owned: false };
   const Model = resolveServiceModel(module);
-  if (!Model) return { found: false, owned: false };
-  const doc = await Model.findById(ownerId).select("createdBy");
-  if (!doc) return { found: false, owned: false };
-  const owned = String(doc.createdBy) === String(userId);
-  return { found: true, owned };
+  if (Model) {
+    const doc = await Model.findById(ownerId).select("createdBy");
+    if (!doc) return { found: false, owned: false };
+    const owned = String(doc.createdBy) === String(userId);
+    return { found: true, owned };
+  }
+  if (module === "PROPERTY_REQUEST") {
+    // handled in routes by PropertyListingRequest
+    return { found: false, owned: false };
+  }
+  return { found: false, owned: false };
 };
 
 export default {
@@ -61,6 +72,7 @@ export default {
   isAdmin,
   isUser,
   isServiceModule,
+  USER_OWNED_MODULES,
   resolveServiceModel,
   canDocumentAccess,
   canInquiryAccess,
