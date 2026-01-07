@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import {
   Alert,
   Box,
+  Button,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
   MenuItem,
@@ -17,6 +22,8 @@ import {
   Snackbar,
 } from "@mui/material";
 import client from "../api/client";
+import DocumentUploader from "../components/DocumentUploader";
+import DocumentList from "../components/DocumentList";
 
 const statusOptions = ["NEW", "CONTACTED", "CLOSED"];
 
@@ -25,6 +32,9 @@ const AdminInquiries = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [docOpen, setDocOpen] = useState(false);
+  const [activeInquiry, setActiveInquiry] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const load = async () => {
     setLoading(true);
@@ -42,6 +52,21 @@ const AdminInquiries = () => {
   useEffect(() => {
     load();
   }, []);
+
+  const openDocs = (row) => {
+    setActiveInquiry(row);
+    setDocOpen(true);
+    setRefreshKey((k) => k + 1);
+  };
+
+  const closeDocs = () => {
+    setDocOpen(false);
+    setActiveInquiry(null);
+  };
+
+  const handleUploaded = () => {
+    setRefreshKey((k) => k + 1);
+  };
 
   const handleStatusChange = async (id, status) => {
     const prev = rows.find((r) => r._id === id)?.status;
@@ -80,6 +105,7 @@ const AdminInquiries = () => {
               <TableCell>Buyer</TableCell>
               <TableCell>Phone</TableCell>
               <TableCell>Email</TableCell>
+              <TableCell>Documents</TableCell>
               <TableCell>Status</TableCell>
             </TableRow>
           </TableHead>
@@ -102,6 +128,11 @@ const AdminInquiries = () => {
                 </TableCell>
                 <TableCell>{row.buyer?.phone || "—"}</TableCell>
                 <TableCell>{row.buyer?.email || "—"}</TableCell>
+                <TableCell>
+                  <Button size="small" onClick={() => openDocs(row)}>
+                    Documents
+                  </Button>
+                </TableCell>
                 <TableCell>
                   <FormControl size="small" fullWidth>
                     <InputLabel>Status</InputLabel>
@@ -142,6 +173,40 @@ const AdminInquiries = () => {
           {success}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        fullWidth
+        maxWidth="md"
+        open={docOpen}
+        onClose={closeDocs}
+        aria-labelledby="documents-dialog-title"
+      >
+        <DialogTitle id="documents-dialog-title">
+          Documents for {activeInquiry?.buyer?.name || "Inquiry"}
+        </DialogTitle>
+        <DialogContent dividers>
+          {activeInquiry && (
+            <Box sx={{ display: "grid", gap: 2 }}>
+              <DocumentUploader
+                module="INQUIRY"
+                ownerType="BuyerInquiry"
+                ownerId={activeInquiry._id}
+                categories={["ATTACHMENT", "PHOTO"]}
+                defaultCategory="ATTACHMENT"
+                onUploaded={handleUploaded}
+              />
+              <DocumentList
+                module="INQUIRY"
+                ownerId={activeInquiry._id}
+                refreshKey={refreshKey}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDocs}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

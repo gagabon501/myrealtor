@@ -176,6 +176,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.69 / Frontend 0.2.69] – Document UI polish
 - Updated DocumentUploader with categories, removal, and stronger validation; DocumentList retained.
 
+## [Backend 1.1.70 / Frontend 0.2.70] – Inquiry documents dialog
+- Added Documents CTA in admin inquiries with dialog combining DocumentUploader and DocumentList for inquiry attachments (module INQUIRY / owner BuyerInquiry).
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 
