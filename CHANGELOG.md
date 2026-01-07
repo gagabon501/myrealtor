@@ -209,6 +209,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
+## [Backend 1.1.86 / Frontend 0.2.86] – ATS ticket doc + version bump
+- Added 004d ticket doc reference and version bump.
+
 ## [Backend 1.1.85 / Frontend 0.2.85] – ATS approval flow
 - Extended PropertyListingRequest statuses to ATS phases and added approval/rejection with audit logging and ATS document validation (PROPERTY_REQUEST / ATTACHMENT).
 - Staff endpoints to approve/reject; default status ATS_PENDING; tracked approval metadata.
