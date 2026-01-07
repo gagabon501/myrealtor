@@ -5,6 +5,9 @@ import { useAuth } from "../context/AuthContext";
 const TopBar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isPublic = !user;
+  const isClient = user?.role === "user";
+  const isStaff = ["staff", "admin"].includes(user?.role);
 
   const handleLogout = () => {
     logout();
@@ -68,10 +71,12 @@ const TopBar = () => {
           <Button component={Link} to="/properties">
             Properties
           </Button>
-          <Button component={Link} to="/services">
-            Services
-          </Button>
-          {user ? (
+          {isPublic && (
+            <Button component={Link} to="/services">
+              Services
+            </Button>
+          )}
+          {isClient && (
             <>
               <Button component={Link} to="/apply">
                 Apply
@@ -79,22 +84,24 @@ const TopBar = () => {
               <Button component={Link} to="/sell/requests">
                 My Listings
               </Button>
-              {["staff", "admin"].includes(user.role) && (
-                <Button component={Link} to="/properties/new">
-                  Add Property
-                </Button>
-              )}
-              {["staff", "admin"].includes(user.role) && (
-                <Button component={Link} to="/admin/inquiries">
-                  Buyer Inquiries
-                </Button>
-              )}
-              {["staff", "admin"].includes(user.role) && (
-                <Button component={Link} to="/staff/listing-requests">
-                  Listing Requests
-                </Button>
-              )}
-              {user.role === "admin" && (
+              <Button component={Link} to="/dashboard">
+                Dashboard
+              </Button>
+              <Button onClick={handleLogout}>Logout</Button>
+            </>
+          )}
+          {isStaff && (
+            <>
+              <Button component={Link} to="/properties/new">
+                Add Property
+              </Button>
+              <Button component={Link} to="/admin/inquiries">
+                Buyer Inquiries
+              </Button>
+              <Button component={Link} to="/staff/listing-requests">
+                Listing Requests
+              </Button>
+              {user?.role === "admin" && (
                 <Button component={Link} to="/users">
                   Users
                 </Button>
@@ -102,14 +109,13 @@ const TopBar = () => {
               <Button component={Link} to="/dashboard">
                 Dashboard
               </Button>
-              {["staff", "admin"].includes(user.role) && (
-                <Button component={Link} to="/staff">
-                  Staff
-                </Button>
-              )}
+              <Button component={Link} to="/staff">
+                Staff
+              </Button>
               <Button onClick={handleLogout}>Logout</Button>
             </>
-          ) : (
+          )}
+          {isPublic && (
             <>
               <Button component={Link} to="/login">
                 Login

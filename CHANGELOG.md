@@ -209,6 +209,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
+## [Backend 1.1.89 / Frontend 0.2.89] – TopBar role-based menus
+- Adjusted nav visibility: public sees Properties/Services + auth; users see Properties/Services/Apply/My Listings/Dashboard + logout; staff/admin see company menus (Properties, Add Property, Buyer Inquiries, Listing Requests, Users (admin), Dashboard, Staff) without Services/Apply/My Listings.
+
 ## [Backend 1.1.88 / Frontend 0.2.88] – Fix create listing form crash
 - Removed stray earnest checkbox from create listing form to fix runtime crash; version bump.
 
