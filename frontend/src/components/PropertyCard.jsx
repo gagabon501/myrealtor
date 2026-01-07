@@ -13,6 +13,7 @@ import {
   ImageListItem,
 } from "@mui/material";
 import { apiBase } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 
 const normalizeImageUrl = (image) => {
   if (!image) return null;
@@ -27,6 +28,7 @@ const normalizeImageUrl = (image) => {
 };
 
 const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
+  const { user } = useAuth();
   const rawImages = property.images;
   const images = Array.isArray(rawImages)
     ? rawImages
@@ -150,7 +152,7 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
       )}
       {(onApply || canManage) && (
         <CardActions sx={{ mt: "auto" }}>
-          {onApply && (
+          {onApply && (!user || user?.role === "user") && (
             <Button
               size="small"
               onClick={() => onApply(property)}
