@@ -5,7 +5,7 @@ import ConsultancyRequest from "../models/ConsultancyRequest.js";
 const STAFF_ROLES = ["staff", "admin"];
 const STAFF_ONLY_MODULES = ["PROPERTY", "INQUIRY"];
 const SERVICE_MODULES = ["APPRAISAL", "TITLING", "CONSULTANCY"];
-const USER_OWNED_MODULES = [
+export const USER_OWNED_MODULES = [
   ...SERVICE_MODULES,
   "PROPERTY_REQUEST",
 ];
