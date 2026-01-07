@@ -4,7 +4,14 @@ const documentSchema = new mongoose.Schema(
   {
     module: {
       type: String,
-      enum: ["ATS", "PROPERTY", "APPRAISAL", "TITLE_TRANSFER", "OTHER"],
+      enum: [
+        "ATS",
+        "PROPERTY",
+        "APPRAISAL",
+        "TITLE_TRANSFER",
+        "INQUIRY",
+        "OTHER",
+      ],
       required: true,
     },
     ownerType: { type: String, required: true },
