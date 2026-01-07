@@ -4,12 +4,12 @@ export const getRole = (req) => req.user?.role || "public";
 export const isStaff = (role) => STAFF_ROLES.includes(role);
 export const isAdmin = (role) => role === "admin";
 
-// Document library: LIST/UPLOAD/DELETE are staff/admin only for all modules.
-export const canDocumentAccess = ({ action, role }) => {
+// Document library: LIST/UPLOAD/DELETE are staff/admin only for PROPERTY and INQUIRY.
+export const canDocumentAccess = ({ action, role, module }) => {
   const r = role || "public";
-  if (["LIST", "UPLOAD", "DELETE"].includes(action)) {
-    return isStaff(r);
-  }
+  const supported = ["PROPERTY", "INQUIRY"];
+  if (!supported.includes(module || "")) return false;
+  if (["LIST", "UPLOAD", "DELETE"].includes(action)) return isStaff(r);
   return false;
 };
 
