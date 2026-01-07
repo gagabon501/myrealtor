@@ -110,6 +110,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.46 / Frontend 0.2.46] – Card gating tweak
 - Final adjustments to property action gating and version alignment.
 
+## [Backend 1.1.47 / Frontend 0.2.47] – Docs housekeeping
+- Updated tickets/docs; version alignment.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
