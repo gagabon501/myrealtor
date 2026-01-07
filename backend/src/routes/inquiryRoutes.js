@@ -6,11 +6,19 @@ import {
   updateInquiryStatus,
 } from "../controllers/inquiryController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
+import { getRole, canInquiryAccess } from "../policies/accessPolicies.js";
 
 const router = Router();
 
 router.post(
   "/",
+  (req, res, next) => {
+    const role = getRole(req);
+    if (!canInquiryAccess({ action: "CREATE", role })) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    return next();
+  },
   [
     body("propertyId").notEmpty(),
     body("buyer.name").notEmpty(),

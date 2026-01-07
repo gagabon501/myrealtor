@@ -188,6 +188,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.73 / Frontend 0.2.73] – Document policy enforcement
 - Document library routes now enforce role-based policies (PROPERTY public can only list photos; other actions staff/admin; INQUIRY staff/admin). Added registry validation and module-required checks.
 
+## [Backend 1.1.74 / Frontend 0.2.74] – Inquiry policy guard
+- Inquiry create now checks policy; list/status remain staff/admin; versions aligned.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 
