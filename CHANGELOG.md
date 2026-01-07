@@ -173,6 +173,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.68 / Frontend 0.2.68] – DocumentUploader deduped
 - Removed lingering duplicate component definitions; single uploader remains.
 
+## [Backend 1.1.69 / Frontend 0.2.69] – Document UI polish
+- Updated DocumentUploader with categories, removal, and stronger validation; DocumentList retained.
+
 ## [Backend 1.1.66 / Frontend 0.2.66] – Document UI components
 - Added DocumentUploader (requires per-file descriptions) and DocumentList with delete for staff/admin.
 

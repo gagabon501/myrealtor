@@ -1,302 +1,200 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Box,
   Button,
+  Card,
+  CardContent,
+  Divider,
   Stack,
   TextField,
   Typography,
-  Snackbar,
+  MenuItem,
 } from "@mui/material";
 import client from "../api/client";
 
-// Single DocumentUploader component. Requires description per file; posts to /document-library.
-const DocumentUploader = ({
-  module,
-  ownerType,
-  ownerId,
-  category,
-  onUploaded,
-  maxFiles = 20,
-}) => {
-  const [entries, setEntries] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-
-  const handleFilesChange = (e) => {
-    const files = Array.from(e.target.files || []).slice(0, maxFiles);
-    setEntries(
-      files.map((file) => ({
-        file,
-        description: "",
-        label: "",
-      }))
-    );
-  };
-
-  const updateEntry = (idx, field, value) => {
-    setEntries((prev) =>
-      prev.map((entry, i) => (i === idx ? { ...entry, [field]: value } : entry))
-    );
-  };
-
-  const canSubmit =
-    module &&
-    ownerType &&
-    ownerId &&
-    entries.length > 0 &&
-    entries.every((e) => e.description && e.description.trim().length > 0) &&
-    !loading;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!canSubmit) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("module", module);
-      formData.append("ownerType", ownerType);
-      formData.append("ownerId", ownerId);
-      if (category) formData.append("category", category);
-      entries.forEach((entry) => {
-        formData.append("descriptions", entry.description.trim());
-        if (entry.label && entry.label.trim()) {
-          formData.append("labels", entry.label.trim());
-        }
-        formData.append("files", entry.file);
-      });
-      await client.post("/document-library", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setSuccess("Documents uploaded");
-      setEntries([]);
-      onUploaded?.();
-    } catch (err) {
-      setError(err.response?.data?.message || "Upload failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Box component="form" onSubmit={handleSubmit}>
-      <Stack spacing={2}>
-        <Box>
-          <Button variant="outlined" component="label">
-            Select files
-            <input
-              hidden
-              type="file"
-              multiple
-              onChange={handleFilesChange}
-              accept="*/*"
-            />
-          </Button>
-          <Typography variant="caption" sx={{ ml: 1 }}>
-            Up to {maxFiles} files
-          </Typography>
-        </Box>
-        {entries.map((entry, idx) => (
-          <Box
-            key={`${entry.file.name}-${idx}`}
-            sx={{
-              p: 1.5,
-              border: "1px solid rgba(0,0,0,0.08)",
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {entry.file.name} ({Math.round(entry.file.size / 1024)} KB)
-            </Typography>
-            <Stack spacing={1} sx={{ mt: 1 }}>
-              <TextField
-                label="Description (required)"
-                value={entry.description}
-                onChange={(e) => updateEntry(idx, "description", e.target.value)}
-                required
-              />
-              <TextField
-                label="Label (optional)"
-                value={entry.label}
-                onChange={(e) => updateEntry(idx, "label", e.target.value)}
-              />
-            </Stack>
-          </Box>
-        ))}
-        {error && (
-          <Alert severity="error" onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
-        <Button type="submit" variant="contained" disabled={!canSubmit}>
-          {loading ? "Uploading..." : "Upload"}
-        </Button>
-      </Stack>
-      <Snackbar
-        open={!!success}
-        autoHideDuration={2500}
-        onClose={() => setSuccess(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity="success" onClose={() => setSuccess(null)} sx={{ width: "100%" }}>
-          {success}
-        </Alert>
-      </Snackbar>
-    </Box>
-  );
-};
-
-export default DocumentUploader;
-import { useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Stack,
-  TextField,
-  Typography,
-  Snackbar,
-} from "@mui/material";
-import client from "../api/client";
+const DEFAULT_CATEGORIES = ["PHOTO", "DOCUMENT", "ID", "OTHER"];
 
 const DocumentUploader = ({
   module,
   ownerType,
   ownerId,
-  category,
+  categories = DEFAULT_CATEGORIES,
+  defaultCategory = "PHOTO",
   onUploaded,
-  maxFiles = 20,
 }) => {
-  const [entries, setEntries] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [category, setCategory] = useState(defaultCategory);
+  const [files, setFiles] = useState([]);
+  const [descriptions, setDescriptions] = useState([]);
+  const [labels, setLabels] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleFilesChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    setEntries(
-      files.map((file) => ({
-        file,
-        description: "",
-        label: file.name,
-      }))
-    );
+  const canSubmit = useMemo(() => {
+    if (!module || !ownerType || !ownerId) return false;
+    if (!files.length) return false;
+    if (descriptions.length !== files.length) return false;
+    return descriptions.every((d) => String(d || "").trim().length > 0);
+  }, [module, ownerType, ownerId, files, descriptions]);
+
+  const onPickFiles = (e) => {
+    const picked = Array.from(e.target.files || []);
+    setFiles(picked);
+    setDescriptions(picked.map(() => ""));
+    setLabels(picked.map(() => ""));
+    setError("");
   };
 
-  const updateEntry = (idx, field, value) => {
-    setEntries((prev) =>
-      prev.map((entry, i) => (i === idx ? { ...entry, [field]: value } : entry))
-    );
+  const setDescAt = (idx, val) => {
+    setDescriptions((prev) => prev.map((v, i) => (i === idx ? val : v)));
   };
 
-  const canSubmit =
-    entries.length > 0 &&
-    entries.every((e) => e.description && e.description.trim().length > 0);
+  const setLabelAt = (idx, val) => {
+    setLabels((prev) => prev.map((v, i) => (i === idx ? val : v)));
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!canSubmit) return;
-    setLoading(true);
-    setError(null);
+  const removeFileAt = (idx) => {
+    setFiles((prev) => prev.filter((_, i) => i !== idx));
+    setDescriptions((prev) => prev.filter((_, i) => i !== idx));
+    setLabels((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleUpload = async () => {
+    setError("");
+    if (!canSubmit) {
+      setError("Please attach files and provide a description for each file.");
+      return;
+    }
+
     try {
-      const formData = new FormData();
-      formData.append("module", module);
-      formData.append("ownerType", ownerType);
-      formData.append("ownerId", ownerId);
-      if (category) formData.append("category", category);
-      entries.forEach((entry) => {
-        formData.append("descriptions", entry.description.trim());
-        if (entry.label && entry.label.trim()) {
-          formData.append("labels", entry.label.trim());
-        }
-        formData.append("files", entry.file);
+      setBusy(true);
+      const fd = new FormData();
+      fd.append("module", module);
+      fd.append("ownerType", ownerType);
+      fd.append("ownerId", ownerId);
+      fd.append("category", category);
+
+      files.forEach((file, idx) => {
+        fd.append("files", file);
+        fd.append("descriptions", descriptions[idx]);
+        if (labels[idx]) fd.append("labels", labels[idx]);
       });
-      await client.post("/document-library", formData, {
+
+      const res = await client.post("/document-library", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setSuccess("Documents uploaded");
-      setEntries([]);
-      onUploaded?.();
+
+      // backend may return array of docs or {documents: []}
+      const docs = Array.isArray(res.data)
+        ? res.data
+        : res.data?.documents || [];
+      onUploaded?.(docs);
+
+      // reset
+      setFiles([]);
+      setDescriptions([]);
+      setLabels([]);
     } catch (err) {
       setError(err.response?.data?.message || "Upload failed");
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit}>
-      <Stack spacing={2}>
-        <Box>
-          <Button variant="outlined" component="label">
-            Select files
-            <input
-              hidden
-              type="file"
-              multiple
-              onChange={handleFilesChange}
-              accept="*/*"
-            />
-          </Button>
-          <Typography variant="caption" sx={{ ml: 1 }}>
-            Up to {maxFiles} files
-          </Typography>
-        </Box>
-        {entries.map((entry, idx) => (
-          <Box
-            key={`${entry.file.name}-${idx}`}
-            sx={{
-              p: 1.5,
-              border: "1px solid rgba(0,0,0,0.08)",
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {entry.file.name}
+    <Card variant="outlined" sx={{ borderRadius: 2 }}>
+      <CardContent>
+        <Stack spacing={1.5}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 800 }}>
+              Upload documents
             </Typography>
-            <Stack spacing={1} sx={{ mt: 1 }}>
-              <TextField
-                label="Description (required)"
-                value={entry.description}
-                onChange={(e) => updateEntry(idx, "description", e.target.value)}
-                required
-              />
-              <TextField
-                label="Label (optional)"
-                value={entry.label}
-                onChange={(e) => updateEntry(idx, "label", e.target.value)}
-              />
-            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              A description is required for every uploaded file.
+            </Typography>
           </Box>
-        ))}
-        {error && (
-          <Alert severity="error" onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={!canSubmit || loading}
-        >
-          {loading ? "Uploading..." : "Upload"}
-        </Button>
-      </Stack>
-      <Snackbar
-        open={!!success}
-        autoHideDuration={2500}
-        onClose={() => setSuccess(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity="success" onClose={() => setSuccess(null)} sx={{ width: "100%" }}>
-          {success}
-        </Alert>
-      </Snackbar>
-    </Box>
+
+          {!!error && <Alert severity="error">{error}</Alert>}
+
+          <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+            <TextField
+              select
+              fullWidth
+              label="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              {categories.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <Button variant="outlined" component="label">
+              Choose files
+              <input hidden multiple type="file" onChange={onPickFiles} />
+            </Button>
+
+            <Button
+              variant="contained"
+              disabled={!canSubmit || busy}
+              onClick={handleUpload}
+            >
+              {busy ? "Uploading..." : "Upload"}
+            </Button>
+          </Stack>
+
+          {!!files.length && (
+            <Stack spacing={1.5}>
+              <Divider />
+              {files.map((f, idx) => (
+                <Box
+                  key={`${f.name}-${idx}`}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    border: "1px solid rgba(0,0,0,0.08)",
+                  }}
+                >
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      {f.name}
+                    </Typography>
+
+                    <TextField
+                      fullWidth
+                      required
+                      label="Document description (required)"
+                      value={descriptions[idx] || ""}
+                      onChange={(e) => setDescAt(idx, e.target.value)}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Label (optional)"
+                      value={labels[idx] || ""}
+                      onChange={(e) => setLabelAt(idx, e.target.value)}
+                    />
+
+                    <Box>
+                      <Button
+                        color="error"
+                        size="small"
+                        onClick={() => removeFileAt(idx)}
+                      >
+                        Remove
+                      </Button>
+                    </Box>
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
   );
 };
 
 export default DocumentUploader;
-
