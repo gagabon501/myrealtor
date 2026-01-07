@@ -104,6 +104,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.44 / Frontend 0.2.44] – Card status gating
 - Property cards restrict Apply/Interested to AVAILABLE and show friendly status labels; versions aligned.
 
+## [Backend 1.1.45 / Frontend 0.2.45] – Card UX polish
+- Refined status gating on property cards with consistent messaging and friendly labels.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

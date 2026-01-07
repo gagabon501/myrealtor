@@ -34,16 +34,21 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
     ? [rawImages]
     : [];
   const imageUrl = normalizeImageUrl(images[0]);
-  const status = (property.status || "").toUpperCase();
-  const isAvailable = status === "AVAILABLE";
-  const statusLabelMap = {
-    AVAILABLE: "Available",
-    RESERVED: "Reserved",
-    UNDER_NEGOTIATION: "Under negotiation",
-    SOLD: "Sold",
+  const statusUpper = String(property.status || "AVAILABLE").toUpperCase();
+  const actionable = statusUpper === "AVAILABLE";
+  const prettyStatus = (s) => {
+    const map = {
+      AVAILABLE: "Available",
+      RESERVED: "Reserved",
+      UNDER_NEGOTIATION: "Under negotiation",
+      SOLD: "Sold",
+      DRAFT: "Draft",
+      ARCHIVED: "Archived",
+    };
+    const key = String(s || "").toUpperCase();
+    return map[key] || key || "Unavailable";
   };
-  const statusLabel =
-    statusLabelMap[status] || property.status || "Unavailable";
+  const statusLabel = prettyStatus(property.status);
   return (
     <Card
       variant="outlined"
@@ -149,12 +154,12 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
             <Button
               size="small"
               onClick={() => onApply(property)}
-              disabled={!isAvailable}
+              disabled={!actionable && !canManage}
             >
-              {isAvailable ? "Apply" : statusLabel}
+              {actionable ? "Apply" : statusLabel}
             </Button>
           )}
-          {!canManage && isAvailable && (
+          {!canManage && actionable && (
             <Button
               size="small"
               component="a"
@@ -178,6 +183,15 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
             </>
           )}
         </CardActions>
+      )}
+      {!canManage && !actionable && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ px: 2, pb: 1 }}
+        >
+          This listing is not accepting inquiries.
+        </Typography>
       )}
     </Card>
   );
