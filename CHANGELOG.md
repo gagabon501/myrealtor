@@ -101,6 +101,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.43 / Frontend 0.2.43] – Status validation
 - Property create/update now normalizes and validates status against the enum; invalid values return 400.
 
+## [Backend 1.1.44 / Frontend 0.2.44] – Card status gating
+- Property cards restrict Apply/Interested to AVAILABLE and show friendly status labels; versions aligned.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

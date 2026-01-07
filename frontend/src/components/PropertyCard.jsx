@@ -34,6 +34,16 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
     ? [rawImages]
     : [];
   const imageUrl = normalizeImageUrl(images[0]);
+  const status = (property.status || "").toUpperCase();
+  const isAvailable = status === "AVAILABLE";
+  const statusLabelMap = {
+    AVAILABLE: "Available",
+    RESERVED: "Reserved",
+    UNDER_NEGOTIATION: "Under negotiation",
+    SOLD: "Sold",
+  };
+  const statusLabel =
+    statusLabelMap[status] || property.status || "Unavailable";
   return (
     <Card
       variant="outlined"
@@ -47,7 +57,12 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
       }}
     >
       {imageUrl && (
-        <CardActionArea component="a" href={imageUrl} target="_blank" rel="noreferrer">
+        <CardActionArea
+          component="a"
+          href={imageUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
           <CardMedia
             component="img"
             sx={{ height: { xs: 180, md: 210 }, objectFit: "cover" }}
@@ -59,9 +74,11 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
       <CardContent>
         <Typography variant="h6">{property.title}</Typography>
         <Typography color="text.secondary">{property.location}</Typography>
-        <Typography sx={{ my: 1 }}>₱{property.price?.toLocaleString()}</Typography>
+        <Typography sx={{ my: 1 }}>
+          ₱{property.price?.toLocaleString()}
+        </Typography>
         <Stack direction="row" spacing={1} flexWrap="wrap">
-          <Chip label={property.status} color="primary" size="small" />
+          <Chip label={statusLabel} color="primary" size="small" />
           {property.earnestMoneyRequired && (
             <Chip label="Earnest money required" color="warning" size="small" />
           )}
@@ -86,20 +103,38 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
       )}
       {images.length > 1 && (
         <Box sx={{ px: 2, pb: 1 }}>
-          <ImageList cols={{ xs: 3, sm: 3, md: 3 }} gap={8} sx={{ width: "100%" }}>
+          <ImageList
+            cols={{ xs: 3, sm: 3, md: 3 }}
+            gap={8}
+            sx={{ width: "100%" }}
+          >
             {images.slice(1, 4).map((img, idx) => {
               const thumb = normalizeImageUrl(img);
               return (
                 <ImageListItem
                   key={img + idx}
-                  sx={{ overflow: "hidden", borderRadius: 1, border: "1px solid rgba(0,0,0,0.04)" }}
+                  sx={{
+                    overflow: "hidden",
+                    borderRadius: 1,
+                    border: "1px solid rgba(0,0,0,0.04)",
+                  }}
                 >
-                  <CardActionArea component="a" href={thumb} target="_blank" rel="noreferrer">
+                  <CardActionArea
+                    component="a"
+                    href={thumb}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <img
                       src={thumb}
                       alt={`${property.title} thumbnail ${idx + 1}`}
                       loading="lazy"
-                      style={{ width: "100%", height: 72, objectFit: "cover", display: "block" }}
+                      style={{
+                        width: "100%",
+                        height: 72,
+                        objectFit: "cover",
+                        display: "block",
+                      }}
                     />
                   </CardActionArea>
                 </ImageListItem>
@@ -111,12 +146,20 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
       {(onApply || canManage) && (
         <CardActions sx={{ mt: "auto" }}>
           {onApply && (
-            <Button size="small" onClick={() => onApply(property)}>
-              Apply
+            <Button
+              size="small"
+              onClick={() => onApply(property)}
+              disabled={!isAvailable}
+            >
+              {isAvailable ? "Apply" : statusLabel}
             </Button>
           )}
-          {!canManage && (
-            <Button size="small" component="a" href={`/properties/${property._id}/interest`}>
+          {!canManage && isAvailable && (
+            <Button
+              size="small"
+              component="a"
+              href={`/properties/${property._id}/interest`}
+            >
               Interested
             </Button>
           )}
@@ -125,7 +168,11 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
               <Button size="small" onClick={() => onEdit?.(property)}>
                 Edit
               </Button>
-              <Button size="small" color="error" onClick={() => onDelete?.(property)}>
+              <Button
+                size="small"
+                color="error"
+                onClick={() => onDelete?.(property)}
+              >
                 Delete
               </Button>
             </>
@@ -137,4 +184,3 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
 };
 
 export default PropertyCard;
-
