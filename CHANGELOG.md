@@ -116,6 +116,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.48 / Frontend 0.2.48] – Buyer inquiry model
 - Added `BuyerInquiry` model for Ticket 002 with property ref, buyer details, notes, and status enum.
 
+## [Backend 1.1.49 / Frontend 0.2.49] – Inquiry controller
+- Added inquiry controller with create/list/update status handlers and audit events for Ticket 002.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
