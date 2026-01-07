@@ -35,10 +35,12 @@ const PropertyInterest = () => {
     try {
       await client.post("/inquiries", {
         propertyId: id,
-        name: form.name,
-        address: form.address,
-        phone: form.phone,
-        email: form.email,
+        buyer: {
+          name: form.name,
+          address: form.address,
+          phone: form.phone,
+          email: form.email,
+        },
         notes: form.notes,
       });
       setNotice("Inquiry submitted. We will reach out shortly.");
@@ -82,10 +84,35 @@ const PropertyInterest = () => {
       )}
       <Box component="form" onSubmit={handleSubmit}>
         <Stack spacing={2}>
-          <TextField label="Name" name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          <TextField label="Address" name="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-          <TextField label="Phone" name="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <TextField label="Email" type="email" name="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+          <TextField
+            label="Name"
+            name="name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+          <TextField
+            label="Address"
+            name="address"
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+            required
+          />
+          <TextField
+            label="Phone"
+            name="phone"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            required
+          />
+          <TextField
+            label="Email"
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
           <TextField
             label="Notes"
             name="notes"
