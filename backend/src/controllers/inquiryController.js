@@ -8,18 +8,19 @@ export const createInquiry = async (req, res, next) => {
     return res.status(400).json({ errors: errors.array() });
   }
   try {
+    const { propertyId, buyer, notes } = req.body;
     const inquiry = await BuyerInquiry.create({
-      propertyId: req.body.propertyId,
-      name: req.body.name,
-      address: req.body.address,
-      phone: req.body.phone,
-      email: req.body.email,
-      notes: req.body.notes,
+      propertyId,
+      buyer,
+      notes,
     });
     await recordAudit({
-      actor: req.body.email || "public",
+      actor: req.user?.id || "SYSTEM",
       action: "INQUIRY_CREATED",
-      context: { inquiryId: inquiry._id.toString(), propertyId: inquiry.propertyId?.toString() },
+      context: {
+        inquiryId: inquiry._id.toString(),
+        propertyId: inquiry.propertyId?.toString(),
+      },
     });
     res.status(201).json(inquiry);
   } catch (err) {
@@ -27,9 +28,23 @@ export const createInquiry = async (req, res, next) => {
   }
 };
 
-export const listInquiries = async (_req, res, next) => {
+export const listInquiries = async (req, res, next) => {
   try {
-    const inquiries = await BuyerInquiry.find().sort({ createdAt: -1 });
+    const { status, propertyId, search } = req.query;
+    const query = {};
+    if (status) query.status = status.toUpperCase();
+    if (propertyId) query.propertyId = propertyId;
+    if (search) {
+      const regex = new RegExp(search, "i");
+      query.$or = [
+        { "buyer.name": regex },
+        { "buyer.email": regex },
+        { "buyer.phone": regex },
+      ];
+    }
+    const inquiries = await BuyerInquiry.find(query)
+      .populate("propertyId", "title location price status")
+      .sort({ createdAt: -1 });
     res.json(inquiries);
   } catch (err) {
     next(err);
@@ -50,7 +65,7 @@ export const updateInquiryStatus = async (req, res, next) => {
     if (!updated) return res.status(404).json({ message: "Inquiry not found" });
 
     await recordAudit({
-      actor: req.user?.id || "system",
+      actor: req.user?.id || "SYSTEM",
       action: "INQUIRY_STATUS_UPDATED",
       context: { inquiryId: updated._id.toString(), status: updated.status },
     });

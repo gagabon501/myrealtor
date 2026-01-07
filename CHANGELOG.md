@@ -134,6 +134,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.54 / Frontend 0.2.54] – Buyer inquiry schema update
 - BuyerInquiry model now nests buyer details (name, address, phone, email) under `buyer` and retains status enum.
 
+## [Backend 1.1.55 / Frontend 0.2.55] – Inquiry controller rewrite
+- Inquiry controller now uses nested buyer fields, supports filters and search, populates properties, and audits status changes.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
