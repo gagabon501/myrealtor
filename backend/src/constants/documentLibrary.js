@@ -10,8 +10,11 @@ export const MODULES = {
 export const OWNER_TYPES = {
   PROPERTY: "Property",
   BUYER_INQUIRY: "BuyerInquiry",
-  USER: "User",
   PROPERTY_REQUEST: "PropertyListingRequest",
+  APPRAISAL_REQUEST: "AppraisalRequest",
+  TITLING_REQUEST: "TitlingRequest",
+  CONSULTANCY_REQUEST: "ConsultancyRequest",
+  USER: "User",
 };
 
 export const CATEGORIES = {
@@ -33,17 +36,18 @@ export const REGISTRY = {
     categories: CATEGORIES.INQUIRY,
   },
   [MODULES.APPRAISAL]: {
-    ownerTypes: [OWNER_TYPES.USER],
+    ownerTypes: [OWNER_TYPES.APPRAISAL_REQUEST],
     categories: CATEGORIES.APPRAISAL,
   },
   [MODULES.TITLING]: {
-    ownerTypes: [OWNER_TYPES.USER],
+    ownerTypes: [OWNER_TYPES.TITLING_REQUEST],
     categories: CATEGORIES.TITLING,
   },
   [MODULES.CONSULTANCY]: {
-    ownerTypes: [OWNER_TYPES.USER],
+    ownerTypes: [OWNER_TYPES.CONSULTANCY_REQUEST],
     categories: CATEGORIES.CONSULTANCY,
   },
+
   [MODULES.PROPERTY_REQUEST]: {
     ownerTypes: [OWNER_TYPES.PROPERTY_REQUEST],
     categories: CATEGORIES.PROPERTY_REQUEST,
