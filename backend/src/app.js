@@ -15,6 +15,7 @@ import complianceRoutes from "./routes/complianceRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
+import documentLibraryRoutes from "./routes/documentLibraryRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -55,6 +56,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/documents/library", documentLibraryRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/compliance", complianceRoutes);
