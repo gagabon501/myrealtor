@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Card,
@@ -9,6 +10,7 @@ import {
   Stack,
   Typography,
   Alert,
+  Button,
 } from "@mui/material";
 import client from "../api/client";
 import DocumentUploader from "../components/DocumentUploader";
@@ -32,6 +34,7 @@ const MyListingRequests = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [requests, setRequests] = useState([]);
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
@@ -60,9 +63,20 @@ const MyListingRequests = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 3 }}>
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        My Listing Requests
-      </Typography>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 2 }}
+        spacing={2}
+      >
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          My Listing Requests
+        </Typography>
+        <Button variant="contained" onClick={() => navigate("/sell/request")}>
+          Create Listing Request
+        </Button>
+      </Stack>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
