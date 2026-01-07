@@ -18,20 +18,32 @@ export const uploadDocuments = async (req, res, next) => {
       return res.status(400).json({ message: "No files uploaded" });
     }
     if (!module || !ownerType || !ownerId) {
-      return res.status(400).json({ message: "module, ownerType, ownerId, and category are required" });
+      return res.status(400).json({
+        message: "module, ownerType, ownerId, and category are required",
+      });
     }
 
     // Normalize descriptions to array matching files length
     const descRaw = req.body.descriptions ?? req.body.description;
-    const descArray = Array.isArray(descRaw) ? descRaw : descRaw !== undefined ? [descRaw] : [];
+    const descArray = Array.isArray(descRaw)
+      ? descRaw
+      : descRaw !== undefined
+      ? [descRaw]
+      : [];
     if (!descArray.length) {
-      return res.status(400).json({ message: "Document description is required for each file" });
+      return res
+        .status(400)
+        .json({ message: "Document description is required for each file" });
     }
     if (descArray.length !== files.length) {
-      return res.status(400).json({ message: "Descriptions count must match uploaded files" });
+      return res
+        .status(400)
+        .json({ message: "Descriptions count must match uploaded files" });
     }
     if (descArray.some((d) => !d || !String(d).trim())) {
-      return res.status(400).json({ message: "Document description is required for each file" });
+      return res
+        .status(400)
+        .json({ message: "Document description is required for each file" });
     }
 
     const labels = req.body.labels;
@@ -58,10 +70,14 @@ export const uploadDocuments = async (req, res, next) => {
       return res.status(400).json({ message: err.message });
     }
     if (err?.message?.includes("Descriptions count")) {
-      return res.status(400).json({ message: "Descriptions count must match uploaded files" });
+      return res
+        .status(400)
+        .json({ message: "Descriptions count must match uploaded files" });
     }
     if (err?.message?.includes("Document description")) {
-      return res.status(400).json({ message: "Document description is required for each file" });
+      return res
+        .status(400)
+        .json({ message: "Document description is required for each file" });
     }
     next(err);
   }
@@ -90,7 +106,10 @@ export const deleteDocument = async (req, res, next) => {
     if (doc.filePath) {
       const uploadsRoot = getUploadsRoot();
       const relative = doc.filePath.replace("/uploads/", "uploads/");
-      const absolute = path.resolve(uploadsRoot, relative.replace(/^uploads\//, ""));
+      const absolute = path.resolve(
+        uploadsRoot,
+        relative.replace(/^uploads\//, "")
+      );
       fs.unlink(absolute, () => {});
     }
 
@@ -98,11 +117,14 @@ export const deleteDocument = async (req, res, next) => {
     await recordAudit({
       actor: req.user?.id || "SYSTEM",
       action: "DOCUMENT_DELETED",
-      context: { documentId: doc._id.toString(), module: doc.module, ownerId: doc.ownerId?.toString() },
+      context: {
+        documentId: doc._id.toString(),
+        module: doc.module,
+        ownerId: doc.ownerId?.toString(),
+      },
     });
     res.json({ success: true });
   } catch (err) {
     next(err);
   }
 };
-
