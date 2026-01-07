@@ -152,6 +152,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.60 / Frontend 0.2.60] – Document model
 - Added Document model with module/owner fields, file metadata, and indexes.
 
+## [Backend 1.1.61 / Frontend 0.2.61] – Upload utils
+- Added shared upload utilities for storage paths, directory ensure, disk storage, and document record builder.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 
