@@ -125,6 +125,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.51 / Frontend 0.2.51] – Inquiry route mount
 - Mounted inquiry routes at `/api/inquiries`; version alignment.
 
+## [Backend 1.1.52 / Frontend 0.2.52] – Property interest form update
+- Interest page now posts to `/inquiries`, shows property details, success snackbar, and redirects to properties.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

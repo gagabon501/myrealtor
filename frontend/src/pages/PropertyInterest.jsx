@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Alert, Box, Button, Container, Stack, TextField, Typography, Chip } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  Stack,
+  TextField,
+  Typography,
+  Chip,
+  Snackbar,
+} from "@mui/material";
 import client from "../api/client";
 
 const PropertyInterest = () => {
@@ -10,6 +20,7 @@ const PropertyInterest = () => {
   const [form, setForm] = useState({ name: "", address: "", phone: "", email: "", notes: "" });
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
+  const [successOpen, setSuccessOpen] = useState(false);
 
   useEffect(() => {
     client
@@ -22,12 +33,17 @@ const PropertyInterest = () => {
     e.preventDefault();
     setError(null);
     try {
-      await client.post("/services/brokerage/interest", {
+      await client.post("/inquiries", {
         propertyId: id,
-        ...form,
+        name: form.name,
+        address: form.address,
+        phone: form.phone,
+        email: form.email,
+        notes: form.notes,
       });
-      setNotice("Interest submitted. We will reach out shortly.");
-      setTimeout(() => navigate("/properties"), 1500);
+      setNotice("Inquiry submitted. We will reach out shortly.");
+      setSuccessOpen(true);
+      setTimeout(() => navigate("/properties"), 1200);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to submit interest");
     }
@@ -44,6 +60,11 @@ const PropertyInterest = () => {
           <Typography variant="body2" color="text.secondary">
             {property.location}
           </Typography>
+          {property.price && (
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              ₱{property.price?.toLocaleString()}
+            </Typography>
+          )}
           {property.earnestMoneyRequired && (
             <Chip label="Earnest money required" color="warning" size="small" sx={{ mt: 1 }} />
           )}
@@ -78,6 +99,16 @@ const PropertyInterest = () => {
           </Button>
         </Stack>
       </Box>
+      <Snackbar
+        open={successOpen}
+        autoHideDuration={2000}
+        onClose={() => setSuccessOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="success" onClose={() => setSuccessOpen(false)} sx={{ width: "100%" }}>
+          {notice}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
