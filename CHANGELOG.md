@@ -161,6 +161,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.63 / Frontend 0.2.63] – Document model fix
 - Removed duplicate legacy Document schema and cleaned library mount path.
 
+## [Backend 1.1.64 / Frontend 0.2.64] – Import cleanup
+- Removed duplicate documentLibraryRoutes import causing nodemon crash; versions aligned.
+
 ## [Backend 1.1.15 / Frontend 0.2.15] – Compose updates
 - Additional docker-compose adjustments.
 

@@ -17,7 +17,6 @@ import serviceRoutes from "./routes/serviceRoutes.js";
 import inquiryRoutes from "./routes/inquiryRoutes.js";
 import documentLibraryRoutes from "./routes/documentLibraryRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-import documentLibraryRoutes from "./routes/documentLibraryRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
