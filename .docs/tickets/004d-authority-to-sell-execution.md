@@ -175,3 +175,680 @@ JSON:
   "reason": "Invalid or unsigned ATS document"
 }
 ```
+
+---
+
+We are getting 403 Forbidden as soon as we open the “Authority to Sell Documents” modal.
+
+Console shows:
+GET https://apimyrealtor.nodesafe.cloud/api/document-library?module=PROPERTY_REQUEST&ownerId=<listingRequestId> -> 403
+
+Fix backend routing/auth: document-library GET currently does NOT authenticate (or optional-auth), so req.user is undefined and role becomes public, causing canDocumentAccess() to deny LIST.
+
+TASK:
+
+1. In backend/src/routes/documentLibraryRoutes.js:
+   - Apply optionalAuth middleware to GET "/" so that if Authorization: Bearer <token> is present, req.user is populated.
+   - Make sure role is computed AFTER optionalAuth runs.
+   - Keep behaviour: if module is USER_OWNED_MODULES and caller is not staff/admin, require auth + ownerId + ownership checks.
+   - If no auth header, treat as public and return 403/401 as appropriate (public must not access documents).
+
+Implementation detail:
+
+- Ensure optionalAuth uses authenticate(req,res,next) when Bearer token exists.
+- Update route signature like:
+  router.get("/", optionalAuth, (req,res,next) => { ...existing logic... })
+
+2. Also ensure POST "/" requires auth BEFORE evaluating permissions:
+
+   - Add authenticate middleware to POST route (so req.user exists)
+   - Example:
+     router.post("/", authenticate, upload.array("files", 20), async (req,res,next)=>{ ... })
+
+3. Re-test:
+   - Logged-in client opens ATS modal -> LIST should return 200 with empty array (not 403).
+   - Upload ATS doc -> POST should return 201.
+
+Do NOT loosen permissions: public must still be blocked, client only sees own PROPERTY_REQUEST docs, staff/admin can see all.
+
+---
+
+## Ticket 004d (Frontend) — Seller UI for ATS workflow (My Listing Requests) - Sequence 1
+
+Goal:
+Implement seller-facing UX for Authority to Sell (ATS) workflow inside the "My Listing Requests" page.
+Seller should clearly see ATS status, upload ATS docs when required, and see rejection reason if rejected.
+
+Context:
+
+- Listing request model now supports ATS states (backend already implemented).
+- ATS document uploads use existing shared Document Library module:
+  - module = PROPERTY_REQUEST
+  - ownerType = PropertyListingRequest (already in registry)
+  - ownerId = listingRequest.\_id
+  - category must be "ATTACHMENT" for ATS
+- Seller must be able to upload/list/delete OWN ATS documents for their own listing request (already fixed for 403).
+
+Scope:
+Frontend only (no infra).
+Do not break admin/staff views.
+
+### 1) Identify files
+
+- Find page component for seller listing requests, likely:
+  - frontend/src/pages/MyListingRequests.jsx (or similar)
+- There is already a Documents modal/dialog component used for ATS docs:
+  - frontend/src/components/ListingRequestDocumentsDialog.jsx (or similar)
+    Use it (don’t duplicate document components).
+
+### 2) ATS status mapping (seller-visible)
+
+For each listing request card row, show a status chip/badge:
+
+- ATS_PENDING -> label "ATS Pending"
+- ATS_APPROVED -> label "ATS Approved"
+- ATS_REJECTED -> label "ATS Rejected"
+  Fallback if status missing: treat as ATS_PENDING.
+
+Also show rejection reason text ONLY when ATS_REJECTED:
+
+- display "Reason: <atsRejectedReason>" in a small Typography under the chip.
+- If missing reason, show "Reason: Not provided".
+
+### 3) Seller actions on the card
+
+On each listing request card:
+
+A) When status is ATS_PENDING:
+
+- Show a prominent callout/alert at top of card:
+  "Authority to Sell (ATS) document is required before approval."
+- Show a CTA button: "Upload ATS Document"
+  - Clicking opens the Documents dialog
+  - The dialog must be pre-configured to ATS mode:
+    - title: "Authority to Sell Documents"
+    - module = PROPERTY_REQUEST
+    - ownerType = "PropertyListingRequest" (or whatever constant is used)
+    - ownerId = listingRequest.\_id
+    - categories allowed: only ["ATTACHMENT"] (force category dropdown to ATTACHMENT and disable changing)
+    - Optionally set default description/label placeholders like "ATS"
+
+B) When status is ATS_REJECTED:
+
+- Show callout alert (severity=error or warning):
+  "ATS was rejected. Please upload a corrected ATS document and resubmit."
+- Keep the same CTA button: "Re-upload ATS Document" (opens same dialog)
+- Keep showing the rejection reason.
+
+C) When status is ATS_APPROVED:
+
+- Do NOT show upload callout.
+- Still allow "View ATS Documents" (secondary button) so seller can view/download what was uploaded.
+
+### 4) Documents dialog behavior
+
+Ensure the seller dialog:
+
+- Lists uploaded ATS docs for that listing request
+- Allows upload and "delete own" (already in backend/policy)
+- If your shared DocumentUploader supports category selection, hard-lock it:
+  - category fixed to "ATTACHMENT"
+  - hide category dropdown OR disable it
+- Ensure request parameters passed match API expectations:
+  - list endpoint must call GET /api/document-library?module=PROPERTY_REQUEST&ownerId=<id>
+  - upload must POST /api/document-library with form-data including:
+    - module=PROPERTY_REQUEST
+    - ownerType=PropertyListingRequest
+    - ownerId=<id>
+    - category=ATTACHMENT
+    - descriptions[] etc + files[]
+- On close, refresh that card’s documents list if needed (or rely on internal refreshKey).
+
+### 5) UI consistency
+
+- Use existing MUI components already used in other pages:
+  - Chip, Alert, Button, Stack, Typography
+- Keep layout clean:
+  - Chip aligned right or under title
+  - Callout above action buttons
+- Do not change TopBar navigation in this ticket.
+
+### 6) Acceptance criteria
+
+- Seller sees ATS chip on each listing request card.
+- If ATS_PENDING: sees callout + "Upload ATS Document" button.
+- If ATS_REJECTED: sees callout + rejection reason + "Re-upload ATS Document".
+- If ATS_APPROVED: sees "View ATS Documents" only.
+- Clicking CTA opens the documents dialog and does NOT trigger 403.
+- Seller can upload ATS doc (category forced to ATTACHMENT).
+- Seller can see uploaded docs immediately in the dialog list.
+
+### 7) Quick manual tests
+
+- As user role:
+  - Create a listing request
+  - Confirm status renders as ATS_PENDING (or pending)
+  - Upload a PDF in ATS dialog -> appears in list
+- Simulate ATS_REJECTED (if you have a record): ensure reason displays
+- Simulate ATS_APPROVED: ensure no upload callout
+
+Deliverables:
+
+- Updated seller listing requests page + any dialog prop adjustments to support "ATS mode".
+- No breaking changes to admin/staff listing requests pages.
+
+---
+
+## Ticket 004d (Frontend) — Admin/Staff UI for ATS workflow (Listing Requests) - Sequence 2
+
+Goal:
+Implement Admin/Staff interface to process listing requests by:
+
+1. Viewing ATS documents for a listing request
+2. Approving ATS (sets status ATS_APPROVED)
+3. Rejecting ATS (sets status ATS_REJECTED + requires reason)
+   Also show current ATS status in the table/list.
+
+Context:
+
+- Backend endpoints exist:
+  - GET /api/listing-requests (staff/admin list)
+  - POST /api/listing-requests/:id/approve
+  - POST /api/listing-requests/:id/reject body: { reason }
+- ATS documents are stored in Document Library:
+  - module=PROPERTY_REQUEST
+  - ownerType=PropertyListingRequest
+  - ownerId=<listingRequestId>
+- Staff/Admin can view docs for any listing request.
+
+Scope:
+Frontend only. No infra changes. Keep seller pages intact.
+
+### 1) Locate Staff/Admin page
+
+Find the staff listing request management page, likely one of:
+
+- frontend/src/pages/StaffListingRequests.jsx
+- frontend/src/pages/AdminListingRequests.jsx
+  or a shared component used by both.
+
+### 2) Add ATS status column
+
+In the table/list, add a column:
+
+- "ATS Status" with a Chip:
+  - ATS_PENDING -> "ATS Pending" (warning/info)
+  - ATS_APPROVED -> "ATS Approved" (success)
+  - ATS_REJECTED -> "ATS Rejected" (error)
+    Fallback if empty -> treat as ATS_PENDING.
+
+If ATS_REJECTED, optionally show tooltip or subtext: rejection reason.
+
+### 3) Add row actions: Documents, Approve, Reject
+
+For each row:
+A) "Documents" button
+
+- opens existing ListingRequestDocumentsDialog (reuse existing)
+- configure dialog in ATS mode:
+  - title "Authority to Sell Documents"
+  - module=PROPERTY_REQUEST
+  - ownerType=PropertyListingRequest
+  - ownerId=row.\_id
+  - category filter default ATTACHMENT (do NOT hard-lock for staff if you prefer, but recommended to default to ATTACHMENT)
+
+B) "Approve ATS" button
+
+- Enabled only when:
+  - status is ATS_PENDING or ATS_REJECTED
+- When clicked:
+  - Call POST /api/listing-requests/:id/approve
+  - On success: refresh list + show snackbar "ATS approved"
+
+C) "Reject ATS" button
+
+- Enabled only when:
+  - status is ATS_PENDING or ATS_REJECTED
+- When clicked:
+  - Open a modal/dialog that requires a reason (TextField required)
+  - On submit:
+    - Call POST /api/listing-requests/:id/reject with JSON { reason }
+    - On success: refresh list + show snackbar "ATS rejected"
+
+### 4) Guard rails (important)
+
+- Before allowing Approve:
+
+  - Best UX: check ATS document exists by listing documents first.
+  - Implementation options: 1) Lightweight: when user clicks Approve, first GET document-library for ownerId; if empty -> block and show "ATS document required" 2) Better: show an inline indicator in row "Docs: N" by querying docs count (optional; only if easy)
+    Do at least option (1).
+
+- Reject must enforce non-empty reason (frontend validation).
+
+### 5) Refresh strategy
+
+After approve/reject:
+
+- Refresh the listing requests list from API (refetch)
+- Keep loading state per-row to avoid UI freeze
+
+### 6) Acceptance criteria
+
+- Staff/Admin sees ATS status for each listing request.
+- Staff/Admin can open ATS Documents dialog per row.
+- Approve calls backend and updates row status to ATS_APPROVED.
+- Reject requires reason and updates row status to ATS_REJECTED, showing reason.
+- Approve is blocked if no ATS docs exist (clear error message).
+- No changes to seller “My Listing Requests” behavior in this ticket.
+
+### 7) Manual tests
+
+- As staff/admin:
+  - Open Listing Requests page, confirm list loads
+  - Pick a listing with ATS doc:
+    - Approve -> status becomes ATS_APPROVED
+  - Reject:
+    - Enter reason -> status becomes ATS_REJECTED
+  - Approve with zero docs -> blocked with message
+
+Deliverables:
+
+- Updated Staff/Admin listing requests page with status chip + actions + reject modal.
+- Uses existing document dialog components; no duplication.
+
+---
+
+## Ticket 004d (Backend) — Sequence 3: ATS workflow hardening + audit
+
+Goal:
+Harden the Authority-to-Sell (ATS) workflow in backend so it is enforced server-side (not only UI):
+
+1. Seller can upload ATS doc ONLY for their own listing request
+2. Staff/Admin can approve/reject ONLY if ATS doc exists (approve) and reason provided (reject)
+3. Seller cannot bypass ATS by directly creating/activating a Property listing without ATS approval
+4. Add audit log records for upload/approve/reject actions
+
+Context:
+
+- Listing request model: PropertyListingRequest
+  - fields added earlier: atsApprovedBy, atsApprovedAt, atsRejectedReason, status (ATS_PENDING/ATS_APPROVED/ATS_REJECTED)
+- Document Library:
+  - module = PROPERTY_REQUEST
+  - ownerType = PropertyListingRequest
+  - ownerId = <listingRequestId>
+  - ATS doc category should be ATTACHMENT (preferred)
+
+Existing endpoints:
+
+- POST /api/listing-requests (seller create)
+- GET /api/listing-requests/mine
+- GET /api/listing-requests (staff/admin)
+- POST /api/listing-requests/:id/approve
+- POST /api/listing-requests/:id/reject
+- Document library routes already exist and have role/module checks (004b)
+
+Constraints:
+
+- No infra changes.
+- Keep existing API response style (JSON).
+- Keep role logic consistent with accessPolicies.js
+
+---
+
+### 1) Enforce seller ownership on ATS document uploads (server-side)
+
+In documentLibraryRoutes.js (or the policy layer used by uploads):
+
+- For module === MODULES.PROPERTY_REQUEST:
+  - If role is NOT staff/admin:
+    - Require ownerId
+    - Find PropertyListingRequest by ownerId and ensure createdBy == req.user.id
+    - If not owned -> 403
+
+Also enforce ATS doc category:
+
+- For module PROPERTY_REQUEST uploads (seller):
+  - Allow only category = ATTACHMENT
+  - If category missing, default to ATTACHMENT
+  - If category != ATTACHMENT -> 400 with message "ATS must be uploaded as ATTACHMENT"
+
+(Staff/Admin may upload any category; seller restricted.)
+
+---
+
+### 2) Approval endpoint validation
+
+In listingRequestController approve handler:
+
+- Require staff/admin role (existing)
+- Before approving:
+  - Verify listing request exists
+  - Verify ATS document exists in Document collection:
+    - module=PROPERTY_REQUEST
+    - ownerType="PropertyListingRequest"
+    - ownerId=<id>
+    - category="ATTACHMENT" (ATS)
+  - If none: return 400 { message: "ATS document is required before approval" }
+- When approving:
+  - status = "ATS_APPROVED"
+  - atsApprovedBy=req.user.id
+  - atsApprovedAt=now
+  - clear atsRejectedReason (optional)
+- record audit log:
+  - action: "ATS_APPROVED"
+  - actor: req.user.id
+  - context: { listingRequestId }
+
+---
+
+### 3) Reject endpoint validation
+
+In listingRequestController reject handler:
+
+- Require staff/admin role
+- Require reason in body (non-empty string, trim)
+  - if missing -> 400 { message: "Rejection reason is required" }
+- Update:
+  - status="ATS_REJECTED"
+  - atsRejectedReason=reason
+  - (do NOT set atsApprovedBy/At)
+- record audit log:
+  - action: "ATS_REJECTED"
+  - actor: req.user.id
+  - context: { listingRequestId, reason }
+
+---
+
+### 4) Prevent bypass: property creation/publish must require ATS_APPROVED
+
+Find any endpoint that creates a Property from listing request OR allows seller to "publish" / "convert" a request:
+
+- If there is a route like POST /api/properties or POST /api/properties/from-request, etc:
+  - If request-based: enforce that request.status === "ATS_APPROVED" before allowing publish/creation
+  - else return 403 { message: "ATS approval required" }
+
+If there is no conversion endpoint yet, add a TODO comment only. Do not invent new flows.
+
+---
+
+### 5) Add a helper function (clean)
+
+Create a helper in backend/src/utils/ats.js or inside controller:
+
+- async function hasATS(id) -> boolean
+  - query Document collection as above
+    Reuse in approve + (optional) other places.
+
+---
+
+### 6) Tests (manual / Postman)
+
+As seller:
+
+- Upload ATS doc for own request -> 201
+- Upload ATS doc for another user’s request -> 403
+- Upload ATS with category=PHOTO -> 400
+
+As staff/admin:
+
+- Approve without ATS doc -> 400
+- Approve with ATS doc -> 200 + status becomes ATS_APPROVED
+- Reject without reason -> 400
+- Reject with reason -> 200 + status ATS_REJECTED
+
+Deliverables:
+
+- Updated documentLibrary upload enforcement for PROPERTY_REQUEST ownership + category.
+- Updated listing request approve/reject endpoints with validations.
+- Audit log entries for approve/reject (and upload if not already recorded).
+
+---
+
+## Sequence 1 — Regression guards for role-based UI + auth
+
+Goal:
+Prevent future regressions where:
+
+- logged-in users render PUBLIC menus
+- role is missing/unknown causing unpredictable UI behavior
+
+### Frontend: TopBar + ProtectedRoute guard
+
+Files:
+
+- frontend/src/components/TopBar.jsx
+- frontend/src/components/ProtectedRoute.jsx (or equivalent)
+- frontend/src/context/AuthContext.jsx (if needed)
+
+Implement:
+
+1. Define allowed roles:
+   const ALLOWED_ROLES = ["user","staff","admin"];
+
+2. When user is present:
+
+   - if role is missing OR not in ALLOWED_ROLES:
+     - call logout()
+     - navigate("/login")
+     - show snackbar/toast: "Session invalid. Please log in again."
+     - also console.warn with user object (for dev)
+
+3. Ensure role-based menu rendering always uses:
+
+   - role = user?.role ?? "public"
+   - if role not allowed -> treat as invalid session (logout as above)
+   - do NOT silently treat unknown role as public
+
+4. ProtectedRoute:
+   - If page requires auth and user exists but role invalid -> force logout + redirect to /login
+   - If page has role restrictions (e.g. staff/admin pages), ensure:
+     - user role is checked against allowed roles list passed in props.
+
+### Backend: authenticate guard
+
+File:
+
+- backend/src/middleware/auth.js
+
+Implement:
+
+1. After loading user from DB:
+   - validate user.role in ["user","staff","admin"]
+   - if invalid -> return 401 { message: "Invalid role" }
+2. Keep response consistent with existing auth errors.
+3. Do NOT change JWT structure.
+
+Acceptance tests:
+
+- If DB user role is accidentally set to "weird", login token exists but any protected call returns 401.
+- Frontend detects invalid role and logs user out, redirecting to /login with message.
+- No regressions to normal user/staff/admin flows.
+
+---
+
+## Ticket 004e — Publish Listing After ATS Approval
+
+(Convert PropertyListingRequest → Property + control public visibility)
+
+### Goal
+
+Enable staff/admin to **publish a property listing** ONLY after:
+
+- ATS is approved (`status === ATS_APPROVED`)
+- Listing request is converted into a real `Property`
+- Property becomes publicly visible in `/properties`
+  Prevent all bypasses.
+
+This completes the Authority-to-Sell workflow end-to-end.
+
+---
+
+## Domain rules (strict)
+
+1. A seller creates a PropertyListingRequest (draft).
+2. Seller uploads ATS.
+3. Staff/Admin approves ATS.
+4. ONLY THEN:
+   - Staff/Admin can publish the listing
+   - A Property record is created
+   - Listing becomes visible to public
+5. Sellers can NEVER publish directly.
+
+---
+
+## Backend implementation
+
+### 1) PropertyListingRequest model (if not yet)
+
+Ensure it contains:
+
+- status (ATS_PENDING / ATS_APPROVED / ATS_REJECTED)
+- publishedPropertyId (ObjectId, ref Property, optional)
+- publishedAt (Date, optional)
+
+If already present, reuse — do not duplicate.
+
+---
+
+### 2) New endpoint: Publish listing
+
+File:
+
+- backend/src/routes/listingRequestRoutes.js
+- backend/src/controllers/listingRequestController.js
+
+Add endpoint:
+
+POST /api/listing-requests/:id/publish
+
+Middleware:
+
+- authenticate
+- authorizeRoles("staff","admin")
+
+Controller logic:
+
+1. Load listing request by id
+   - if not found → 404
+2. Validate:
+   - status === "ATS_APPROVED"
+   - publishedPropertyId is NOT already set
+   - else → 400 with clear message
+3. Create Property using data from listing request:
+   - title
+   - location
+   - price
+   - description
+   - tags
+   - earnestMoneyRequired (if applicable — staff-controlled)
+   - status = "AVAILABLE"
+   - metadata.source = "PROPERTY_REQUEST"
+   - metadata.requestId = listingRequest.\_id
+4. Save Property
+5. Update listing request:
+   - publishedPropertyId = property.\_id
+   - publishedAt = now
+6. Audit log:
+   - action = "PROPERTY_PUBLISHED"
+   - actor = req.user.id
+   - context = { listingRequestId, propertyId }
+7. Return created Property
+
+---
+
+### 3) Enforce backend safety
+
+- If publish called before ATS_APPROVED → 403 or 400
+- If already published → 409 Conflict
+- Sellers (role=user) must NEVER pass this endpoint
+
+---
+
+## Frontend implementation (Admin/Staff)
+
+### 4) Staff Listing Requests UI
+
+File:
+
+- frontend/src/pages/StaffListingRequests.jsx
+
+For each listing request row:
+
+- If status === ATS_APPROVED AND publishedPropertyId is empty:
+  - Show primary CTA: "Publish Listing"
+- If already published:
+  - Show label "Published"
+  - Disable publish button
+
+On click:
+
+- Confirm dialog:
+  "This will publish the property and make it publicly visible. Continue?"
+- Call:
+  POST /api/listing-requests/:id/publish
+- On success:
+  - Show success snackbar
+  - Refresh table
+  - Optionally link to Property detail page
+
+---
+
+### 5) Public visibility rules
+
+Ensure:
+
+- `/api/properties` list shows ONLY:
+  - Property.status === "AVAILABLE"
+- Draft/unpublished listing requests NEVER appear publicly
+- Public never sees PropertyListingRequest records
+
+---
+
+### 6) Optional (nice-to-have)
+
+- When published:
+  - Copy ATS documents to Property documents (optional, TODO comment allowed)
+  - Or keep ATS docs attached only to request (acceptable)
+
+---
+
+## Acceptance criteria
+
+Backend:
+
+- Cannot publish without ATS approval
+- Cannot publish twice
+- Property is created correctly
+- Audit log recorded
+
+Frontend:
+
+- Staff/Admin sees Publish CTA only when valid
+- Publish works and updates UI
+- Public can see new property immediately in /properties
+
+Security:
+
+- Seller cannot publish (403)
+- Public cannot access publish endpoint
+
+---
+
+## Manual test checklist
+
+1. Create listing request as seller
+2. Upload ATS
+3. Approve ATS as staff
+4. Publish listing as staff
+5. Open /properties (public) → listing visible
+6. Attempt publish again → blocked
+7. Attempt publish as seller → blocked
+
+---
+
+Deliverables:
+
+- New publish endpoint
+- Staff UI CTA
+- Property creation wired correctly
+- No regression to existing flows
