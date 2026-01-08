@@ -11,11 +11,11 @@ import {
   Typography,
   Alert,
   Button,
+  CardActions,
 } from "@mui/material";
 import client from "../api/client";
-import DocumentUploader from "../components/DocumentUploader";
-import DocumentList from "../components/DocumentList";
-import { MODULES, OWNER_TYPES, CATEGORIES } from "../constants/documentLibrary";
+import { useAuth } from "../context/AuthContext";
+import ListingRequestDocumentsDialog from "../components/ListingRequestDocumentsDialog";
 
 const statusColor = (status) => {
   switch (status) {
@@ -31,10 +31,14 @@ const statusColor = (status) => {
 };
 
 const MyListingRequests = () => {
+  const { user } = useAuth();
+  const role = user?.role?.toLowerCase?.() || "public";
+  const isClient = role === "user" || role === "client";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [requests, setRequests] = useState([]);
   const navigate = useNavigate();
+  const [docModal, setDocModal] = useState({ open: false, id: null });
 
   const load = async () => {
     setLoading(true);
@@ -58,6 +62,14 @@ const MyListingRequests = () => {
       <Box sx={{ display: "grid", placeItems: "center", mt: 6 }}>
         <CircularProgress />
       </Box>
+    );
+  }
+
+  if (!isClient) {
+    return (
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        <Alert severity="warning">Not authorized.</Alert>
+      </Container>
     );
   }
 
@@ -117,37 +129,26 @@ const MyListingRequests = () => {
                     {req.propertyDraft.description}
                   </Typography>
                 )}
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Authority to Sell Documents
-                  </Typography>
-                  {isAtsNeeded && (
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                      Upload at least one signed Authority to Sell (category: ATTACHMENT) to proceed.
-                    </Alert>
-                  )}
-                  {isAtsNeeded && (
-                    <DocumentUploader
-                      module={MODULES.PROPERTY_REQUEST}
-                      ownerType={OWNER_TYPES.PROPERTY_REQUEST}
-                      ownerId={req._id}
-                      categories={[CATEGORIES.PROPERTY_REQUEST[0]]}
-                      onUploaded={load}
-                    />
-                  )}
-                  <DocumentList
-                    module={MODULES.PROPERTY_REQUEST}
-                    ownerId={req._id}
-                    ownerType={OWNER_TYPES.PROPERTY_REQUEST}
-                    categories={CATEGORIES.PROPERTY_REQUEST}
-                    refreshKey={req._id}
-                  />
-                </Box>
+                <CardActions sx={{ px: 0, pt: 1 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setDocModal({ open: true, id: req._id })}
+                  >
+                    Documents
+                  </Button>
+                </CardActions>
               </CardContent>
             </Card>
           );
         })}
       </Stack>
+      <ListingRequestDocumentsDialog
+        open={docModal.open}
+        listingRequestId={docModal.id}
+        onClose={() => setDocModal({ open: false, id: null })}
+        mode="client"
+      />
     </Container>
   );
 };

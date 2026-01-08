@@ -2,10 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  Card,
-  CardActions,
-  CardContent,
-  Chip,
   CircularProgress,
   Container,
   Dialog,
@@ -16,12 +12,17 @@ import {
   TextField,
   Typography,
   Alert,
-  FormControlLabel,
-  Switch,
+  Snackbar,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Chip,
 } from "@mui/material";
 import client from "../api/client";
-import DocumentList from "../components/DocumentList";
-import { MODULES, OWNER_TYPES, CATEGORIES } from "../constants/documentLibrary";
+import { useAuth } from "../context/AuthContext";
+import ListingRequestDocumentsDialog from "../components/ListingRequestDocumentsDialog";
 
 const statusColor = (status) => {
   switch (status) {
@@ -37,12 +38,17 @@ const statusColor = (status) => {
 };
 
 const StaffListingRequests = () => {
+  const { user } = useAuth();
+  const role = user?.role?.toLowerCase?.() || "public";
+  const isCompany = role === "staff" || role === "admin";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [requests, setRequests] = useState([]);
   const [rejecting, setRejecting] = useState(null);
   const [reason, setReason] = useState("");
   const [actionError, setActionError] = useState("");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [docModal, setDocModal] = useState({ open: false, id: null });
 
   const load = async () => {
     setLoading(true);
@@ -66,8 +72,10 @@ const StaffListingRequests = () => {
     try {
       const res = await client.post(`/listing-requests/${id}/approve`);
       setRequests((prev) => prev.map((r) => (r._id === id ? res.data : r)));
+      setSnackbar({ open: true, message: "Approved", severity: "success" });
     } catch (err) {
       setActionError(err.response?.data?.message || "Approval failed");
+      setSnackbar({ open: true, message: "Approval failed", severity: "error" });
     }
   };
 
@@ -79,20 +87,10 @@ const StaffListingRequests = () => {
       setRequests((prev) => prev.map((r) => (r._id === rejecting ? res.data : r)));
       setRejecting(null);
       setReason("");
+      setSnackbar({ open: true, message: "Rejected", severity: "success" });
     } catch (err) {
       setActionError(err.response?.data?.message || "Rejection failed");
-    }
-  };
-
-  const handleEarnestToggle = async (id, value) => {
-    setActionError("");
-    try {
-      const res = await client.patch(`/listing-requests/${id}/earnest`, {
-        earnestMoneyRequired: value,
-      });
-      setRequests((prev) => prev.map((r) => (r._id === id ? res.data : r)));
-    } catch (err) {
-      setActionError(err.response?.data?.message || "Update failed");
+      setSnackbar({ open: true, message: "Rejection failed", severity: "error" });
     }
   };
 
@@ -101,6 +99,14 @@ const StaffListingRequests = () => {
       <Box sx={{ display: "grid", placeItems: "center", mt: 6 }}>
         <CircularProgress />
       </Box>
+    );
+  }
+
+  if (!isCompany) {
+    return (
+      <Container maxWidth="md" sx={{ py: 3 }}>
+        <Alert severity="warning">Not authorized.</Alert>
+      </Container>
     );
   }
 
@@ -119,86 +125,81 @@ const StaffListingRequests = () => {
           {actionError}
         </Alert>
       )}
-      <Stack spacing={2}>
-        {requests.length === 0 && (
-          <Alert severity="info">No listing requests found.</Alert>
-        )}
-        {requests.map((req) => (
-          <Card key={req._id} variant="outlined">
-            <CardContent>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                justifyContent="space-between"
-                alignItems={{ xs: "flex-start", sm: "center" }}
-                spacing={1}
-              >
-                <Box>
-                  <Typography variant="h6">{req.propertyDraft?.title || "Untitled"}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {req.propertyDraft?.location}
-                  </Typography>
-                  <Typography variant="body2" sx={{ mt: 0.5 }}>
-                    ₱{Number(req.propertyDraft?.price || 0).toLocaleString()}
-                  </Typography>
-                </Box>
-                <Chip
-                  label={req.status}
-                  color={statusColor(req.status)}
-                  size="small"
-                  variant="filled"
-                />
-              </Stack>
-              {req.atsRejectedReason && (
-                <Alert severity="warning" sx={{ mt: 1 }}>
-                  Rejection reason: {req.atsRejectedReason}
-                </Alert>
-              )}
-              <FormControlLabel
-                sx={{ mt: 1 }}
-                control={
-                  <Switch
-                    checked={Boolean(req.propertyDraft?.earnestMoneyRequired)}
-                    onChange={(e) => handleEarnestToggle(req._id, e.target.checked)}
+      {requests.length === 0 ? (
+        <Alert severity="info">No listing requests found.</Alert>
+      ) : (
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Created</TableCell>
+              <TableCell>Seller</TableCell>
+              <TableCell>Title</TableCell>
+              <TableCell>Location</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>ATS</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {requests.map((req) => (
+              <TableRow key={req._id} hover>
+                <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>{req.createdBy?.email || "N/A"}</TableCell>
+                <TableCell>{req.propertyDraft?.title || "Untitled"}</TableCell>
+                <TableCell>{req.propertyDraft?.location}</TableCell>
+                <TableCell>
+                  ₱{Number(req.propertyDraft?.price || 0).toLocaleString()}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={req.status}
+                    color={statusColor(req.status)}
+                    size="small"
+                    variant="filled"
                   />
-                }
-                label="Earnest money required"
-              />
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  ATS Documents
-                </Typography>
-                <DocumentList
-                  module={MODULES.PROPERTY_REQUEST}
-                  ownerId={req._id}
-                  ownerType={OWNER_TYPES.PROPERTY_REQUEST}
-                  categories={CATEGORIES.PROPERTY_REQUEST}
-                  refreshKey={req._id}
-                />
-              </Box>
-            </CardContent>
-            <CardActions sx={{ justifyContent: "flex-end", gap: 1, px: 2, pb: 2 }}>
-              <Button
-                variant="outlined"
-                color="error"
-                disabled={req.status === "ATS_REJECTED"}
-                onClick={() => {
-                  setRejecting(req._id);
-                  setReason("");
-                }}
-              >
-                Reject
-              </Button>
-              <Button
-                variant="contained"
-                disabled={req.status === "ATS_APPROVED"}
-                onClick={() => handleApprove(req._id)}
-              >
-                Approve
-              </Button>
-            </CardActions>
-          </Card>
-        ))}
-      </Stack>
+                  {req.atsRejectedReason && (
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      {req.atsRejectedReason}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setDocModal({ open: true, id: req._id })}
+                  >
+                    View ATS
+                  </Button>
+                </TableCell>
+                <TableCell align="right">
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => {
+                        setRejecting(req._id);
+                        setReason("");
+                      }}
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleApprove(req._id)}
+                    >
+                      Approve
+                    </Button>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
       <Dialog open={Boolean(rejecting)} onClose={() => setRejecting(null)} fullWidth maxWidth="sm">
         <DialogTitle>Reject Listing Request</DialogTitle>
@@ -221,6 +222,18 @@ const StaffListingRequests = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <ListingRequestDocumentsDialog
+        open={docModal.open}
+        listingRequestId={docModal.id}
+        onClose={() => setDocModal({ open: false, id: null })}
+        mode="company"
+      />
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+      />
     </Container>
   );
 };
