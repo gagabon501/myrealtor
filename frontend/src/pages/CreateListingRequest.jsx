@@ -22,8 +22,6 @@ const CreateListingRequest = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [requestId, setRequestId] = useState(null);
-  const [photoRefresh, setPhotoRefresh] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const idemKeyRef = useRef(null);
   const submitLockRef = useRef(false);
@@ -55,7 +53,7 @@ const CreateListingRequest = () => {
             .filter(Boolean),
         },
       };
-      const res = await client.post(
+      await client.post(
         "/listing-requests",
         { ...payload, clientRequestId },
         {
@@ -63,7 +61,6 @@ const CreateListingRequest = () => {
         }
       );
       setSuccess(true);
-      setRequestId(res.data?._id);
       idemKeyRef.current = null;
       navigate("/sell/requests");
     } catch (err) {
