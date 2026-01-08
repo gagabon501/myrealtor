@@ -209,10 +209,9 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
-## [Backend 1.1.101 / Frontend 0.2.101] – ATS backend hardening
-- Enforced PropertyListingRequest ATS ownership/category on uploads (seller only ATTACHMENT, owns request).
-- Approve now requires existing ATS doc and adds audit; reject requires reason; roles normalized.
-- Version bump.
+## [Backend 1.1.102 / Frontend 0.2.102] – Role guards + auth hardening
+- Auth middleware rejects invalid roles; TopBar/ProtectedRoute log out and redirect when role is missing/unknown with user-facing notice.
+- Regression guard against rendering public menus while authed with bad roles; version bump.
 
 ## [Backend 1.1.90 / Frontend 0.2.90] – Hide Apply for staff/admin
 - Property cards now hide Apply for staff/admin roles; Apply remains for public/client users.

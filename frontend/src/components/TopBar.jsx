@@ -1,6 +1,9 @@
 import { AppBar, Toolbar, Typography, Button, Stack, Box } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+
+const ALLOWED_ROLES = ["user", "staff", "admin"];
 
 const TopBar = () => {
   const { user, logout } = useAuth();
@@ -17,8 +20,16 @@ const TopBar = () => {
     // eslint-disable-next-line no-console
     console.warn("TopBar: user is logged in but role missing", user);
   }
-  // eslint-disable-next-line no-console
-  console.log("TopBar DEBUG", { user, role, isPublic, isClient, isCompany, isAuthed });
+
+  useEffect(() => {
+    if (!isAuthed) return;
+    if (!ALLOWED_ROLES.includes(role)) {
+      console.warn("TopBar: invalid role, logging out", user);
+      logout();
+      window.alert("Session invalid. Please log in again.");
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthed, role, logout, navigate, user]);
 
   const handleLogout = () => {
     logout();
