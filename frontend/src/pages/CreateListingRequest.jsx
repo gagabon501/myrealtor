@@ -125,33 +125,6 @@ const CreateListingRequest = () => {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
           />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-              Authority to Sell (ATS) Document
-            </Typography>
-            <DocumentUploader
-              module={MODULES.PROPERTY_REQUEST}
-              ownerType={OWNER_TYPES.PROPERTY_REQUEST}
-              ownerId={requestId || "PENDING_REQUEST"}
-              categories={["ATTACHMENT"]}
-              defaultCategory="ATTACHMENT"
-              onUploaded={() => {}}
-            />
-          </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-              Photos (max 4)
-            </Typography>
-            <DocumentUploader
-              module={MODULES.PROPERTY_REQUEST}
-              ownerType={OWNER_TYPES.PROPERTY_REQUEST}
-              ownerId={requestId || "PENDING_REQUEST"}
-              categories={["PHOTO"]}
-              defaultCategory="PHOTO"
-              accept="image/*"
-              onUploaded={() => {}}
-            />
-          </Box>
           <Button
             type="submit"
             variant="contained"
