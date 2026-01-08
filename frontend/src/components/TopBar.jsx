@@ -5,10 +5,13 @@ import { useAuth } from "../context/AuthContext";
 const TopBar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const role = user?.role;
+  const isAuthed = !!user;
   const isPublic = !user;
-  const isClient = user?.role === "user";
-  const isStaff = ["staff", "admin"].includes(user?.role);
+  const isClient = role === "user";
+  const isCompany = role === "staff" || role === "admin";
   const showServices = isPublic || isClient;
+  // console.log("TopBar role:", role, { isPublic, isClient, isCompany, isAuthed });
 
   const handleLogout = () => {
     logout();
@@ -88,10 +91,9 @@ const TopBar = () => {
               <Button component={Link} to="/dashboard">
                 Dashboard
               </Button>
-              <Button onClick={handleLogout}>Logout</Button>
             </>
           )}
-          {isStaff && (
+          {isCompany && (
             <>
               <Button component={Link} to="/properties/new">
                 Add Property
@@ -102,7 +104,7 @@ const TopBar = () => {
               <Button component={Link} to="/staff/listing-requests">
                 Listing Requests
               </Button>
-              {user?.role === "admin" && (
+              {role === "admin" && (
                 <Button component={Link} to="/users">
                   Users
                 </Button>
@@ -113,7 +115,6 @@ const TopBar = () => {
               <Button component={Link} to="/staff">
                 Staff
               </Button>
-              <Button onClick={handleLogout}>Logout</Button>
             </>
           )}
           {isPublic && (
@@ -125,6 +126,9 @@ const TopBar = () => {
                 Sign Up
               </Button>
             </>
+          )}
+          {isAuthed && (
+            <Button onClick={handleLogout}>Logout</Button>
           )}
         </Stack>
       </Toolbar>
