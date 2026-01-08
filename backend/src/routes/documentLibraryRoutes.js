@@ -56,6 +56,14 @@ router.post(
       if (!ownerId)
         return res.status(400).json({ message: "ownerId is required" });
       if (module === MODULES.PROPERTY_REQUEST) {
+        if (req.body.category && req.body.category !== "ATTACHMENT") {
+          return res
+            .status(400)
+            .json({ message: "ATS must be uploaded as ATTACHMENT" });
+        }
+        req.body.category = "ATTACHMENT";
+      }
+      if (module === MODULES.PROPERTY_REQUEST) {
         const reqDoc = await PropertyListingRequest.findById(ownerId).select(
           "createdBy"
         );

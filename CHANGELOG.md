@@ -209,9 +209,10 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
-## [Backend 1.1.100 / Frontend 0.2.100] – Staff ATS actions + status
-- Staff listing requests now show ATS status chips, view ATS dialog, and gated approve/reject with reason (reject) and doc presence check before approval.
-- Buttons disabled when already approved; lists refresh after actions; version bump.
+## [Backend 1.1.101 / Frontend 0.2.101] – ATS backend hardening
+- Enforced PropertyListingRequest ATS ownership/category on uploads (seller only ATTACHMENT, owns request).
+- Approve now requires existing ATS doc and adds audit; reject requires reason; roles normalized.
+- Version bump.
 
 ## [Backend 1.1.90 / Frontend 0.2.90] – Hide Apply for staff/admin
 - Property cards now hide Apply for staff/admin roles; Apply remains for public/client users.
