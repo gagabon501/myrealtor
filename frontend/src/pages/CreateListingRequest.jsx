@@ -36,8 +36,6 @@ const CreateListingRequest = () => {
   const [photoDescription, setPhotoDescription] = useState("");
   const [atsPreviews, setAtsPreviews] = useState([]);
   const [photoPreviews, setPhotoPreviews] = useState([]);
-  const [atsPreviews, setAtsPreviews] = useState([]);
-  const [photoPreviews, setPhotoPreviews] = useState([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -179,7 +177,10 @@ const CreateListingRequest = () => {
                   const picked = Array.from(e.target.files || []);
                   setAtsFiles(picked);
                   setAtsPreviews(
-                    picked.map((f) => ({ name: f.name, url: URL.createObjectURL(f) }))
+                    picked.map((f) => ({
+                      name: f.name,
+                      url: URL.createObjectURL(f),
+                    }))
                   );
                 }}
               />
@@ -196,7 +197,12 @@ const CreateListingRequest = () => {
               <Stack spacing={1} sx={{ mt: 1 }}>
                 {atsPreviews.map((f) => (
                   <Card key={f.url} variant="outlined">
-                    <CardActionArea component="a" href={f.url} target="_blank" rel="noreferrer">
+                    <CardActionArea
+                      component="a"
+                      href={f.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       <CardContent>
                         <Typography variant="body2" color="text.primary">
                           {f.name}
@@ -223,7 +229,10 @@ const CreateListingRequest = () => {
                   const picked = Array.from(e.target.files || []).slice(0, 4);
                   setPhotoFiles(picked);
                   setPhotoPreviews(
-                    picked.map((f) => ({ name: f.name, url: URL.createObjectURL(f) }))
+                    picked.map((f) => ({
+                      name: f.name,
+                      url: URL.createObjectURL(f),
+                    }))
                   );
                 }}
               />
@@ -244,12 +253,21 @@ const CreateListingRequest = () => {
                     variant="outlined"
                     sx={{ width: 120, borderRadius: 2, overflow: "hidden" }}
                   >
-                    <CardActionArea component="a" href={f.url} target="_blank" rel="noreferrer">
+                    <CardActionArea
+                      component="a"
+                      href={f.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       <CardContent sx={{ p: 0 }}>
                         <img
                           src={f.url}
                           alt={f.name}
-                          style={{ width: "100%", height: 90, objectFit: "cover" }}
+                          style={{
+                            width: "100%",
+                            height: 90,
+                            objectFit: "cover",
+                          }}
                         />
                       </CardContent>
                     </CardActionArea>
