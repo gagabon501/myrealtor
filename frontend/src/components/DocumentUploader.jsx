@@ -21,6 +21,7 @@ const DocumentUploader = ({
   categories,
   defaultCategory,
   onUploaded,
+  accept,
 }) => {
   const derivedCategories =
     categories || REGISTRY[module]?.categories || ["ATTACHMENT", "PHOTO"];
@@ -134,7 +135,7 @@ const DocumentUploader = ({
 
             <Button variant="outlined" component="label">
               Choose files
-              <input hidden multiple type="file" onChange={onPickFiles} />
+              <input hidden multiple type="file" accept={accept} onChange={onPickFiles} />
             </Button>
 
             <Button

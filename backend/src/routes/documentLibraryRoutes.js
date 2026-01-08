@@ -56,12 +56,30 @@ router.post(
       if (!ownerId)
         return res.status(400).json({ message: "ownerId is required" });
       if (module === MODULES.PROPERTY_REQUEST) {
-        if (req.body.category && req.body.category !== "ATTACHMENT") {
+        const allowedCategories = ["ATTACHMENT", "PHOTO"];
+        if (!req.body.category) {
+          req.body.category = "ATTACHMENT";
+        }
+        if (!allowedCategories.includes(req.body.category)) {
           return res
             .status(400)
-            .json({ message: "ATS must be uploaded as ATTACHMENT" });
+            .json({ message: "Category must be ATTACHMENT or PHOTO" });
         }
-        req.body.category = "ATTACHMENT";
+        if (req.body.category === "PHOTO") {
+          const existingCount = await Document.countDocuments({
+            module: MODULES.PROPERTY_REQUEST,
+            ownerId,
+            category: "PHOTO",
+          });
+          const incoming = Array.isArray(req.files) ? req.files.length : 0;
+          if (existingCount + incoming > 4) {
+            return res.status(400).json({ message: "Maximum 4 photos allowed for listing request" });
+          }
+        }
+        if (req.body.category === "ATTACHMENT") {
+          // ATS uploads must remain ATTACHMENT
+          req.body.category = "ATTACHMENT";
+        }
       }
       if (module === MODULES.PROPERTY_REQUEST) {
         const reqDoc = await PropertyListingRequest.findById(ownerId).select(

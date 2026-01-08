@@ -187,6 +187,28 @@ export const publishListingRequest = async (req, res, next) => {
     listing.publishedPropertyId = property._id;
     listing.publishedAt = new Date();
     await listing.save();
+    // Copy request photos to property
+    const photos = await Document.find({
+      module: "PROPERTY_REQUEST",
+      ownerId: listing._id,
+      category: "PHOTO",
+    }).lean();
+    if (photos?.length) {
+      const propertyPhotos = photos.map((p) => ({
+        module: "PROPERTY",
+        ownerType: "Property",
+        ownerId: property._id,
+        category: "PHOTO",
+        label: p.label,
+        description: p.description,
+        filePath: p.filePath,
+        mimeType: p.mimeType,
+        originalName: p.originalName,
+        size: p.size,
+        uploadedBy: p.uploadedBy || req.user.id,
+      }));
+      await Document.insertMany(propertyPhotos);
+    }
     await auditWrap({
       actor: req.user.id,
       action: "PROPERTY_PUBLISHED",

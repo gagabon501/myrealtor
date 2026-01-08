@@ -9,11 +9,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import client from "../api/client";
+import DocumentUploader from "../components/DocumentUploader";
+import DocumentList from "../components/DocumentList";
+import { MODULES, OWNER_TYPES } from "../constants/documentLibrary";
 
 const CreateListingRequest = () => {
-  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
@@ -22,6 +23,8 @@ const CreateListingRequest = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [requestId, setRequestId] = useState(null);
+  const [photoRefresh, setPhotoRefresh] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,9 +44,9 @@ const CreateListingRequest = () => {
             .filter(Boolean),
         },
       };
-      await client.post("/listing-requests", payload);
+      const res = await client.post("/listing-requests", payload);
       setSuccess(true);
-      navigate("/sell/requests");
+      setRequestId(res.data?._id);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to create listing request");
     } finally {
@@ -116,6 +119,29 @@ const CreateListingRequest = () => {
         onClose={() => setSuccess(false)}
         message="Listing request submitted"
       />
+      {requestId && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 700 }}>
+            Photos (max 4)
+          </Typography>
+          <DocumentUploader
+            module={MODULES.PROPERTY_REQUEST}
+            ownerType={OWNER_TYPES.PROPERTY_REQUEST}
+            ownerId={requestId}
+            categories={["PHOTO"]}
+            defaultCategory="PHOTO"
+            accept="image/*"
+            onUploaded={() => setPhotoRefresh((v) => v + 1)}
+          />
+          <DocumentList
+            module={MODULES.PROPERTY_REQUEST}
+            ownerId={requestId}
+            ownerType={OWNER_TYPES.PROPERTY_REQUEST}
+            categories={["PHOTO"]}
+            refreshKey={photoRefresh}
+          />
+        </Box>
+      )}
     </Container>
   );
 };

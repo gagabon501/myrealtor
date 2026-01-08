@@ -209,10 +209,10 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
-## [Backend 1.1.103 / Frontend 0.2.103] – ATS publish workflow
-- Added publish endpoint requiring ATS_APPROVED; creates Property and records audit. Model tracks publishedPropertyId/publishedAt.
-- Staff UI gets Publish action gated on ATS approval and not yet published.
-- Version bump.
+## [Backend 1.1.104 / Frontend 0.2.104] – Listing request photos + publish carryover
+- PropertyListingRequest now stores publish metadata; publish endpoint copies PHOTO docs from PROPERTY_REQUEST to PROPERTY on publish.
+- Document library enforces seller-owned PROPERTY_REQUEST photos (max 4) and category validation; UI adds photo upload/dialog for create + My Listing Requests.
+- Staff UI shows publish state and CTA; versions bumped.
 
 ## [Backend 1.1.90 / Frontend 0.2.90] – Hide Apply for staff/admin
 - Property cards now hide Apply for staff/admin roles; Apply remains for public/client users.

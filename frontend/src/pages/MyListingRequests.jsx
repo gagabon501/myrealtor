@@ -39,6 +39,7 @@ const MyListingRequests = () => {
   const [requests, setRequests] = useState([]);
   const navigate = useNavigate();
   const [docModal, setDocModal] = useState({ open: false, id: null });
+  const [photoModal, setPhotoModal] = useState({ open: false, id: null });
 
   const load = async () => {
     setLoading(true);
@@ -164,6 +165,13 @@ const MyListingRequests = () => {
                   >
                     {buttonLabel}
                   </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => setPhotoModal({ open: true, id: req._id })}
+                  >
+                    Photos
+                  </Button>
                 </CardActions>
               </CardContent>
             </Card>
@@ -177,6 +185,14 @@ const MyListingRequests = () => {
         mode="client"
         categories={["ATTACHMENT"]}
         defaultCategory="ATTACHMENT"
+      />
+      <ListingRequestDocumentsDialog
+        open={photoModal.open}
+        listingRequestId={photoModal.id}
+        onClose={() => setPhotoModal({ open: false, id: null })}
+        mode="client"
+        categories={["PHOTO"]}
+        defaultCategory="PHOTO"
       />
     </Container>
   );
