@@ -7,7 +7,11 @@ const STAFF_ONLY_MODULES = ["PROPERTY", "INQUIRY"];
 const SERVICE_MODULES = ["APPRAISAL", "TITLING", "CONSULTANCY"];
 export const USER_OWNED_MODULES = [...SERVICE_MODULES, "PROPERTY_REQUEST"];
 
-export const getRole = (req) => req.user?.role || "public";
+export const getRole = (req) => {
+  const raw = req.user?.role || "public";
+  const normalized = String(raw || "").toLowerCase();
+  return normalized === "client" ? "user" : normalized;
+};
 export const isStaff = (role) => STAFF_ROLES.includes(role);
 export const isAdmin = (role) => role === "admin";
 export const isUser = (role) => role === "user";
