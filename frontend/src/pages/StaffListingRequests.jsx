@@ -23,18 +23,28 @@ import {
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import ListingRequestDocumentsDialog from "../components/ListingRequestDocumentsDialog";
+import { listDocuments } from "../api/documentLibraryApi";
 
 const statusColor = (status) => {
-  switch (status) {
+  const s = (status || "").toUpperCase();
+  switch (s) {
     case "ATS_APPROVED":
       return "success";
     case "ATS_REJECTED":
       return "error";
     case "ATS_PENDING":
+    case "SUBMITTED":
       return "warning";
     default:
       return "default";
   }
+};
+
+const statusLabel = (status) => {
+  const s = (status || "").toUpperCase();
+  if (s === "ATS_APPROVED") return "ATS Approved";
+  if (s === "ATS_REJECTED") return "ATS Rejected";
+  return "ATS Pending";
 };
 
 const StaffListingRequests = () => {
@@ -49,6 +59,7 @@ const StaffListingRequests = () => {
   const [actionError, setActionError] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [docModal, setDocModal] = useState({ open: false, id: null });
+  const [actionBusyId, setActionBusyId] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -67,15 +78,47 @@ const StaffListingRequests = () => {
     load();
   }, []);
 
+  const ensureAtsDocExists = async (id) => {
+    try {
+      const res = await listDocuments({ module: "PROPERTY_REQUEST", ownerId: id });
+      const docs = Array.isArray(res.data) ? res.data : res.data?.documents || [];
+      if (!docs.length) {
+        setSnackbar({
+          open: true,
+          message: "ATS document is required before approval",
+          severity: "error",
+        });
+        return false;
+      }
+      return true;
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || "Could not verify ATS documents",
+        severity: "error",
+      });
+      return false;
+    }
+  };
+
   const handleApprove = async (id) => {
     setActionError("");
     try {
+      setActionBusyId(id);
+      const ok = await ensureAtsDocExists(id);
+      if (!ok) {
+        setActionBusyId(null);
+        return;
+      }
       const res = await client.post(`/listing-requests/${id}/approve`);
       setRequests((prev) => prev.map((r) => (r._id === id ? res.data : r)));
       setSnackbar({ open: true, message: "Approved", severity: "success" });
+      await load();
     } catch (err) {
       setActionError(err.response?.data?.message || "Approval failed");
       setSnackbar({ open: true, message: "Approval failed", severity: "error" });
+    } finally {
+      setActionBusyId(null);
     }
   };
 
@@ -83,14 +126,18 @@ const StaffListingRequests = () => {
     if (!rejecting) return;
     setActionError("");
     try {
+      setActionBusyId(rejecting);
       const res = await client.post(`/listing-requests/${rejecting}/reject`, { reason });
       setRequests((prev) => prev.map((r) => (r._id === rejecting ? res.data : r)));
       setRejecting(null);
       setReason("");
       setSnackbar({ open: true, message: "Rejected", severity: "success" });
+      await load();
     } catch (err) {
       setActionError(err.response?.data?.message || "Rejection failed");
       setSnackbar({ open: true, message: "Rejection failed", severity: "error" });
+    } finally {
+      setActionBusyId(null);
     }
   };
 
@@ -136,13 +183,16 @@ const StaffListingRequests = () => {
               <TableCell>Title</TableCell>
               <TableCell>Location</TableCell>
               <TableCell>Price</TableCell>
-              <TableCell>Status</TableCell>
+              <TableCell>ATS Status</TableCell>
               <TableCell>ATS</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {requests.map((req) => (
+            {requests.map((req) => {
+              const statusUpper = (req.status || "").toUpperCase();
+              const canAct = ["ATS_PENDING", "ATS_REJECTED", "SUBMITTED"].includes(statusUpper);
+              return (
               <TableRow key={req._id} hover>
                 <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>{req.createdBy?.email || "N/A"}</TableCell>
@@ -153,7 +203,7 @@ const StaffListingRequests = () => {
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={req.status}
+                    label={statusLabel(req.status)}
                     color={statusColor(req.status)}
                     size="small"
                     variant="filled"
@@ -179,6 +229,7 @@ const StaffListingRequests = () => {
                       variant="outlined"
                       color="error"
                       size="small"
+                      disabled={!canAct || actionBusyId === req._id}
                       onClick={() => {
                         setRejecting(req._id);
                         setReason("");
@@ -189,6 +240,7 @@ const StaffListingRequests = () => {
                     <Button
                       variant="contained"
                       size="small"
+                      disabled={!canAct || actionBusyId === req._id}
                       onClick={() => handleApprove(req._id)}
                     >
                       Approve
@@ -196,7 +248,8 @@ const StaffListingRequests = () => {
                   </Stack>
                 </TableCell>
               </TableRow>
-            ))}
+            );
+            })}
           </TableBody>
         </Table>
       )}
