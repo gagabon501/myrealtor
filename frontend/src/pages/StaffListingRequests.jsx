@@ -122,6 +122,23 @@ const StaffListingRequests = () => {
     }
   };
 
+  const handlePublish = async (id) => {
+    setActionError("");
+    try {
+      setActionBusyId(id);
+      const res = await client.post(`/listing-requests/${id}/publish`);
+      setSnackbar({ open: true, message: "Listing published", severity: "success" });
+      await load();
+      return res.data;
+    } catch (err) {
+      setActionError(err.response?.data?.message || "Publish failed");
+      setSnackbar({ open: true, message: "Publish failed", severity: "error" });
+      return null;
+    } finally {
+      setActionBusyId(null);
+    }
+  };
+
   const handleReject = async () => {
     if (!rejecting) return;
     setActionError("");
@@ -184,6 +201,7 @@ const StaffListingRequests = () => {
               <TableCell>Location</TableCell>
               <TableCell>Price</TableCell>
               <TableCell>ATS Status</TableCell>
+              <TableCell>Published</TableCell>
               <TableCell>ATS</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -215,6 +233,13 @@ const StaffListingRequests = () => {
                   )}
                 </TableCell>
                 <TableCell>
+                  {req.publishedPropertyId ? (
+                    <Chip label="Published" size="small" color="success" variant="outlined" />
+                  ) : (
+                    <Chip label="Not published" size="small" variant="outlined" />
+                  )}
+                </TableCell>
+                <TableCell>
                   <Button
                     size="small"
                     variant="outlined"
@@ -224,7 +249,7 @@ const StaffListingRequests = () => {
                   </Button>
                 </TableCell>
                 <TableCell align="right">
-                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                  <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
                     <Button
                       variant="outlined"
                       color="error"
@@ -244,6 +269,19 @@ const StaffListingRequests = () => {
                       onClick={() => handleApprove(req._id)}
                     >
                       Approve
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      disabled={
+                        statusUpper !== "ATS_APPROVED" ||
+                        !!req.publishedPropertyId ||
+                        actionBusyId === req._id
+                      }
+                      onClick={() => handlePublish(req._id)}
+                    >
+                      Publish
                     </Button>
                   </Stack>
                 </TableCell>

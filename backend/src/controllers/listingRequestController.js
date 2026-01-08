@@ -1,6 +1,7 @@
 import { validationResult } from "express-validator";
 import PropertyListingRequest from "../models/PropertyListingRequest.js";
 import Document from "../models/Document.js";
+import Property from "../models/Property.js";
 import { recordAudit } from "../utils/audit.js";
 
 const auditWrap = async ({ actor, action, context }) =>
@@ -153,6 +154,45 @@ export const getListingRequest = async (req, res, next) => {
       context: { requestId: doc._id.toString() },
     });
     return res.json(doc);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const publishListingRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const listing = await PropertyListingRequest.findById(id);
+    if (!listing) return res.status(404).json({ message: "Listing request not found" });
+    if (listing.status !== "ATS_APPROVED") {
+      return res.status(400).json({ message: "ATS approval required before publishing" });
+    }
+    if (listing.publishedPropertyId) {
+      return res.status(409).json({ message: "Listing already published" });
+    }
+    const payload = {
+      title: listing.propertyDraft?.title,
+      location: listing.propertyDraft?.location,
+      price: listing.propertyDraft?.price,
+      description: listing.propertyDraft?.description,
+      tags: listing.propertyDraft?.tags,
+      earnestMoneyRequired: listing.propertyDraft?.earnestMoneyRequired,
+      status: "AVAILABLE",
+      metadata: {
+        source: "PROPERTY_REQUEST",
+        requestId: listing._id,
+      },
+    };
+    const property = await Property.create(payload);
+    listing.publishedPropertyId = property._id;
+    listing.publishedAt = new Date();
+    await listing.save();
+    await auditWrap({
+      actor: req.user.id,
+      action: "PROPERTY_PUBLISHED",
+      context: { listingRequestId: listing._id.toString(), propertyId: property._id.toString() },
+    });
+    return res.status(201).json(property);
   } catch (err) {
     return next(err);
   }

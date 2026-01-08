@@ -8,6 +8,7 @@ import {
   approveListingRequest,
   rejectListingRequest,
   setEarnestMoneyRequired,
+  publishListingRequest,
 } from "../controllers/listingRequestController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
@@ -38,6 +39,12 @@ router.post(
   authenticate,
   authorizeRoles("staff", "admin"),
   rejectListingRequest
+);
+router.post(
+  "/:id/publish",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  publishListingRequest
 );
 router.patch(
   "/:id/earnest",

@@ -26,6 +26,8 @@ const propertyListingRequestSchema = new mongoose.Schema(
     atsApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     atsApprovedAt: Date,
     atsRejectedReason: String,
+    publishedPropertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property" },
+    publishedAt: Date,
   },
   { timestamps: true }
 );
