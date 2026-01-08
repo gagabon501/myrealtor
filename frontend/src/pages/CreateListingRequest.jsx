@@ -33,6 +33,8 @@ const CreateListingRequest = () => {
     e.preventDefault();
     if (submitLockRef.current || submitting) return;
     submitLockRef.current = true;
+    // eslint-disable-next-line no-console
+    console.log("[LR-FE] submit fired", Date.now());
     setError("");
     setSuccess(false);
     setLoading(true);
