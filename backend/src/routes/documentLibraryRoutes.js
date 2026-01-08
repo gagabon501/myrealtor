@@ -52,35 +52,37 @@ router.post(
     if (!canDocumentAccess({ action: "UPLOAD", role, module })) {
       return res.status(403).json({ message: "Forbidden" });
     }
+    // Property request category/limit enforcement (applies to all roles)
+    if (module === MODULES.PROPERTY_REQUEST) {
+      const allowedCategories = ["ATTACHMENT", "PHOTO"];
+      if (!req.body.category) {
+        req.body.category = "ATTACHMENT";
+      }
+      if (!allowedCategories.includes(req.body.category)) {
+        return res
+          .status(400)
+          .json({ message: "Category must be ATTACHMENT or PHOTO" });
+      }
+      if (req.body.category === "PHOTO") {
+        const existingCount = await Document.countDocuments({
+          module: MODULES.PROPERTY_REQUEST,
+          ownerId,
+          category: "PHOTO",
+        });
+        const incoming = Array.isArray(req.files) ? req.files.length : 0;
+        if (existingCount + incoming > 4) {
+          return res
+            .status(400)
+            .json({ message: "Maximum 4 photos allowed for listing request" });
+        }
+      }
+      if (req.body.category === "ATTACHMENT") {
+        req.body.category = "ATTACHMENT";
+      }
+    }
     if (USER_OWNED_MODULES.includes(module) && !isStaff(role)) {
       if (!ownerId)
         return res.status(400).json({ message: "ownerId is required" });
-      if (module === MODULES.PROPERTY_REQUEST) {
-        const allowedCategories = ["ATTACHMENT", "PHOTO"];
-        if (!req.body.category) {
-          req.body.category = "ATTACHMENT";
-        }
-        if (!allowedCategories.includes(req.body.category)) {
-          return res
-            .status(400)
-            .json({ message: "Category must be ATTACHMENT or PHOTO" });
-        }
-        if (req.body.category === "PHOTO") {
-          const existingCount = await Document.countDocuments({
-            module: MODULES.PROPERTY_REQUEST,
-            ownerId,
-            category: "PHOTO",
-          });
-          const incoming = Array.isArray(req.files) ? req.files.length : 0;
-          if (existingCount + incoming > 4) {
-            return res.status(400).json({ message: "Maximum 4 photos allowed for listing request" });
-          }
-        }
-        if (req.body.category === "ATTACHMENT") {
-          // ATS uploads must remain ATTACHMENT
-          req.body.category = "ATTACHMENT";
-        }
-      }
       if (module === MODULES.PROPERTY_REQUEST) {
         const reqDoc = await PropertyListingRequest.findById(ownerId).select(
           "createdBy"
