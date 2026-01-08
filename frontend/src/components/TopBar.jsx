@@ -6,10 +6,11 @@ const TopBar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const role = user?.role;
+  const roleLower = (role || "").toLowerCase();
   const isAuthed = !!user;
   const isPublic = !user;
-  const isClient = role === "user";
-  const isCompany = role === "staff" || role === "admin";
+  const isClient = roleLower === "user";
+  const isCompany = roleLower === "staff" || roleLower === "admin";
   const showServices = isPublic || isClient;
   // console.log("TopBar role:", role, { isPublic, isClient, isCompany, isAuthed });
 
