@@ -22,7 +22,30 @@ export const createListingRequest = async (req, res, next) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+    const idemKey = req.headers["idempotency-key"];
+    if (idemKey) {
+      const existing = await PropertyListingRequest.findOne({
+        createdBy: req.user.id,
+        idempotencyKey: idemKey,
+      });
+      if (existing) {
+        return res.status(200).json(existing);
+      }
+    }
     const draft = req.body.propertyDraft || {};
+    if (!idemKey) {
+      const recent = await PropertyListingRequest.findOne({
+        createdBy: req.user.id,
+        "propertyDraft.title": draft.title,
+        "propertyDraft.location": draft.location,
+        "propertyDraft.price": draft.price,
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+      if (recent && Date.now() - new Date(recent.createdAt).getTime() < 5000) {
+        return res.status(200).json(recent);
+      }
+    }
     const payload = {
       createdBy: req.user.id,
       propertyDraft: {
@@ -34,6 +57,7 @@ export const createListingRequest = async (req, res, next) => {
         earnestMoneyRequired: false,
       },
       status: "ATS_PENDING",
+      idempotencyKey: idemKey,
     };
     const doc = await PropertyListingRequest.create(payload);
     await auditWrap({
@@ -186,7 +210,6 @@ export const publishListingRequest = async (req, res, next) => {
     const property = await Property.create(payload);
     listing.publishedPropertyId = property._id;
     listing.publishedAt = new Date();
-    await listing.save();
     // Copy request photos to property
     const photos = await Document.find({
       module: "PROPERTY_REQUEST",
@@ -194,21 +217,25 @@ export const publishListingRequest = async (req, res, next) => {
       category: "PHOTO",
     }).lean();
     if (photos?.length) {
-      const propertyPhotos = photos.map((p) => ({
+      const topPhotos = photos.slice(0, 4);
+      const propertyPhotos = topPhotos.map((p) => ({
         module: "PROPERTY",
         ownerType: "Property",
         ownerId: property._id,
         category: "PHOTO",
         label: p.label,
-        description: p.description,
+        description: p.description || "Photo",
         filePath: p.filePath,
         mimeType: p.mimeType,
         originalName: p.originalName,
         size: p.size,
-        uploadedBy: p.uploadedBy || req.user.id,
+        uploadedBy: p.uploadedBy || listing.createdBy || req.user.id,
       }));
       await Document.insertMany(propertyPhotos);
+      property.images = topPhotos.map((p) => p.filePath).filter(Boolean);
     }
+    await property.save();
+    await listing.save();
     await auditWrap({
       actor: req.user.id,
       action: "PROPERTY_PUBLISHED",

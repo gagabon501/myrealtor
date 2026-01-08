@@ -28,9 +28,12 @@ const propertyListingRequestSchema = new mongoose.Schema(
     atsRejectedReason: String,
     publishedPropertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property" },
     publishedAt: Date,
+    idempotencyKey: { type: String },
   },
   { timestamps: true }
 );
+
+propertyListingRequestSchema.index({ createdBy: 1, idempotencyKey: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("PropertyListingRequest", propertyListingRequestSchema);
 

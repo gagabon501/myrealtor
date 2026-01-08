@@ -990,3 +990,331 @@ Do NOT expose listing request docs publicly.
   - Approve ATS
   - Publish request
   - Go to /properties (public/incognito) -> new property shows photos
+
+---
+
+## Fix 004e — Published Property missing photos copied from Listing Request
+
+### Problem
+
+Seller uploaded photos during Listing Request creation (stored in Document Library under module=PROPERTY_REQUEST, category=PHOTO, ownerId=<listingRequestId>).
+After staff/admin publishes the request (convert ListingRequest -> Property), the newly created Property shows no photos.
+This means publish logic is not copying/mapping the PHOTO documents from PROPERTY_REQUEST to PROPERTY.
+
+### Goal
+
+When a listing request is published, ALL its PHOTO docs must be transferred (or duplicated as new Document records) to the created Property so the Property UI (which reads PROPERTY module photos) shows them.
+
+### Requirements (must implement)
+
+1. On publish endpoint (approve/publish handler), after creating the Property record:
+
+   - Query Document library for request photos:
+     Document.find({
+     module: "PROPERTY_REQUEST",
+     ownerId: listingRequest.\_id,
+     category: "PHOTO"
+     })
+   - For each doc found, create a NEW Document record for the property:
+     {
+     module: "PROPERTY",
+     ownerType: "Property",
+     ownerId: property.\_id,
+     category: "PHOTO",
+     description: doc.description,
+     label: doc.label,
+     filePath: doc.filePath,
+     mimeType: doc.mimeType,
+     originalName: doc.originalName,
+     size: doc.size,
+     uploadedBy: doc.uploadedBy || listingRequest.createdBy
+     }
+   - Insert using insertMany for performance.
+
+2. Also carry across non-photo attachments if needed later, but for this fix at minimum PHOTO category must be copied.
+
+3. Do NOT delete the original PROPERTY_REQUEST docs. Keep them as request history.
+4. Ensure the publish response returns the created property id and ideally photo count copied (optional).
+
+### Where to implement
+
+Backend:
+
+- Find publish/approve handler used to convert ListingRequest to Property:
+  likely backend/src/controllers/listingRequestController.js
+  or backend/src/controllers/propertyListingRequestController.js
+  or backend/src/routes/listingRequestRoutes.js -> controller call.
+  Search for keywords: "publish", "convert", "Property.create", "listingRequest", "PROPERTY_REQUEST".
+
+Document model:
+
+- backend/src/models/Document.js
+
+Constants:
+
+- backend/src/constants/documentLibrary.js provides MODULES/OWNER_TYPES.
+
+### Edge cases to handle
+
+- If no photos exist: publish still works (copy step does nothing).
+- Only copy docs where category==="PHOTO" and module==="PROPERTY_REQUEST".
+- Ensure ownerId comparison uses ObjectId properly (String() ok).
+- If publish currently creates Property docs BEFORE ATS approval checks, keep existing checks intact.
+
+### How to test
+
+1. As seller: create listing request + upload 2-4 photos (PROPERTY_REQUEST/PHOTO).
+2. As staff/admin: publish the request.
+3. Go to /properties as public and as staff: the created Property card/details must display the photos.
+4. Verify in Mongo:
+   - Documents exist for PROPERTY_REQUEST (ownerId=requestId, category=PHOTO)
+   - New Documents exist for PROPERTY (ownerId=propertyId, category=PHOTO)
+   - filePath values match and images load.
+
+### Deliverables
+
+- Backend publish handler updated with the copy logic (insertMany).
+- Add minimal logging or response field to confirm number of photos copied (optional).
+
+---
+
+✅ Cursor Prompt — Fix 004e Photos Carry-Over + Prevent Duplicate Listing Requests
+
+You are working in the myrealtor MERN repo.
+
+Context
+
+We have PropertyListingRequest (ATS workflow). During Create Listing Request, the user can upload up to 4 photos. These photos are stored in Document Library as:
+
+module = PROPERTY_REQUEST
+
+category = PHOTO
+
+ownerId = <listingRequestId>
+
+ownerType = PropertyListingRequest (or OWNER_TYPES.PROPERTY_REQUEST)
+
+When staff/admin approves/publishes the listing request, the backend converts it into a Property record.
+✅ Publishing works, but the published Property does not show the photos.
+
+Also: submitting Create Listing Request creates two duplicate records (same data).
+
+GOALS (Acceptance Criteria)
+A) Photos appear on published Property
+
+After publish/approve:
+
+All request PHOTO docs are duplicated into PROPERTY module docs:
+
+from module=PROPERTY_REQUEST, category=PHOTO, ownerId=requestId
+
+to module=PROPERTY, category=PHOTO, ownerType=Property, ownerId=propertyId
+
+The published Property record must have its image field populated with photo paths so the existing Property UI will render them.
+
+Identify what field the UI uses (commonly images, photos, imageUrls). Populate that.
+
+Use up to 4 photos.
+
+Use the Document filePath as the image value.
+
+B) Create Listing Request must not create duplicates
+
+Submitting Create Listing Request must create only one record even if:
+
+the user double-clicks submit
+
+React StrictMode triggers double invoke
+
+API call is accidentally triggered twice
+
+Implement both client-side guard + backend idempotency.
+
+TASK A — Fix publish logic to carry over photos
+
+1. Find where publish happens
+
+Search backend for:
+
+approve
+
+publish
+
+atsApproved
+
+Property.create
+
+listing request controller
+This is likely in backend/src/controllers/listingRequestController.js (or similar).
+
+2. On publish: copy photos from request → property
+
+After you create the Property record, do:
+
+(a) Fetch request photos:
+import Document from "../models/Document.js";
+import { MODULES } from "../constants/documentLibrary.js";
+
+const reqPhotos = await Document.find({
+module: MODULES.PROPERTY_REQUEST,
+ownerId: listingRequest.\_id,
+category: "PHOTO",
+});
+
+(b) Duplicate them as Property documents:
+if (reqPhotos.length) {
+await Document.insertMany(
+reqPhotos.slice(0,4).map((d) => ({
+module: MODULES.PROPERTY,
+ownerType: "Property",
+ownerId: property.\_id,
+category: "PHOTO",
+label: d.label,
+description: d.description || "Photo",
+filePath: d.filePath,
+mimeType: d.mimeType,
+originalName: d.originalName,
+size: d.size,
+uploadedBy: d.uploadedBy || listingRequest.createdBy,
+}))
+);
+}
+
+(c) Populate Property image field used by UI
+
+Inspect:
+
+backend/src/models/Property.js
+
+frontend property card/list page (e.g. frontend/src/pages/Properties.jsx)
+
+Determine which field drives the photos display (likely images array). Populate it:
+
+property.images = reqPhotos.slice(0,4).map((d) => d.filePath);
+await property.save();
+
+If the schema uses another name (e.g. photos, imageUrls), populate that field instead.
+
+⚠️ Ensure file paths are valid for the frontend image src logic (usually /uploads/...).
+
+TASK B — Prevent duplicate ListingRequest creation
+
+1. Frontend guard (CreateListingRequest page)
+
+Locate frontend/src/pages/CreateListingRequest.jsx (or similar).
+
+Fix submission so the POST happens only once:
+
+Use only form onSubmit={handleSubmit} OR only button onClick, not both.
+
+Add a submitting state guard so second submit returns immediately.
+
+Disable submit button while submitting.
+
+Example pattern:
+
+const [submitting, setSubmitting] = useState(false);
+
+const handleSubmit = async (e) => {
+e.preventDefault();
+if (submitting) return;
+setSubmitting(true);
+try {
+// POST
+} finally {
+setSubmitting(false);
+}
+};
+
+Button:
+
+<Button type="submit" disabled={submitting}>
+  {submitting ? "Submitting..." : "Submit Request"}
+</Button>
+
+2. Add Idempotency-Key header from frontend
+
+Generate once per form submission attempt:
+
+const idemKeyRef = useRef(null);
+if (!idemKeyRef.current) idemKeyRef.current = crypto.randomUUID();
+
+await api.post("/listing-requests", payload, {
+headers: { "Idempotency-Key": idemKeyRef.current }
+});
+
+Reset idemKeyRef.current = null after success if you want.
+
+3. Backend idempotency
+
+In the backend create endpoint for listing requests (POST /api/listing-requests):
+
+Read header Idempotency-Key
+
+Store it on the created document
+
+Add compound unique index: (createdBy, idempotencyKey) (sparse) so duplicates return existing record.
+
+Model change (PropertyListingRequest schema)
+
+Add:
+
+idempotencyKey: { type: String },
+
+Add index:
+
+schema.index({ createdBy: 1, idempotencyKey: 1 }, { unique: true, sparse: true });
+
+Controller create logic
+
+Before creating:
+
+const idemKey = req.headers["idempotency-key"];
+if (idemKey) {
+const existing = await PropertyListingRequest.findOne({
+createdBy: req.user.id,
+idempotencyKey: idemKey,
+});
+if (existing) return res.status(200).json(existing);
+}
+
+When creating, include:
+
+idempotencyKey: idemKey,
+
+Also add fallback “recent duplicate protection” if no key:
+
+check same user + same propertyDraft fields created in last 5 seconds → return existing.
+
+TESTS (must run)
+Photos
+
+Create listing request + upload 1–4 photos.
+
+Publish/approve.
+
+Check Property page shows photos.
+
+Confirm Document records exist for Property:
+
+module=PROPERTY, category=PHOTO, ownerId=<propertyId>
+
+Duplicates
+
+Submit request once → only 1 record.
+
+Double-click submit quickly → still only 1 record.
+
+Refresh after submit → no second record.
+
+Deliverables
+
+Backend publish now carries over photos into Property record + Document Library
+
+Frontend CreateListingRequest guarded + disabled submit
+
+Backend idempotency implemented with index
+
+Update CHANGELOG
+
+Implement now.

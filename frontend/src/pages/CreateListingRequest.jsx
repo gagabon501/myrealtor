@@ -25,12 +25,15 @@ const CreateListingRequest = () => {
   const [success, setSuccess] = useState(false);
   const [requestId, setRequestId] = useState(null);
   const [photoRefresh, setPhotoRefresh] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     setError("");
     setSuccess(false);
     setLoading(true);
+    setSubmitting(true);
     try {
       const payload = {
         propertyDraft: {
@@ -51,6 +54,7 @@ const CreateListingRequest = () => {
       setError(err.response?.data?.message || "Failed to create listing request");
     } finally {
       setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -107,9 +111,9 @@ const CreateListingRequest = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={loading}
+            disabled={loading || submitting}
           >
-            {loading ? "Submitting..." : "Submit Request"}
+            {loading || submitting ? "Submitting..." : "Submit Request"}
           </Button>
         </Stack>
       </Box>
