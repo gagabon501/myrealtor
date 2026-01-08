@@ -8,6 +8,9 @@ import {
   Stack,
   TextField,
   Typography,
+  Card,
+  CardContent,
+  CardActionArea,
 } from "@mui/material";
 import client from "../api/client";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +34,10 @@ const CreateListingRequest = () => {
   const [atsDescription, setAtsDescription] = useState("");
   const [photoFiles, setPhotoFiles] = useState([]);
   const [photoDescription, setPhotoDescription] = useState("");
+  const [atsPreviews, setAtsPreviews] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
+  const [atsPreviews, setAtsPreviews] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -168,7 +175,13 @@ const CreateListingRequest = () => {
                 hidden
                 multiple
                 type="file"
-                onChange={(e) => setAtsFiles(Array.from(e.target.files || []))}
+                onChange={(e) => {
+                  const picked = Array.from(e.target.files || []);
+                  setAtsFiles(picked);
+                  setAtsPreviews(
+                    picked.map((f) => ({ name: f.name, url: URL.createObjectURL(f) }))
+                  );
+                }}
               />
             </Button>
             <TextField
@@ -179,10 +192,20 @@ const CreateListingRequest = () => {
               onChange={(e) => setAtsDescription(e.target.value)}
               required={atsFiles.length > 0}
             />
-            {atsFiles.length > 0 && (
-              <Typography variant="caption" color="text.secondary">
-                {atsFiles.length} file(s) selected
-              </Typography>
+            {atsPreviews.length > 0 && (
+              <Stack spacing={1} sx={{ mt: 1 }}>
+                {atsPreviews.map((f) => (
+                  <Card key={f.url} variant="outlined">
+                    <CardActionArea component="a" href={f.url} target="_blank" rel="noreferrer">
+                      <CardContent>
+                        <Typography variant="body2" color="text.primary">
+                          {f.name}
+                        </Typography>
+                      </CardContent>
+                    </CardActionArea>
+                  </Card>
+                ))}
+              </Stack>
             )}
           </Box>
           <Box>
@@ -196,9 +219,13 @@ const CreateListingRequest = () => {
                 multiple
                 accept="image/*"
                 type="file"
-                onChange={(e) =>
-                  setPhotoFiles(Array.from(e.target.files || []).slice(0, 4))
-                }
+                onChange={(e) => {
+                  const picked = Array.from(e.target.files || []).slice(0, 4);
+                  setPhotoFiles(picked);
+                  setPhotoPreviews(
+                    picked.map((f) => ({ name: f.name, url: URL.createObjectURL(f) }))
+                  );
+                }}
               />
             </Button>
             <TextField
@@ -209,10 +236,26 @@ const CreateListingRequest = () => {
               onChange={(e) => setPhotoDescription(e.target.value)}
               required={photoFiles.length > 0}
             />
-            {photoFiles.length > 0 && (
-              <Typography variant="caption" color="text.secondary">
-                {photoFiles.length} photo(s) selected (max 4)
-              </Typography>
+            {photoPreviews.length > 0 && (
+              <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap">
+                {photoPreviews.map((f) => (
+                  <Card
+                    key={f.url}
+                    variant="outlined"
+                    sx={{ width: 120, borderRadius: 2, overflow: "hidden" }}
+                  >
+                    <CardActionArea component="a" href={f.url} target="_blank" rel="noreferrer">
+                      <CardContent sx={{ p: 0 }}>
+                        <img
+                          src={f.url}
+                          alt={f.name}
+                          style={{ width: "100%", height: 90, objectFit: "cover" }}
+                        />
+                      </CardContent>
+                    </CardActionArea>
+                  </Card>
+                ))}
+              </Stack>
             )}
           </Box>
           <Button
