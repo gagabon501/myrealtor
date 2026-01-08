@@ -83,8 +83,12 @@ const DocumentUploader = ({
         if (labels[idx]) fd.append("labels", labels[idx]);
       });
 
+      const token = localStorage.getItem("token");
       const res = await client.post("/document-library", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
       // backend may return array of docs or {documents: []}

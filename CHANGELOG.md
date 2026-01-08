@@ -209,10 +209,8 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
-## [Backend 1.1.95 / Frontend 0.2.95] – ATS listing request UI workflow
-- Added ATS documents dialog for listing requests (uploads/list for PROPERTY_REQUEST/ATTACHMENT).
-- Client My Listing Requests page now uses dialog for ATS docs with CTA; staff page shows table with view ATS + approve/reject.
-- Normalized role casing retained; version bump.
+## [Backend 1.1.96 / Frontend 0.2.96] – ATS doc uploads use auth headers
+- DocumentUploader/List now send Authorization bearer token for document library calls; ATS dialog logs selected request for debugging.
 
 ## [Backend 1.1.90 / Frontend 0.2.90] – Hide Apply for staff/admin
 - Property cards now hide Apply for staff/admin roles; Apply remains for public/client users.

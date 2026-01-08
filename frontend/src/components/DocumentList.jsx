@@ -41,8 +41,10 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
     setBusy(true);
     try {
       const params = { module, ownerId };
+      const token = localStorage.getItem("token");
       const res = await client.get("/document-library", {
         params,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       setDocs(Array.isArray(res.data) ? res.data : res.data?.documents || []);
     } catch (err) {
@@ -62,7 +64,10 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
     if (!window.confirm("Delete this document?")) return;
 
     try {
-      await client.delete(`/document-library/${docId}`);
+      const token = localStorage.getItem("token");
+      await client.delete(`/document-library/${docId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       await load();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete document");
