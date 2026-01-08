@@ -37,6 +37,30 @@ const CreateListingRequest = () => {
   const [atsPreviews, setAtsPreviews] = useState([]);
   const [photoPreviews, setPhotoPreviews] = useState([]);
 
+  const handleRemoveAts = (index) => {
+    setAtsFiles((prev) => prev.filter((_, i) => i !== index));
+    setAtsPreviews((prev) =>
+      prev.filter((item, i) => {
+        if (i === index) {
+          URL.revokeObjectURL(item.url);
+        }
+        return i !== index;
+      })
+    );
+  };
+
+  const handleRemovePhoto = (index) => {
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+    setPhotoPreviews((prev) =>
+      prev.filter((item, i) => {
+        if (i === index) {
+          URL.revokeObjectURL(item.url);
+        }
+        return i !== index;
+      })
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitLockRef.current || submitting) return;
@@ -195,7 +219,7 @@ const CreateListingRequest = () => {
             />
             {atsPreviews.length > 0 && (
               <Stack spacing={1} sx={{ mt: 1 }}>
-                {atsPreviews.map((f) => (
+                {atsPreviews.map((f, idx) => (
                   <Card key={f.url} variant="outlined">
                     <CardActionArea
                       component="a"
@@ -207,6 +231,16 @@ const CreateListingRequest = () => {
                         <Typography variant="body2" color="text.primary">
                           {f.name}
                         </Typography>
+                        <Button
+                          size="small"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleRemoveAts(idx);
+                          }}
+                        >
+                          Remove
+                        </Button>
                       </CardContent>
                     </CardActionArea>
                   </Card>
@@ -247,7 +281,7 @@ const CreateListingRequest = () => {
             />
             {photoPreviews.length > 0 && (
               <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap">
-                {photoPreviews.map((f) => (
+                {photoPreviews.map((f, idx) => (
                   <Card
                     key={f.url}
                     variant="outlined"
@@ -269,6 +303,17 @@ const CreateListingRequest = () => {
                             objectFit: "cover",
                           }}
                         />
+                        <Button
+                          size="small"
+                          fullWidth
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleRemovePhoto(idx);
+                          }}
+                        >
+                          Remove
+                        </Button>
                       </CardContent>
                     </CardActionArea>
                   </Card>
