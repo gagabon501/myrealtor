@@ -852,3 +852,141 @@ Deliverables:
 - Staff UI CTA
 - Property creation wired correctly
 - No regression to existing flows
+
+---
+
+## Ticket 004f — Add Photos to Create Listing Request (max 4) and carry over on Publish
+
+### Problem
+
+Published properties have no photos because Create Listing Request UI does not allow photo upload.
+We must allow seller/user to upload up to 4 photos at listing-request stage, store them via existing Document Library, and then copy/link them to the created Property during publishing.
+
+### Constraints
+
+- Reuse existing Document Library module (no new upload system).
+- Photos must be visible to: request owner (seller) + staff/admin.
+- Public must NOT see request documents.
+- When publishing (004e), the Property should show these photos.
+- Max 4 photos per listing request.
+
+---
+
+# Backend changes
+
+## A) Document library constants
+
+File: backend/src/constants/documentLibrary.js
+
+- Ensure MODULES includes PROPERTY_REQUEST (already exists)
+- Ensure CATEGORIES.PROPERTY_REQUEST includes "PHOTO" (already exists)
+- Ensure REGISTRY[PROPERTY_REQUEST] allows ownerType PROPERTY_REQUEST + category PHOTO.
+
+## B) Enforce max 4 photos (PROPERTY_REQUEST)
+
+File: backend/src/routes/documentLibraryRoutes.js OR controller/policy layer
+Add validation before uploadDocuments:
+
+- If module === "PROPERTY_REQUEST" and category === "PHOTO":
+  - count existing docs for (module, ownerId, category="PHOTO")
+  - plus req.files.length must be <= 4
+  - else return 400 with message: "Maximum 4 photos allowed for listing request"
+
+(Use Document model query.)
+
+---
+
+# Frontend changes
+
+## C) Create Listing Request page: add photo uploader
+
+File: frontend/src/pages/CreateListingRequest.jsx
+
+1. After successful POST /api/listing-requests (create request),
+   capture returned request id: listingRequest.\_id
+
+2. Add a "Photos (max 4)" section:
+
+   - Use existing shared DocumentUploader and DocumentList components (already used elsewhere)
+   - Configure them for:
+     module="PROPERTY_REQUEST"
+     ownerType="PropertyListingRequest" (or whatever your OWNER_TYPES uses for PROPERTY_REQUEST)
+     ownerId=<listingRequestId>
+     category="PHOTO"
+     Require description per file (existing behavior ok)
+   - Limit file selector to accept images only:
+     accept="image/\*"
+   - UI should prevent selecting >4 total:
+     show remaining slots: (4 - existingCount)
+     disable upload when count reached 4
+
+3. UX flow:
+   - Step 1: create request (title/location/price/desc/tags)
+   - Step 2: show photo upload section once request is created
+   - Allow user to upload now or later from "My Listing Requests" page
+
+---
+
+## D) My Listing Requests page: add "Photos" CTA (same as ATS docs pattern)
+
+File: frontend/src/pages/MyListingRequests.jsx
+
+- Add button per request: "Photos"
+- Opens dialog using DocumentUploader/DocumentList configured as:
+  module="PROPERTY_REQUEST"
+  ownerType="PropertyListingRequest"
+  ownerId=request.\_id
+  category="PHOTO"
+- Enforce max 4 (UI) and show message if max reached.
+
+---
+
+# Publish flow update (carry photos to Property)
+
+## E) When staff/admin publishes a request, copy photos to Property
+
+File: backend/src/controllers/listingRequestController.js (publish endpoint)
+
+After Property is created:
+
+1. Find listing-request PHOTO docs:
+   Document.find({ module: "PROPERTY_REQUEST", ownerId: listingRequest.\_id, category: "PHOTO" })
+
+2. For each found doc, create a Property PHOTO doc:
+   - module: "PROPERTY"
+   - ownerType: "Property"
+   - ownerId: property.\_id
+   - category: "PHOTO"
+   - description/label/originalName/filePath/mimeType/size copied
+   - uploadedBy copied (or set to publisher)
+     (Use Document.create for each / bulk insert.)
+
+This makes Property photos appear in existing Property pages that read PROPERTY module photos.
+
+Do NOT expose listing request docs publicly.
+
+---
+
+# Acceptance criteria
+
+1. Seller can create listing request and upload up to 4 photos.
+2. Seller can manage photos later via My Listing Requests -> Photos.
+3. Uploading photo #5 fails:
+   - UI blocks and backend returns 400 if bypassed.
+4. When staff publishes request:
+   - Property is created
+   - PROPERTY photos exist and show in Properties list/cards/details as per current UI
+5. Public sees photos in published properties; public never sees request documents.
+
+---
+
+# Manual tests
+
+- As seller:
+  - Create listing request -> upload 2 photos
+  - Verify DocumentList shows them
+  - Try upload 3 more -> must block at 4
+- As staff:
+  - Approve ATS
+  - Publish request
+  - Go to /properties (public/incognito) -> new property shows photos
