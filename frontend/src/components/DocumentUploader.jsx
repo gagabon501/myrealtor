@@ -11,7 +11,7 @@ import {
   Typography,
   MenuItem,
 } from "@mui/material";
-import client from "../api/client";
+import { uploadDocuments } from "../api/documentLibraryApi";
 import { REGISTRY } from "../constants/documentLibrary";
 
 const DocumentUploader = ({
@@ -83,13 +83,7 @@ const DocumentUploader = ({
         if (labels[idx]) fd.append("labels", labels[idx]);
       });
 
-      const token = localStorage.getItem("token");
-      const res = await client.post("/document-library", fd, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const res = await uploadDocuments(fd);
 
       // backend may return array of docs or {documents: []}
       const docs = Array.isArray(res.data)

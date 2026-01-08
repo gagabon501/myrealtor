@@ -16,8 +16,6 @@ const ListingRequestDocumentsDialog = ({ open, onClose, listingRequestId, title,
   const [refreshKey, setRefreshKey] = useState(0);
   const categories = [CATEGORIES.PROPERTY_REQUEST[0]]; // ATTACHMENT
   const bumpRefresh = () => setRefreshKey((v) => v + 1);
-  // eslint-disable-next-line no-console
-  console.debug("ListingRequestDocumentsDialog", { listingRequestId, mode });
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">

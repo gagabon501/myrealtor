@@ -10,7 +10,8 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import client, { apiBase } from "../api/client";
+import { apiBase } from "../api/client";
+import { listDocuments, deleteDocument } from "../api/documentLibraryApi";
 import { useAuth } from "../context/AuthContext";
 import { REGISTRY } from "../constants/documentLibrary";
 
@@ -40,12 +41,7 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
     setError("");
     setBusy(true);
     try {
-      const params = { module, ownerId };
-      const token = localStorage.getItem("token");
-      const res = await client.get("/document-library", {
-        params,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const res = await listDocuments({ module, ownerId });
       setDocs(Array.isArray(res.data) ? res.data : res.data?.documents || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load documents");
@@ -64,10 +60,7 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
     if (!window.confirm("Delete this document?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-      await client.delete(`/document-library/${docId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      await deleteDocument(docId);
       await load();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete document");
