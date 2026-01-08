@@ -22,8 +22,8 @@ const DocumentUploader = ({
   defaultCategory,
   onUploaded,
 }) => {
-  const derivedCategories = categories ||
-    REGISTRY[module]?.categories || ["ATTACHMENT", "PHOTO"];
+  const derivedCategories =
+    categories || REGISTRY[module]?.categories || ["ATTACHMENT", "PHOTO"];
   const [category, setCategory] = useState(
     defaultCategory || derivedCategories[0] || ""
   );

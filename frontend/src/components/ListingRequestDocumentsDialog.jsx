@@ -12,9 +12,17 @@ import DocumentUploader from "./DocumentUploader";
 import DocumentList from "./DocumentList";
 import { MODULES, OWNER_TYPES, CATEGORIES } from "../constants/documentLibrary";
 
-const ListingRequestDocumentsDialog = ({ open, onClose, listingRequestId, title, mode = "client" }) => {
+const ListingRequestDocumentsDialog = ({
+  open,
+  onClose,
+  listingRequestId,
+  title,
+  mode = "client",
+  categories: categoriesProp,
+  defaultCategory,
+}) => {
   const [refreshKey, setRefreshKey] = useState(0);
-  const categories = [CATEGORIES.PROPERTY_REQUEST[0]]; // ATTACHMENT
+  const categories = categoriesProp || [CATEGORIES.PROPERTY_REQUEST[0]]; // ATTACHMENT
   const bumpRefresh = () => setRefreshKey((v) => v + 1);
 
   return (
@@ -33,6 +41,7 @@ const ListingRequestDocumentsDialog = ({ open, onClose, listingRequestId, title,
             ownerType={OWNER_TYPES.PROPERTY_REQUEST}
             ownerId={listingRequestId}
             categories={categories}
+            defaultCategory={defaultCategory || categories[0]}
             onUploaded={bumpRefresh}
           />
           <DocumentList

@@ -209,8 +209,8 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
-## [Backend 1.1.98 / Frontend 0.2.98] – Document library auth + role normalize
-- Optional auth remains on list; role now normalized (`client` treated as `user`) so authenticated clients can access PROPERTY_REQUEST documents. Version bump.
+## [Backend 1.1.99 / Frontend 0.2.99] – Seller ATS UI polish
+- My Listing Requests shows ATS status chips, rejection reasons, and contextual callouts/CTAs (upload/re-upload/view ATS). Documents dialog forces ATTACHMENT category. Document library helper unchanged; version bump.
 
 ## [Backend 1.1.90 / Frontend 0.2.90] – Hide Apply for staff/admin
 - Property cards now hide Apply for staff/admin roles; Apply remains for public/client users.
