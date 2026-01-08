@@ -1318,3 +1318,201 @@ Backend idempotency implemented with index
 Update CHANGELOG
 
 Implement now.
+
+---
+
+✅ Cursor Prompt — Fix Duplicate PropertyListingRequest Creation (2 records created)
+
+You are working in the myrealtor MERN repo.
+
+Problem
+
+When a client submits Create Listing Request, the backend creates two PropertyListingRequest records with the same information.
+
+This still happens even after basic UI changes, so fix must be definitive:
+
+prevent double submission on the frontend
+
+enforce idempotency on the backend
+
+ensure only one record is created even if the request is sent twice
+
+1. Identify the root cause (must do first)
+
+Search for the Create Listing Request submission code and confirm whether the POST is being triggered twice due to:
+
+onSubmit on <form> AND onClick on button calling the same handler
+
+useEffect calling submit logic
+
+React StrictMode double-call effect (dev only)
+
+duplicate route wiring calling controller twice
+
+API helper retrying (axios retry or interceptor)
+
+backend route mounted twice (app.use("/api/listing-requests", ...) duplicated)
+
+Required checks
+
+Frontend
+
+Find the file: frontend/src/pages/CreateListingRequest.jsx (or equivalent).
+
+Confirm only ONE call exists to the POST function.
+
+Add console.log("SUBMIT CALLED") inside handler temporarily to confirm only once.
+
+Backend
+
+Find route file for POST /api/listing-requests.
+
+Confirm it’s mounted once in backend/src/app.js.
+
+Add a console.log("CREATE LISTING REQUEST HIT", Date.now(), req.headers["idempotency-key"])
+and confirm whether backend receives 2 calls.
+
+2. Fix frontend: hard-stop double submission
+
+In CreateListingRequest page:
+
+Requirements
+
+Use only <form onSubmit={handleSubmit}>
+
+Button must be type="submit" ONLY
+
+Remove any onClick={handleSubmit} if present
+
+Add submitting guard + disable button
+
+Add “once-only” idempotency key per attempt and reuse the same key even if user clicks twice
+
+Implement exactly:
+const [submitting, setSubmitting] = useState(false);
+const idemKeyRef = useRef(null);
+
+const handleSubmit = async (e) => {
+e.preventDefault();
+if (submitting) return;
+
+if (!idemKeyRef.current) idemKeyRef.current = crypto.randomUUID();
+
+setSubmitting(true);
+try {
+await api.post("/listing-requests", payload, {
+headers: { "Idempotency-Key": idemKeyRef.current },
+});
+// on success: optionally clear key
+idemKeyRef.current = null;
+} finally {
+setSubmitting(false);
+}
+};
+
+Button:
+
+<Button type="submit" disabled={submitting}>
+  {submitting ? "Submitting..." : "Submit Request"}
+</Button>
+
+3. Fix backend: enforce idempotency (absolute requirement)
+
+Even if the frontend still sends 2 POSTs, backend must return existing record and NOT create another.
+
+3.1 Add idempotencyKey to PropertyListingRequest schema
+
+File: backend/src/models/PropertyListingRequest.js
+
+Add field:
+
+idempotencyKey: { type: String },
+
+Add unique sparse compound index:
+
+schema.index(
+{ createdBy: 1, idempotencyKey: 1 },
+{ unique: true, sparse: true }
+);
+
+⚠️ Ensure index is on the same schema variable you export.
+
+3.2 Controller create endpoint must return existing record
+
+In the POST create controller for listing requests:
+
+At the very beginning:
+
+const idemKey = req.get("Idempotency-Key");
+if (idemKey) {
+const existing = await PropertyListingRequest.findOne({
+createdBy: req.user.id,
+idempotencyKey: idemKey,
+});
+if (existing) return res.status(200).json(existing);
+}
+
+When creating:
+
+const doc = await PropertyListingRequest.create({
+...data,
+createdBy: req.user.id,
+idempotencyKey: idemKey,
+});
+
+3.3 Handle duplicate-key error cleanly
+
+If two requests race, Mongo will throw duplicate key error.
+Catch it and return the existing record:
+
+try {
+// create
+} catch (err) {
+if (err.code === 11000 && idemKey) {
+const existing = await PropertyListingRequest.findOne({
+createdBy: req.user.id,
+idempotencyKey: idemKey,
+});
+if (existing) return res.status(200).json(existing);
+}
+throw err;
+}
+
+4. Add a fallback duplicate guard (if Idempotency-Key missing)
+
+If client didn’t send Idempotency-Key (older clients), prevent duplicates by checking “same payload created very recently”.
+
+Example:
+
+same createdBy
+
+same propertyDraft.title/location/price
+
+created within last 10 seconds
+
+If found, return it instead of creating new.
+
+5. Verify by testing (must do)
+   Confirm backend receives 2 hits
+
+Click submit once
+
+If you see backend log twice, backend must still create only 1 record.
+
+Expected outcomes
+
+Submitting once creates 1 record
+
+Double-clicking submit creates still 1 record
+
+Refresh + submit again creates a new record (new key)
+
+Deliverables
+
+No duplicate PropertyListingRequest records are created anymore
+
+Works even if backend receives the request twice
+
+Update CHANGELOG with fix description
+
+Implement now.

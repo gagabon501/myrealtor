@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -26,6 +26,7 @@ const CreateListingRequest = () => {
   const [requestId, setRequestId] = useState(null);
   const [photoRefresh, setPhotoRefresh] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const idemKeyRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,6 +36,9 @@ const CreateListingRequest = () => {
     setLoading(true);
     setSubmitting(true);
     try {
+      if (!idemKeyRef.current) {
+        idemKeyRef.current = crypto.randomUUID();
+      }
       const payload = {
         propertyDraft: {
           title,
@@ -47,9 +51,12 @@ const CreateListingRequest = () => {
             .filter(Boolean),
         },
       };
-      const res = await client.post("/listing-requests", payload);
+      const res = await client.post("/listing-requests", payload, {
+        headers: { "Idempotency-Key": idemKeyRef.current },
+      });
       setSuccess(true);
       setRequestId(res.data?._id);
+      idemKeyRef.current = null;
     } catch (err) {
       setError(err.response?.data?.message || "Failed to create listing request");
     } finally {

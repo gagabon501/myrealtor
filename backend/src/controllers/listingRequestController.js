@@ -22,7 +22,7 @@ export const createListingRequest = async (req, res, next) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const idemKey = req.headers["idempotency-key"];
+    const idemKey = req.get("Idempotency-Key");
     if (idemKey) {
       const existing = await PropertyListingRequest.findOne({
         createdBy: req.user.id,
@@ -42,7 +42,7 @@ export const createListingRequest = async (req, res, next) => {
       })
         .sort({ createdAt: -1 })
         .lean();
-      if (recent && Date.now() - new Date(recent.createdAt).getTime() < 5000) {
+      if (recent && Date.now() - new Date(recent.createdAt).getTime() < 10000) {
         return res.status(200).json(recent);
       }
     }
@@ -67,6 +67,16 @@ export const createListingRequest = async (req, res, next) => {
     });
     return res.status(201).json(doc);
   } catch (err) {
+    if (err?.code === 11000) {
+      const idemKey = req.get("Idempotency-Key");
+      if (idemKey) {
+        const existing = await PropertyListingRequest.findOne({
+          createdBy: req.user.id,
+          idempotencyKey: idemKey,
+        });
+        if (existing) return res.status(200).json(existing);
+      }
+    }
     return next(err);
   }
 };
