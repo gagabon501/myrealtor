@@ -209,8 +209,8 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
-## [Backend 1.1.93 / Frontend 0.2.93] – Normalize role for menus
-- Role checks are case-insensitive so client users always see their menus (Properties, Services, Apply, My Listings, Dashboard, Logout); staff/admin and public remain unchanged.
+## [Backend 1.1.94 / Frontend 0.2.94] – TopBar auth source-of-truth
+- Normalize role casing (maps “client” to “user”) and log warning if authed user lacks role; menus now reliably show for client users (Properties, Services, Apply, My Listings, Dashboard, Logout). Company/public menus unchanged.
 
 ## [Backend 1.1.90 / Frontend 0.2.90] – Hide Apply for staff/admin
 - Property cards now hide Apply for staff/admin roles; Apply remains for public/client users.

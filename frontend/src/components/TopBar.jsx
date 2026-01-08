@@ -5,14 +5,20 @@ import { useAuth } from "../context/AuthContext";
 const TopBar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const role = user?.role;
-  const roleLower = (role || "").toLowerCase();
+  const rawRole = user?.role;
+  const normalizedRole = rawRole ? String(rawRole).toLowerCase() : "public";
+  const role = normalizedRole === "client" ? "user" : normalizedRole;
   const isAuthed = !!user;
-  const isPublic = !user;
-  const isClient = roleLower === "user";
-  const isCompany = roleLower === "staff" || roleLower === "admin";
+  const isPublic = !isAuthed || role === "public";
+  const isClient = role === "user";
+  const isCompany = role === "staff" || role === "admin";
   const showServices = isPublic || isClient;
-  // console.log("TopBar role:", role, { isPublic, isClient, isCompany, isAuthed });
+  if (isAuthed && !rawRole) {
+    // eslint-disable-next-line no-console
+    console.warn("TopBar: user is logged in but role missing", user);
+  }
+  // eslint-disable-next-line no-console
+  console.log("TopBar DEBUG", { user, role, isPublic, isClient, isCompany, isAuthed });
 
   const handleLogout = () => {
     logout();
