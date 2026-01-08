@@ -18,28 +18,23 @@ const ensureAtsDocumentExists = async (requestId) => {
 
 export const createListingRequest = async (req, res, next) => {
   try {
-    console.log("LISTING_REQUEST_CREATE HIT", {
-      t: Date.now(),
-      user: req.user?.id,
-      idem: req.get("Idempotency-Key"),
-      ip: req.ip,
-    });
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const idemKey = req.get("Idempotency-Key");
-    if (idemKey) {
+    const clientRequestId =
+      req.get("Idempotency-Key") || req.body?.clientRequestId || req.body?.idempotencyKey;
+    if (clientRequestId) {
       const existing = await PropertyListingRequest.findOne({
         createdBy: req.user.id,
-        idempotencyKey: idemKey,
+        $or: [{ idempotencyKey: clientRequestId }, { clientRequestId }],
       });
       if (existing) {
         return res.status(200).json(existing);
       }
     }
     const draft = req.body.propertyDraft || {};
-    if (!idemKey) {
+    if (!clientRequestId) {
       const recent = await PropertyListingRequest.findOne({
         createdBy: req.user.id,
         "propertyDraft.title": draft.title,
@@ -63,7 +58,8 @@ export const createListingRequest = async (req, res, next) => {
         earnestMoneyRequired: false,
       },
       status: "ATS_PENDING",
-      idempotencyKey: idemKey,
+      idempotencyKey: clientRequestId,
+      clientRequestId,
     };
     const doc = await PropertyListingRequest.create(payload);
     await auditWrap({
@@ -74,11 +70,12 @@ export const createListingRequest = async (req, res, next) => {
     return res.status(201).json(doc);
   } catch (err) {
     if (err?.code === 11000) {
-      const idemKey = req.get("Idempotency-Key");
-      if (idemKey) {
+      const clientRequestId =
+        req.get("Idempotency-Key") || req.body?.clientRequestId || req.body?.idempotencyKey;
+      if (clientRequestId) {
         const existing = await PropertyListingRequest.findOne({
           createdBy: req.user.id,
-          idempotencyKey: idemKey,
+          $or: [{ idempotencyKey: clientRequestId }, { clientRequestId }],
         });
         if (existing) return res.status(200).json(existing);
       }

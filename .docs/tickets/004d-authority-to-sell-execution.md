@@ -1682,3 +1682,257 @@ Deliverable
 A commit that ensures: Create Listing Request produces exactly one PropertyListingRequest always.
 
 If you want, I can also give you a super quick “minimal fix” prompt (frontend-only guard) — but the above is the “never again” fix (frontend + backend).
+
+---
+
+Here is **ONE SINGLE COPY-PASTE BLOCK** you can drop directly into **Cursor**.
+This is rewritten to be **explicit, task-specific, and final** — Cursor is instructed to **investigate, prove the root cause, and fix it with backend idempotency + frontend safeguards** so the duplicate record issue is eliminated permanently.
+
+---
+
+````md
+# 🔴 FINAL FIX REQUIRED — Duplicate ListingRequest Records (Ticket 004e)
+
+## Problem (Confirmed)
+
+When a user submits **Create Listing Request**, TWO identical `PropertyListingRequest` records are created.
+This is visible in:
+
+- Seller “My Listing Requests”
+- Staff “Listing Requests” table
+- One record may be ATS Approved + Published while the duplicate remains
+
+This must be fixed WITH FINALITY.
+
+---
+
+## NON-NEGOTIABLE OUTCOME
+
+After this fix:
+
+- ONE user submit = EXACTLY ONE DB record.
+- Even if:
+  - React fires twice
+  - User double-clicks
+  - Network retries occur
+- Backend MUST still guarantee a single record.
+
+Frontend fixes alone are NOT sufficient.
+
+---
+
+# PHASE A — ROOT CAUSE INVESTIGATION (MANDATORY)
+
+### A1. Identify the exact create flow
+
+Locate and list:
+
+- Backend route handling creation:
+  `POST /api/listing-requests`
+- Backend controller function used
+- Frontend function that calls it (CreateListingRequest submit handler)
+
+---
+
+### A2. Prove whether backend is hit twice or creates twice
+
+Add TEMP logs at the VERY TOP of the backend create controller:
+
+```js
+console.log("[LR-CREATE] HIT", {
+  ts: new Date().toISOString(),
+  user: req.user?.id,
+  ip: req.ip,
+  idem: req.get("Idempotency-Key"),
+});
+```
+````
+
+Also log:
+
+```js
+console.log("[LR-CREATE] BEFORE CREATE");
+console.log("[LR-CREATE] AFTER CREATE", record?._id);
+```
+
+Submit ONCE and observe logs.
+
+✔ If **2 HIT logs** → frontend / routing / duplicate call
+✔ If **1 HIT log but 2 records** → backend logic bug
+
+DO NOT GUESS — PROVE IT.
+
+---
+
+### A3. Verify routes are not mounted twice
+
+Inspect:
+
+- `app.js`
+- route imports
+- ensure listing request routes are mounted ONCE only
+
+---
+
+### A4. Verify frontend submit is not firing twice
+
+Add TEMP log inside submit handler:
+
+```js
+console.log("[LR-FE] submit fired", Date.now());
+```
+
+Check for:
+
+- `<form onSubmit>` AND button `onClick` both calling submit
+- submit inside `useEffect`
+- React StrictMode double execution in dev
+- retry interceptors re-POSTing
+
+---
+
+# PHASE B — FINAL FIX (EVEN IF FRONTEND IS FAULTY)
+
+## B1. BACKEND — Enforce idempotency (MANDATORY)
+
+### Model update (`PropertyListingRequest`)
+
+Add:
+
+- `clientRequestId: String`
+
+Create UNIQUE compound index:
+
+```js
+schema.index(
+  { createdBy: 1, clientRequestId: 1 },
+  { unique: true, sparse: true }
+);
+```
+
+---
+
+### Controller logic update
+
+In `POST /api/listing-requests`:
+
+1. Read idempotency key from:
+
+   - Header: `Idempotency-Key`
+   - OR body: `clientRequestId`
+
+2. If key exists:
+
+   - Check if record already exists for `(createdBy, clientRequestId)`
+   - If found → return it (HTTP 200)
+
+3. On create:
+
+   - Persist `clientRequestId`
+   - If Mongo throws duplicate key error (11000):
+
+     - Fetch existing record
+     - Return it (HTTP 200)
+
+4. Only the FIRST request may return `201 Created`.
+
+This guarantees **no duplicates ever**.
+
+---
+
+## B2. BACKEND — Safety fallback (recommended)
+
+If idempotency key is missing:
+
+- Detect duplicate payloads by:
+
+  - same `createdBy`
+  - same `title + location + price`
+  - created within last 10 seconds
+
+- If found → return existing record instead of creating a new one
+
+---
+
+## B3. FRONTEND — Single submit + idempotency key
+
+### Submit guard
+
+- Ensure ONLY ONE submit mechanism exists
+
+  - Either `<form onSubmit>` OR button `onClick`
+
+- Add:
+
+  - `isSubmitting` state
+  - ref-based submit lock
+
+---
+
+### Idempotency key generation
+
+On submit:
+
+```js
+const clientRequestId = crypto.randomUUID();
+```
+
+Send it via:
+
+- HTTP header `Idempotency-Key`
+- AND body `clientRequestId`
+
+Reset key only after success.
+
+---
+
+## B4. Remove any chained or duplicate POST calls
+
+Fix any of:
+
+- submit + navigation triggering POST twice
+- retry interceptors replaying POST
+- `useEffect` calling create
+- StrictMode side effects triggering submit logic
+
+---
+
+# PHASE C — VERIFICATION (REQUIRED)
+
+1. Submit listing request ONCE.
+2. Confirm:
+
+   - Backend logs show either:
+
+     - one HIT
+     - or multiple HITs returning SAME record ID
+
+3. Confirm:
+
+   - Staff table shows ONE row
+
+4. Double-click submit rapidly → STILL only one record
+
+Remove TEMP logs after verification.
+
+---
+
+## DELIVERABLES
+
+- Backend idempotency implemented
+- Frontend submit guard implemented
+- Duplicate creation IMPOSSIBLE
+- Update `CHANGELOG.md`:
+  “Fix: prevent duplicate listing request creation via backend idempotency + frontend submit guard”
+
+DO NOT STOP UNTIL DUPLICATES ARE IMPOSSIBLE.
+
+```
+
+---
+
+If you want, next we can:
+- Add **DB cleanup migration** to auto-merge existing duplicates
+- Add **audit log protection**
+- Or move to **004f (post-publish buyer inquiry flow)**
+```

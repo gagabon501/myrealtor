@@ -53,7 +53,7 @@ const CreateListingRequest = () => {
             .filter(Boolean),
         },
       };
-      const res = await client.post("/listing-requests", payload, {
+      const res = await client.post("/listing-requests", { ...payload, clientRequestId: idemKeyRef.current }, {
         headers: { "Idempotency-Key": idemKeyRef.current },
       });
       setSuccess(true);

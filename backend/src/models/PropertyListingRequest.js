@@ -29,11 +29,13 @@ const propertyListingRequestSchema = new mongoose.Schema(
     publishedPropertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property" },
     publishedAt: Date,
     idempotencyKey: { type: String },
+    clientRequestId: { type: String },
   },
   { timestamps: true }
 );
 
 propertyListingRequestSchema.index({ createdBy: 1, idempotencyKey: 1 }, { unique: true, sparse: true });
+propertyListingRequestSchema.index({ createdBy: 1, clientRequestId: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("PropertyListingRequest", propertyListingRequestSchema);
 
