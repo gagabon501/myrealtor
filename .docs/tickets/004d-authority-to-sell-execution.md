@@ -1516,3 +1516,169 @@ Works even if backend receives the request twice
 Update CHANGELOG with fix description
 
 Implement now.
+
+---
+
+✅ Cursor Prompt — Fix “Create Listing Request” POST firing twice (duplicates)
+Context
+
+In My Listing Requests, after submitting Create Listing Request, I consistently see two identical records created (same title/location/price/desc). This happens immediately on submit. Screenshot confirms duplicates are created for the same request (“Lot of Lulu” appears twice).
+
+Goal
+
+Ensure that submitting Create Listing Request creates exactly ONE record, always.
+
+Non-goals
+
+Do NOT modify ATS workflow, publishing, or photo logic. Only fix duplicate creation.
+
+Step 1 — Prove where the duplicate happens (required)
+1A) Backend: confirm if server receives 2 POST calls
+
+In the backend POST handler for /api/listing-requests, add a temporary log at the very start:
+
+console.log("LISTING_REQUEST_CREATE HIT", {
+t: Date.now(),
+user: req.user?.id,
+idem: req.get("Idempotency-Key"),
+ip: req.ip,
+});
+
+Run locally and submit once.
+✅ If this prints twice → frontend is sending twice (or route mounted twice).
+✅ If this prints once but DB has two docs → backend code creates twice internally.
+
+1B) Backend: ensure route is mounted only once
+
+Open backend/src/app.js and verify /api/listing-requests is only mounted once.
+If duplicated, remove one.
+
+Step 2 — Fix frontend: ensure submit handler executes once (most likely root cause)
+
+In frontend/src/pages/CreateListingRequest.jsx (or equivalent):
+
+2A) Ensure there is ONLY ONE trigger
+
+If there is a <form onSubmit={handleSubmit}>, the submit button MUST be type="submit" and must NOT call handleSubmit in onClick.
+
+If there is no form, use ONLY onClick, not both.
+
+Fix rule: pick one method only.
+
+Example correct structure:
+
+<form onSubmit={handleSubmit}>
+  ...
+  <Button type="submit" disabled={submitting}>Submit</Button>
+</form>
+
+Remove any pattern like this (causes double call):
+
+<form onSubmit={handleSubmit}>
+  <Button type="submit" onClick={handleSubmit}>Submit</Button>
+</form>
+
+2B) Add a hard guard against double submit
+
+Add:
+
+const [submitting, setSubmitting] = useState(false);
+const submitLockRef = useRef(false);
+
+Then in submit:
+
+const handleSubmit = async (e) => {
+e.preventDefault();
+
+if (submitLockRef.current || submitting) return; // hard lock
+submitLockRef.current = true;
+setSubmitting(true);
+
+try {
+// existing api call
+} finally {
+setSubmitting(false);
+setTimeout(() => { submitLockRef.current = false; }, 1500); // prevent rapid double fire
+}
+};
+
+Step 3 — Add backend idempotency (must be implemented as safety net)
+
+Even if frontend accidentally sends twice, backend must only create one.
+
+3A) Schema update: add idempotencyKey unique per user
+
+File: backend/src/models/PropertyListingRequest.js
+
+Add:
+
+idempotencyKey: { type: String },
+
+Add index:
+
+schema.index({ createdBy: 1, idempotencyKey: 1 }, { unique: true, sparse: true });
+
+3B) Controller: reuse record if key already used
+
+In POST create controller:
+
+const idemKey = req.get("Idempotency-Key");
+
+if (idemKey) {
+const existing = await PropertyListingRequest.findOne({
+createdBy: req.user.id,
+idempotencyKey: idemKey,
+});
+if (existing) return res.status(200).json(existing);
+}
+
+When creating:
+
+const rec = await PropertyListingRequest.create({
+...payload,
+createdBy: req.user.id,
+idempotencyKey: idemKey,
+});
+return res.status(201).json(rec);
+
+Catch duplicate key race:
+
+} catch (err) {
+if (err.code === 11000 && idemKey) {
+const existing = await PropertyListingRequest.findOne({
+createdBy: req.user.id,
+idempotencyKey: idemKey,
+});
+if (existing) return res.status(200).json(existing);
+}
+throw err;
+}
+
+Step 4 — Frontend must send Idempotency-Key
+
+In CreateListingRequest submit API call, generate once per attempt:
+
+const idemRef = useRef(null);
+if (!idemRef.current) idemRef.current = crypto.randomUUID();
+
+await api.post("/listing-requests", payload, {
+headers: { "Idempotency-Key": idemRef.current },
+});
+
+After success, reset:
+
+idemRef.current = null;
+
+Step 5 — Verify
+
+Submit once.
+
+Backend log should show one HIT (or if two hits still occur, DB must still create only one).
+
+Refresh “My Listing Requests” → only one record exists for that submission.
+
+Deliverable
+
+A commit that ensures: Create Listing Request produces exactly one PropertyListingRequest always.
+
+If you want, I can also give you a super quick “minimal fix” prompt (frontend-only guard) — but the above is the “never again” fix (frontend + backend).

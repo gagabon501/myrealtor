@@ -18,6 +18,12 @@ const ensureAtsDocumentExists = async (requestId) => {
 
 export const createListingRequest = async (req, res, next) => {
   try {
+    console.log("LISTING_REQUEST_CREATE HIT", {
+      t: Date.now(),
+      user: req.user?.id,
+      idem: req.get("Idempotency-Key"),
+      ip: req.ip,
+    });
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });

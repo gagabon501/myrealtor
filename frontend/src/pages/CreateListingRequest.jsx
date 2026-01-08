@@ -27,10 +27,12 @@ const CreateListingRequest = () => {
   const [photoRefresh, setPhotoRefresh] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const idemKeyRef = useRef(null);
+  const submitLockRef = useRef(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (submitting) return;
+    if (submitLockRef.current || submitting) return;
+    submitLockRef.current = true;
     setError("");
     setSuccess(false);
     setLoading(true);
@@ -62,6 +64,9 @@ const CreateListingRequest = () => {
     } finally {
       setLoading(false);
       setSubmitting(false);
+      setTimeout(() => {
+        submitLockRef.current = false;
+      }, 1500);
     }
   };
 

@@ -209,8 +209,8 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Backend 1.1.80 / Frontend 0.2.80] – Service doc ownership refinements
 - Ownership checks return 404 on missing service requests; uploads require auth; delete allows service doc owners; versions aligned.
 
-## [Backend 1.1.106 / Frontend 0.2.106] – Listing request duplicate guard
-- Frontend submit guarded with submitting flag and Idempotency-Key; backend uses idempotencyKey index + duplicate-key handling and recent duplicate guard (10s). Publish photo carryover retained; version bump.
+## [Backend 1.1.107 / Frontend 0.2.107] – Listing request submit hardening
+- Added submit lock and Idempotency-Key guard on create form; backend logs hits and enforces idempotency with duplicate-key fallback. Version bump.
 
 ## [Backend 1.1.90 / Frontend 0.2.90] – Hide Apply for staff/admin
 - Property cards now hide Apply for staff/admin roles; Apply remains for public/client users.
