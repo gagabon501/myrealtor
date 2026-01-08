@@ -10,11 +10,10 @@ import {
   Typography,
 } from "@mui/material";
 import client from "../api/client";
-import DocumentUploader from "../components/DocumentUploader";
-import DocumentList from "../components/DocumentList";
-import { MODULES, OWNER_TYPES } from "../constants/documentLibrary";
+import { useNavigate } from "react-router-dom";
 
 const CreateListingRequest = () => {
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
@@ -56,14 +55,21 @@ const CreateListingRequest = () => {
             .filter(Boolean),
         },
       };
-      const res = await client.post("/listing-requests", { ...payload, clientRequestId }, {
-        headers: { "Idempotency-Key": idemKeyRef.current },
-      });
+      const res = await client.post(
+        "/listing-requests",
+        { ...payload, clientRequestId },
+        {
+          headers: { "Idempotency-Key": idemKeyRef.current },
+        }
+      );
       setSuccess(true);
       setRequestId(res.data?._id);
       idemKeyRef.current = null;
+      navigate("/sell/requests");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create listing request");
+      setError(
+        err.response?.data?.message || "Failed to create listing request"
+      );
     } finally {
       setLoading(false);
       setSubmitting(false);
@@ -122,6 +128,33 @@ const CreateListingRequest = () => {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
           />
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+              Authority to Sell (ATS) Document
+            </Typography>
+            <DocumentUploader
+              module={MODULES.PROPERTY_REQUEST}
+              ownerType={OWNER_TYPES.PROPERTY_REQUEST}
+              ownerId={requestId || "PENDING_REQUEST"}
+              categories={["ATTACHMENT"]}
+              defaultCategory="ATTACHMENT"
+              onUploaded={() => {}}
+            />
+          </Box>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+              Photos (max 4)
+            </Typography>
+            <DocumentUploader
+              module={MODULES.PROPERTY_REQUEST}
+              ownerType={OWNER_TYPES.PROPERTY_REQUEST}
+              ownerId={requestId || "PENDING_REQUEST"}
+              categories={["PHOTO"]}
+              defaultCategory="PHOTO"
+              accept="image/*"
+              onUploaded={() => {}}
+            />
+          </Box>
           <Button
             type="submit"
             variant="contained"
@@ -138,32 +171,8 @@ const CreateListingRequest = () => {
         onClose={() => setSuccess(false)}
         message="Listing request submitted"
       />
-      {requestId && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 700 }}>
-            Photos (max 4)
-          </Typography>
-          <DocumentUploader
-            module={MODULES.PROPERTY_REQUEST}
-            ownerType={OWNER_TYPES.PROPERTY_REQUEST}
-            ownerId={requestId}
-            categories={["PHOTO"]}
-            defaultCategory="PHOTO"
-            accept="image/*"
-            onUploaded={() => setPhotoRefresh((v) => v + 1)}
-          />
-          <DocumentList
-            module={MODULES.PROPERTY_REQUEST}
-            ownerId={requestId}
-            ownerType={OWNER_TYPES.PROPERTY_REQUEST}
-            categories={["PHOTO"]}
-            refreshKey={photoRefresh}
-          />
-        </Box>
-      )}
     </Container>
   );
 };
 
 export default CreateListingRequest;
-
