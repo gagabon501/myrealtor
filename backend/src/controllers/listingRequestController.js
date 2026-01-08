@@ -1,4 +1,5 @@
 import { validationResult } from "express-validator";
+import crypto from "crypto";
 import PropertyListingRequest from "../models/PropertyListingRequest.js";
 import Document from "../models/Document.js";
 import Property from "../models/Property.js";
@@ -22,14 +23,30 @@ export const createListingRequest = async (req, res, next) => {
       ts: new Date().toISOString(),
       user: req.user?.id,
       ip: req.ip,
-      idem: req.get("Idempotency-Key") || req.body?.clientRequestId || req.body?.idempotencyKey,
+      idem:
+        req.get("Idempotency-Key") ||
+        req.body?.clientRequestId ||
+        req.body?.idempotencyKey,
     });
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const clientRequestId =
-      req.get("Idempotency-Key") || req.body?.clientRequestId || req.body?.idempotencyKey;
+    const draft = req.body.propertyDraft || {};
+    const clientRequestIdHeader =
+      req.get("Idempotency-Key") ||
+      req.body?.clientRequestId ||
+      req.body?.idempotencyKey;
+    const fallbackKey = crypto
+      .createHash("sha256")
+      .update(
+        `${req.user.id || ""}|${draft.title || ""}|${draft.location || ""}|${
+          draft.price || ""
+        }`
+      )
+      .digest("hex");
+    const clientRequestId = clientRequestIdHeader || fallbackKey;
+
     if (clientRequestId) {
       const existing = await PropertyListingRequest.findOne({
         createdBy: req.user.id,
@@ -39,8 +56,8 @@ export const createListingRequest = async (req, res, next) => {
         return res.status(200).json(existing);
       }
     }
-    const draft = req.body.propertyDraft || {};
-    if (!clientRequestId) {
+
+    if (!clientRequestIdHeader) {
       const recent = await PropertyListingRequest.findOne({
         createdBy: req.user.id,
         "propertyDraft.title": draft.title,
@@ -67,7 +84,11 @@ export const createListingRequest = async (req, res, next) => {
       idempotencyKey: clientRequestId,
       clientRequestId,
     };
-    const doc = await PropertyListingRequest.create(payload);
+    const doc = await PropertyListingRequest.findOneAndUpdate(
+      { createdBy: req.user.id, clientRequestId },
+      { $setOnInsert: payload },
+      { upsert: true, new: true }
+    );
     await auditWrap({
       actor: req.user.id,
       action: "LISTING_REQUEST_SUBMITTED",
@@ -77,7 +98,9 @@ export const createListingRequest = async (req, res, next) => {
   } catch (err) {
     if (err?.code === 11000) {
       const clientRequestId =
-        req.get("Idempotency-Key") || req.body?.clientRequestId || req.body?.idempotencyKey;
+        req.get("Idempotency-Key") ||
+        req.body?.clientRequestId ||
+        req.body?.idempotencyKey;
       if (clientRequestId) {
         const existing = await PropertyListingRequest.findOne({
           createdBy: req.user.id,
@@ -94,10 +117,13 @@ export const approveListingRequest = async (req, res, next) => {
   try {
     const { id } = req.params;
     const listing = await PropertyListingRequest.findById(id);
-    if (!listing) return res.status(404).json({ message: "Listing request not found" });
+    if (!listing)
+      return res.status(404).json({ message: "Listing request not found" });
     const exists = await ensureAtsDocumentExists(id);
     if (!exists) {
-      return res.status(400).json({ message: "ATS document is required before approval" });
+      return res
+        .status(400)
+        .json({ message: "ATS document is required before approval" });
     }
     listing.status = "ATS_APPROVED";
     listing.atsApprovedBy = req.user.id;
@@ -124,7 +150,8 @@ export const rejectListingRequest = async (req, res, next) => {
       return res.status(400).json({ message: "Rejection reason is required" });
     }
     const listing = await PropertyListingRequest.findById(id);
-    if (!listing) return res.status(404).json({ message: "Listing request not found" });
+    if (!listing)
+      return res.status(404).json({ message: "Listing request not found" });
     listing.status = "ATS_REJECTED";
     listing.atsApprovedBy = undefined;
     listing.atsApprovedAt = undefined;
@@ -150,11 +177,15 @@ export const setEarnestMoneyRequired = async (req, res, next) => {
       { "propertyDraft.earnestMoneyRequired": Boolean(earnestMoneyRequired) },
       { new: true }
     );
-    if (!doc) return res.status(404).json({ message: "Listing request not found" });
+    if (!doc)
+      return res.status(404).json({ message: "Listing request not found" });
     await auditWrap({
       actor: req.user.id,
       action: "EARNEST_FLAG_UPDATED",
-      context: { requestId: doc._id.toString(), earnestMoneyRequired: Boolean(earnestMoneyRequired) },
+      context: {
+        requestId: doc._id.toString(),
+        earnestMoneyRequired: Boolean(earnestMoneyRequired),
+      },
     });
     return res.json(doc);
   } catch (err) {
@@ -164,7 +195,9 @@ export const setEarnestMoneyRequired = async (req, res, next) => {
 
 export const listMyListingRequests = async (req, res, next) => {
   try {
-    const docs = await PropertyListingRequest.find({ createdBy: req.user.id }).sort({
+    const docs = await PropertyListingRequest.find({
+      createdBy: req.user.id,
+    }).sort({
       createdAt: -1,
     });
     return res.json(docs);
@@ -185,7 +218,8 @@ export const listAllListingRequests = async (_req, res, next) => {
 export const getListingRequest = async (req, res, next) => {
   try {
     const doc = await PropertyListingRequest.findById(req.params.id);
-    if (!doc) return res.status(404).json({ message: "Listing request not found" });
+    if (!doc)
+      return res.status(404).json({ message: "Listing request not found" });
     const role = req.user?.role || "public";
     const isStaff = role === "staff" || role === "admin";
     if (!isStaff && String(doc.createdBy) !== String(req.user.id)) {
@@ -206,9 +240,12 @@ export const publishListingRequest = async (req, res, next) => {
   try {
     const { id } = req.params;
     const listing = await PropertyListingRequest.findById(id);
-    if (!listing) return res.status(404).json({ message: "Listing request not found" });
+    if (!listing)
+      return res.status(404).json({ message: "Listing request not found" });
     if (listing.status !== "ATS_APPROVED") {
-      return res.status(400).json({ message: "ATS approval required before publishing" });
+      return res
+        .status(400)
+        .json({ message: "ATS approval required before publishing" });
     }
     if (listing.publishedPropertyId) {
       return res.status(409).json({ message: "Listing already published" });
@@ -258,11 +295,13 @@ export const publishListingRequest = async (req, res, next) => {
     await auditWrap({
       actor: req.user.id,
       action: "PROPERTY_PUBLISHED",
-      context: { listingRequestId: listing._id.toString(), propertyId: property._id.toString() },
+      context: {
+        listingRequestId: listing._id.toString(),
+        propertyId: property._id.toString(),
+      },
     });
     return res.status(201).json(property);
   } catch (err) {
     return next(err);
   }
 };
-

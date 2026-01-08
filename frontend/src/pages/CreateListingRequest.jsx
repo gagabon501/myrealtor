@@ -43,6 +43,7 @@ const CreateListingRequest = () => {
       if (!idemKeyRef.current) {
         idemKeyRef.current = crypto.randomUUID();
       }
+      const clientRequestId = idemKeyRef.current;
       const payload = {
         propertyDraft: {
           title,
@@ -55,7 +56,7 @@ const CreateListingRequest = () => {
             .filter(Boolean),
         },
       };
-      const res = await client.post("/listing-requests", { ...payload, clientRequestId: idemKeyRef.current }, {
+      const res = await client.post("/listing-requests", { ...payload, clientRequestId }, {
         headers: { "Idempotency-Key": idemKeyRef.current },
       });
       setSuccess(true);
