@@ -61,6 +61,7 @@ router.post(
         req.body.earnestMoneyRequired ?? property.earnestMoneyRequired ?? false;
       const userId = req.user?.id;
       const emailSource = userId ? req.user.email : req.body.email;
+      const emailLower = String(emailSource).toLowerCase();
       const payload = {
         propertyId: req.body.propertyId,
         name: req.body.name,
@@ -74,13 +75,20 @@ router.post(
       };
       // handle dedup
       const dedupQuery = userId
-        ? { propertyId: payload.propertyId, userId }
+        ? {
+            propertyId: payload.propertyId,
+            $or: [{ userId }, { emailLower }],
+          }
         : {
             propertyId: payload.propertyId,
-            emailLower: String(payload.email).toLowerCase(),
+            emailLower,
           };
       const existing = await InterestedBuyer.findOne(dedupQuery);
       if (existing) {
+        if (userId && !existing.userId) {
+          existing.userId = userId;
+          await existing.save();
+        }
         return res.status(409).json({ message: "Interest already exists" });
       }
       const lead = await InterestedBuyer.create(payload);
@@ -122,10 +130,18 @@ router.get("/brokerage/interest/mine", authenticate, async (req, res, next) => {
   try {
     const email = req.user?.email;
     const userId = req.user?.id;
-    if (!email && !userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!email && !userId)
+      return res.status(401).json({ message: "Unauthorized" });
     const emailLower = email ? String(email).toLowerCase() : null;
-    const query = userId ? { userId } : { emailLower };
-    const interests = await InterestedBuyer.find(query).select("propertyId createdAt status");
+    const query =
+      userId && emailLower
+        ? { $or: [{ userId }, { emailLower }] }
+        : userId
+        ? { userId }
+        : { emailLower };
+    const interests = await InterestedBuyer.find(query).select(
+      "propertyId createdAt status"
+    );
     const propertyIds = interests.map((i) => i.propertyId);
     res.json({ propertyIds, interests });
   } catch (err) {
