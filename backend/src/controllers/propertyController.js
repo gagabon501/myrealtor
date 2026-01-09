@@ -6,6 +6,8 @@ import path from "path";
 
 const ADMIN_STATUSES = ["DRAFT", "PUBLISHED", "RESERVED", "SOLD", "WITHDRAWN"];
 const PUBLIC_STATUSES = ["PUBLISHED", "RESERVED"];
+// allow legacy statuses for older data when published flag is missing
+const PUBLIC_STATUSES_LEGACY = ["PUBLISHED", "RESERVED", "AVAILABLE", "UNDER_NEGOTIATION"];
 
 export const listProperties = async (req, res, next) => {
   try {
@@ -18,18 +20,15 @@ export const listProperties = async (req, res, next) => {
     if (search) query.title = new RegExp(search, "i");
 
     if (!isStaff) {
-      query.published = true;
-      if (status) {
-        const normalized = status.toUpperCase();
-        if (!PUBLIC_STATUSES.includes(normalized)) {
-          return res
-            .status(400)
-            .json({ message: "Invalid public status filter" });
-        }
-        query.status = normalized;
-      } else {
-        query.status = { $in: PUBLIC_STATUSES };
+      const normalized = status ? status.toUpperCase() : null;
+      const allowed = normalized ? [normalized] : PUBLIC_STATUSES_LEGACY;
+      if (normalized && !PUBLIC_STATUSES_LEGACY.includes(normalized)) {
+        return res.status(400).json({ message: "Invalid public status filter" });
       }
+      query.$and = [
+        { status: { $in: allowed } },
+        { $or: [{ published: true }, { published: { $exists: false } }] },
+      ];
     } else if (status) {
       const normalized = status.toUpperCase();
       if (!ADMIN_STATUSES.includes(normalized)) {
@@ -58,11 +57,12 @@ export const getProperty = async (req, res, next) => {
       return res.status(404).json({ message: "Property not found" });
     const role = req.user?.role;
     const isStaff = role === "staff" || role === "admin";
-    if (
-      !isStaff &&
-      (!property.published || !PUBLIC_STATUSES.includes(property.status))
-    ) {
-      return res.status(404).json({ message: "Property not found" });
+    if (!isStaff) {
+      const statusOk = PUBLIC_STATUSES_LEGACY.includes(property.status);
+      const publishedOk = property.published === true || property.published === undefined;
+      if (!(statusOk && publishedOk)) {
+        return res.status(404).json({ message: "Property not found" });
+      }
     }
     res.json(property);
   } catch (err) {
