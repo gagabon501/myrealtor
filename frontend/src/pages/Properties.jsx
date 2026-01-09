@@ -22,7 +22,12 @@ const Properties = () => {
   const [propertyList, setPropertyList] = useState([]);
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState("");
-  const [filters, setFilters] = useState({ search: "", location: "", minPrice: "", maxPrice: "" });
+  const [filters, setFilters] = useState({
+    search: "",
+    location: "",
+    minPrice: "",
+    maxPrice: "",
+  });
   const { user } = useAuth();
   const navigate = useNavigate();
   const canManage = ["staff", "admin"].includes(user?.role);
@@ -42,6 +47,7 @@ const Properties = () => {
   const [applyNotes, setApplyNotes] = useState("");
   const [submittingInterest, setSubmittingInterest] = useState(false);
   const [submittingApply, setSubmittingApply] = useState(false);
+  const [interestedIds, setInterestedIds] = useState(new Set());
 
   const loadProperties = () => {
     const endpoint = canManage ? "/properties/admin" : "/properties";
@@ -51,8 +57,20 @@ const Properties = () => {
       .catch(() => setError("Failed to load properties"));
   };
 
+  const loadInterested = async () => {
+    if (!isClient) return;
+    try {
+      const res = await client.get("/services/brokerage/interest/mine");
+      const ids = new Set((res.data?.propertyIds || []).map((id) => String(id)));
+      setInterestedIds(ids);
+    } catch {
+      /* ignore */
+    }
+  };
+
   useEffect(() => {
     loadProperties();
+    loadInterested();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canManage]);
 
@@ -140,6 +158,7 @@ const Properties = () => {
       });
       setNotice("Thanks! We recorded your interest.");
       setInterestOpen(false);
+      await loadInterested();
     } catch (err) {
       const msg = err.response?.data?.message;
       if (err.response?.status === 409 || msg === "Interest already exists") {
@@ -194,9 +213,17 @@ const Properties = () => {
   const handleUnpublish = (property) =>
     lifecycleAction(property, "unpublish", "Unpublish this property?");
   const handleReserve = (property) =>
-    lifecycleAction(property, "mark-reserved", "Mark this property as reserved?");
+    lifecycleAction(
+      property,
+      "mark-reserved",
+      "Mark this property as reserved?"
+    );
   const handleSold = (property) =>
-    lifecycleAction(property, "mark-sold", "Mark this property as sold? This hides it from public.");
+    lifecycleAction(
+      property,
+      "mark-sold",
+      "Mark this property as sold? This hides it from public."
+    );
   const handleWithdraw = (property) =>
     lifecycleAction(
       property,
@@ -206,7 +233,12 @@ const Properties = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 2 }}
+      >
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Properties
         </Typography>
@@ -221,8 +253,20 @@ const Properties = () => {
         sx={{ mb: 2 }}
         onSubmit={applyFilters}
       >
-        <TextField fullWidth label="Keyword" name="search" value={filters.search} onChange={handleFilterChange} />
-        <TextField fullWidth label="Location" name="location" value={filters.location} onChange={handleFilterChange} />
+        <TextField
+          fullWidth
+          label="Keyword"
+          name="search"
+          value={filters.search}
+          onChange={handleFilterChange}
+        />
+        <TextField
+          fullWidth
+          label="Location"
+          name="location"
+          value={filters.location}
+          onChange={handleFilterChange}
+        />
         <TextField
           fullWidth
           label="Min price"
@@ -239,7 +283,11 @@ const Properties = () => {
           value={filters.maxPrice}
           onChange={handleFilterChange}
         />
-        <Button type="submit" variant="contained" sx={{ minWidth: { md: 120 } }}>
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{ minWidth: { md: 120 } }}
+        >
           Filter
         </Button>
       </Stack>
@@ -261,6 +309,7 @@ const Properties = () => {
             key={property._id}
             property={property}
             onApply={isClient ? openApply : null}
+            isInterested={interestedIds.has(String(property._id))}
             canManage={canManage}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -284,40 +333,55 @@ const Properties = () => {
         onClose={() => setNotice("")}
         message={notice}
       />
-      <Dialog open={interestOpen} onClose={() => setInterestOpen(false)} fullWidth maxWidth="sm">
-          <DialogTitle>I'm Interested</DialogTitle>
+      <Dialog
+        open={interestOpen}
+        onClose={() => setInterestOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>I'm Interested</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               label="Name"
               value={interestForm.name}
-              onChange={(e) => setInterestForm({ ...interestForm, name: e.target.value })}
+              onChange={(e) =>
+                setInterestForm({ ...interestForm, name: e.target.value })
+              }
               required
             />
             <TextField
               label="Address"
               value={interestForm.address}
-              onChange={(e) => setInterestForm({ ...interestForm, address: e.target.value })}
+              onChange={(e) =>
+                setInterestForm({ ...interestForm, address: e.target.value })
+              }
               required
             />
             <TextField
               label="Email"
               type="email"
               value={interestForm.email}
-              onChange={(e) => setInterestForm({ ...interestForm, email: e.target.value })}
+              onChange={(e) =>
+                setInterestForm({ ...interestForm, email: e.target.value })
+              }
               required
             />
             <TextField
               label="Phone"
               value={interestForm.phone}
-              onChange={(e) => setInterestForm({ ...interestForm, phone: e.target.value })}
+              onChange={(e) =>
+                setInterestForm({ ...interestForm, phone: e.target.value })
+              }
             />
             <TextField
               label="Notes"
               multiline
               minRows={2}
               value={interestForm.notes}
-              onChange={(e) => setInterestForm({ ...interestForm, notes: e.target.value })}
+              onChange={(e) =>
+                setInterestForm({ ...interestForm, notes: e.target.value })
+              }
             />
           </Stack>
         </DialogContent>
@@ -338,7 +402,12 @@ const Properties = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={applyOpen} onClose={() => setApplyOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={applyOpen}
+        onClose={() => setApplyOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>Apply for this property</DialogTitle>
         <DialogContent dividers>
           <TextField
@@ -367,4 +436,3 @@ const Properties = () => {
 };
 
 export default Properties;
-

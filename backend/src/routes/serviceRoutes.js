@@ -105,6 +105,20 @@ router.post(
   }
 );
 
+// List current user's interests (auth required)
+router.get("/brokerage/interest/mine", authenticate, async (req, res, next) => {
+  try {
+    const email = req.user?.email;
+    if (!email) return res.status(401).json({ message: "Unauthorized" });
+    const emailLower = String(email).toLowerCase();
+    const interests = await InterestedBuyer.find({ emailLower }).select("propertyId createdAt status");
+    const propertyIds = interests.map((i) => i.propertyId);
+    res.json({ propertyIds, interests });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post(
   "/appraisal",
   authenticate,

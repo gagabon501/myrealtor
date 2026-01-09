@@ -39,6 +39,7 @@ const PropertyCard = ({
   onWithdraw,
   onInterested,
   onApply,
+  isInterested = false,
 }) => {
   const { user } = useAuth();
   const rawImages = property.images;
@@ -200,9 +201,13 @@ const PropertyCard = ({
             </Button>
           )}
           {onInterested && actionableInterested && (
-            <Button size="small" onClick={() => onInterested(property)}>
-              Interested
-            </Button>
+            isInterested ? (
+              <Chip label="Interested" color="primary" size="small" sx={{ color: "#fff" }} />
+            ) : (
+              <Button size="small" onClick={() => onInterested(property)}>
+                Interested
+              </Button>
+            )
           )}
           {canManage && (
             <>
