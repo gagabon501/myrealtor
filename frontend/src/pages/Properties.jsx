@@ -30,9 +30,10 @@ const Properties = () => {
   });
   const { user } = useAuth();
   const navigate = useNavigate();
-  const canManage = ["staff", "admin"].includes(user?.role);
   const role = user?.role ? String(user.role).toLowerCase() : "public";
-  const isClient = role === "user";
+  const isCompany = role === "staff" || role === "admin";
+  const isClient = !!user && !isCompany;
+  const canManage = isCompany;
 
   const [interestOpen, setInterestOpen] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
@@ -72,16 +73,11 @@ const Properties = () => {
 
   useEffect(() => {
     loadProperties();
-    loadInterested();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canManage]);
-
-  useEffect(() => {
     if (isClient) {
       loadInterested();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient]);
+  }, [canManage, isClient, user?.id]);
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
