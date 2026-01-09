@@ -16,12 +16,18 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid token user" });
     }
 
-    const allowedRoles = ["user", "staff", "admin", "client"];
-    if (!allowedRoles.includes((user.role || "").toLowerCase())) {
+    const rawRole = (user.role || "").toLowerCase();
+    const normalizedRole = rawRole === "client" ? "user" : rawRole;
+    const allowedRoles = ["user", "staff", "admin"];
+    if (!allowedRoles.includes(normalizedRole)) {
       return res.status(401).json({ message: "Invalid role" });
     }
 
-    req.user = { id: user._id.toString(), role: user.role, email: user.email };
+    req.user = {
+      id: user._id.toString(),
+      role: normalizedRole,
+      email: user.email,
+    };
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
