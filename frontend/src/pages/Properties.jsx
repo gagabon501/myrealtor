@@ -61,7 +61,9 @@ const Properties = () => {
     if (!isClient) return;
     try {
       const res = await client.get("/services/brokerage/interest/mine");
-      const ids = new Set((res.data?.propertyIds || []).map((id) => String(id)));
+      const ids = new Set(
+        (res.data?.propertyIds || []).map((id) => String(id))
+      );
       setInterestedIds(ids);
     } catch {
       /* ignore */
@@ -73,6 +75,13 @@ const Properties = () => {
     loadInterested();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canManage]);
+
+  useEffect(() => {
+    if (isClient) {
+      loadInterested();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient]);
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });

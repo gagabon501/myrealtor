@@ -200,15 +200,16 @@ const PropertyCard = ({
               {actionableApply || canManage ? "Apply" : statusLabel}
             </Button>
           )}
-          {onInterested && actionableInterested && (
-            isInterested ? (
-              <Chip
-                label="Submitted interest"
-                color="primary"
-                size="small"
-                sx={{ color: "#fff" }}
-              />
-            ) : (
+          {isInterested ? (
+            <Chip
+              label="Submitted interest"
+              color="primary"
+              size="small"
+              sx={{ color: "#fff" }}
+            />
+          ) : (
+            onInterested &&
+            actionableInterested && (
               <Button size="small" onClick={() => onInterested(property)}>
                 Interested
               </Button>
