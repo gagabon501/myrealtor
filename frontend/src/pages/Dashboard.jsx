@@ -28,6 +28,7 @@ const Dashboard = () => {
   const normalizedRole = role === "client" ? "user" : role;
   const [tab, setTab] = useState("buying");
   const [applications, setApplications] = useState([]);
+  const [lastLoaded, setLastLoaded] = useState(null);
   const [selectedAppId, setSelectedAppId] = useState("");
   const [documents, setDocuments] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -60,6 +61,7 @@ const Dashboard = () => {
       if (!selectedAppId && res.data.length) {
         setSelectedAppId(res.data[0]._id);
       }
+      setLastLoaded(new Date());
     } catch (err) {
       setError("Failed to load applications");
     }
@@ -103,6 +105,14 @@ const Dashboard = () => {
     loadApplications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      if (normalizedRole === "user") loadApplications();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [normalizedRole]);
 
   useEffect(() => {
     if (selectedAppId) {
@@ -221,6 +231,14 @@ const Dashboard = () => {
             <Button variant="outlined" href="/notifications">
               View notifications
             </Button>
+            <Button variant="outlined" onClick={loadApplications}>
+              Refresh applications
+            </Button>
+            {lastLoaded && (
+              <Typography variant="caption" color="text.secondary" sx={{ alignSelf: "center" }}>
+                Last updated: {lastLoaded.toLocaleString()}
+              </Typography>
+            )}
           </Stack>
         </>
       )}
