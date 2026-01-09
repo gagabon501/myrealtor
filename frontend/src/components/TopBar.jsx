@@ -112,9 +112,24 @@ const TopBar = () => {
             Properties
           </Button>
           {showServices && (
-            <Button component={Link} to="/services">
-              Services
-            </Button>
+            <>
+              <Button
+                onClick={(e) => setServicesAnchor(e.currentTarget)}
+                endIcon={<ExpandMoreIcon />}
+              >
+                Services
+              </Button>
+              <Menu
+                anchorEl={servicesAnchor}
+                open={Boolean(servicesAnchor)}
+                onClose={() => setServicesAnchor(null)}
+              >
+                <MenuItem onClick={() => setServicesAnchor(null)}>Brokerage</MenuItem>
+                <MenuItem onClick={() => setServicesAnchor(null)}>Property Appraisal</MenuItem>
+                <MenuItem onClick={() => setServicesAnchor(null)}>Land Titling & Transfer</MenuItem>
+                <MenuItem onClick={() => setServicesAnchor(null)}>Consultancy</MenuItem>
+              </Menu>
+            </>
           )}
           {isClient && (
             <>

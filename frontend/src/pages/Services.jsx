@@ -104,7 +104,17 @@ const Services = () => {
     }
   };
 
-  return null;
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
+        Services
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        Detailed workflows for Brokerage, Appraisal, Titling/Transfer, and Consultancy will be added
+        soon. Please contact us directly for assistance.
+      </Typography>
+    </Container>
+  );
 };
 
 export default Services;
