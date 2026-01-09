@@ -56,7 +56,7 @@ const PropertyCard = ({
   const role = user?.role ? String(user.role).toLowerCase() : "public";
   const isClient = role === "user";
   const isCompany = role === "staff" || role === "admin";
-  const canInterested = !isCompany;
+  const canInterested = isClient; // only registered users can proceed
   const canApply = isClient;
   const prettyStatus = (s) => {
     const map = {
@@ -199,7 +199,7 @@ const PropertyCard = ({
               {actionableApply || canManage ? "Apply" : statusLabel}
             </Button>
           )}
-          {onInterested && canInterested && actionableInterested && (
+          {onInterested && actionableInterested && (
             <Button size="small" onClick={() => onInterested(property)}>
               Interested
             </Button>

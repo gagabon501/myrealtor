@@ -92,7 +92,7 @@ const Properties = () => {
       return;
     }
     if (!user) {
-      setNotice("Please sign up or log in to submit your interest.");
+      setNotice("Please sign up to submit your interest.");
       navigate("/register");
       return;
     }
@@ -278,7 +278,7 @@ const Properties = () => {
         message={notice}
       />
       <Dialog open={interestOpen} onClose={() => setInterestOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>I'm Interested</DialogTitle>
+          <DialogTitle>I'm Interested</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
