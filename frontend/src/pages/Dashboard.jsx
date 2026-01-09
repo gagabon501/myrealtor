@@ -34,6 +34,16 @@ const Dashboard = () => {
     [applications, selectedAppId]
   );
 
+  const stats = useMemo(() => {
+    const total = applications.length;
+    const inProgress = applications.filter(
+      (a) => !["APPROVED", "REJECTED", "WITHDRAWN"].includes(a.status)
+    ).length;
+    const approved = applications.filter((a) => a.status === "APPROVED").length;
+    const reserved = applications.filter((a) => a.status === "RESERVED").length;
+    return { total, inProgress, approved, reserved };
+  }, [applications]);
+
   const loadApplications = async () => {
     if (!user || user.role !== "user") return;
     try {
@@ -126,12 +136,77 @@ const Dashboard = () => {
 
   return (
     <Container sx={{ py: 4 }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        Client Dashboard
-      </Typography>
-      <Typography variant="body1" sx={{ mb: 3 }}>
-        Welcome, {user?.profile?.fullName || user?.email}
-      </Typography>
+      <Stack spacing={1}>
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          Client Dashboard
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          Welcome, {user?.profile?.fullName || user?.email}. Track your applications and share documents with Goshen Realty.
+        </Typography>
+      </Stack>
+
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={3}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle2" color="text.secondary">
+                Total applications
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {stats.total}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle2" color="text.secondary">
+                In review
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {stats.inProgress}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle2" color="text.secondary">
+                Reserved
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {stats.reserved}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle2" color="text.secondary">
+                Approved
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {stats.approved}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 3 }}>
+        <Button variant="contained" onClick={() => setSelectedAppId("")} href="/properties">
+          Browse properties
+        </Button>
+        <Button variant="outlined" href="/apply">
+          Apply for a property
+        </Button>
+        <Button variant="outlined" href="/notifications">
+          View notifications
+        </Button>
+      </Stack>
 
       {message && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setMessage(null)}>
