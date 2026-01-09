@@ -62,7 +62,14 @@ const Apply = () => {
       setSuccess("Application submitted. Redirecting to dashboard...");
       setTimeout(() => navigate("/dashboard"), 1200);
     } catch (err) {
-      setError(err.response?.data?.message || "Could not submit application");
+      const msg = err.response?.data?.message;
+      if (msg === "Application already exists") {
+        setError("You already applied for this property.");
+      } else if (err.response?.status === 403) {
+        setError("You are not allowed to apply with this account.");
+      } else {
+        setError(msg || "Could not submit application");
+      }
     } finally {
       setLoading(false);
     }

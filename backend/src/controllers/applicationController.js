@@ -110,6 +110,17 @@ export const updateWorkflow = async (req, res, next) => {
     application.status = status;
     await application.save();
 
+    // Sync property once on reservation/approval
+    if (status === "APPROVED") {
+      const property = await Property.findById(application.propertyId);
+      if (property && property.status !== "RESERVED") {
+        property.status = "RESERVED";
+        property.published = true;
+        property.publishedAt = property.publishedAt || new Date();
+        await property.save();
+      }
+    }
+
     await recordAudit({
       actor: req.user.id,
       action: "APPLICATION_STATUS_UPDATED",

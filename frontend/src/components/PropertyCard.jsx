@@ -50,8 +50,8 @@ const PropertyCard = ({
   const imageUrl = normalizeImageUrl(images[0]);
   const statusUpper = String(property.status || "DRAFT").toUpperCase();
   const published = property.published || statusUpper === "PUBLISHED";
-  const actionable =
-    published && (statusUpper === "PUBLISHED" || statusUpper === "RESERVED");
+  const actionableApply = published && statusUpper === "PUBLISHED";
+  const actionableInterested = published;
   const role = user?.role ? String(user.role).toLowerCase() : "public";
   const isClient = role === "user";
   const isCompany = role === "staff" || role === "admin";
@@ -189,12 +189,12 @@ const PropertyCard = ({
             <Button
               size="small"
               onClick={() => onApply(property)}
-              disabled={!actionable && !canManage}
+              disabled={!actionableApply && !canManage}
             >
-              {actionable || canManage ? "Apply" : statusLabel}
+              {actionableApply || canManage ? "Apply" : statusLabel}
             </Button>
           )}
-          {onInterested && canInterested && actionable && (
+          {onInterested && canInterested && actionableInterested && (
             <Button
               size="small"
               onClick={() => onInterested(property)}

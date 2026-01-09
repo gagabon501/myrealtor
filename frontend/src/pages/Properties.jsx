@@ -140,6 +140,8 @@ const Properties = () => {
       const msg = err.response?.data?.message;
       if (msg === "Application already exists") {
         setError("You already applied for this property.");
+      } else if (err.response?.status === 403) {
+        setError("You are not allowed to apply with this account.");
       } else {
         setError(msg || "Could not submit application");
       }
