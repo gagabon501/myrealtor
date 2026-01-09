@@ -15,10 +15,19 @@ export const createApplication = async (req, res, next) => {
     if (!property)
       return res.status(404).json({ message: "Property not found" });
 
+    const existing = await Application.findOne({
+      propertyId,
+      userId: req.user.id,
+    });
+    if (existing) {
+      return res.status(409).json({ message: "Application already exists" });
+    }
+
     const application = await Application.create({
       userId: req.user.id,
       propertyId,
       notes,
+      status: "SUBMITTED",
     });
 
     await recordAudit({
@@ -85,28 +94,33 @@ export const updateWorkflow = async (req, res, next) => {
   }
 
   try {
-    const { stage, status, regulatoryStatus, assignedTo } = req.body;
-    const application = await Application.findByIdAndUpdate(
-      req.params.id,
-      { stage, status, regulatoryStatus, assignedTo },
-      { new: true }
-    );
+    const { status } = req.body;
+    const allowed = ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "WITHDRAWN"];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+    const application = await Application.findById(req.params.id);
     if (!application)
       return res.status(404).json({ message: "Application not found" });
 
+    const fromStatus = application.status;
+    application.status = status;
+    await application.save();
+
     await recordAudit({
       actor: req.user.id,
-      action: "APPLICATION_WORKFLOW_UPDATED",
+      action: "APPLICATION_STATUS_UPDATED",
       context: {
         applicationId: application._id.toString(),
-        stage,
-        status,
-        regulatoryStatus,
-        assignedTo,
+        from: fromStatus,
+        to: status,
       },
     });
     res.json(application);
   } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(409).json({ message: "Application already exists" });
+    }
     next(err);
   }
 };

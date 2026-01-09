@@ -14,24 +14,20 @@ const router = Router();
 router.post(
   "/",
   authenticate,
+  authorizeRoles("user"),
   [body("propertyId").notEmpty().isMongoId()],
   createApplication
 );
 
-router.get("/me", authenticate, myApplications);
+router.get("/mine", authenticate, authorizeRoles("user"), myApplications);
 router.get("/", authenticate, authorizeRoles("staff", "admin"), listApplications);
 router.get("/:id", authenticate, getApplication);
 
-router.put(
-  "/:id/stage",
+router.patch(
+  "/:id/status",
   authenticate,
   authorizeRoles("staff", "admin"),
-  [
-    body("stage").optional().isString(),
-    body("status").optional().isString(),
-    body("regulatoryStatus").optional().isString(),
-    body("assignedTo").optional().isMongoId(),
-  ],
+  [body("status").notEmpty().isString()],
   updateWorkflow
 );
 

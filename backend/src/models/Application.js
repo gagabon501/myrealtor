@@ -8,30 +8,21 @@ const applicationSchema = new mongoose.Schema(
       ref: "Property",
       required: true,
     },
-    stage: {
-      type: String,
-      enum: [
-        "INITIATED",
-        "DOCUMENTS_SUBMITTED",
-        "UNDER_REVIEW",
-        "PAYMENT_PENDING",
-        "APPROVED",
-        "REJECTED",
-        "TRANSFERRED",
-      ],
-      default: "INITIATED",
-    },
-    regulatoryStatus: {
-      type: String,
-      enum: ["NOT_STARTED", "IN_PROGRESS", "SUBMITTED_TO_AGENCY", "APPROVED", "REJECTED"],
-      default: "NOT_STARTED",
-    },
-    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    status: { type: String, default: "OPEN" },
     notes: String,
+    status: {
+      type: String,
+      enum: ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "WITHDRAWN"],
+      default: "SUBMITTED",
+    },
+    // legacy fields retained for compatibility
+    stage: { type: String },
+    regulatoryStatus: { type: String },
+    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
+
+applicationSchema.index({ propertyId: 1, userId: 1 }, { unique: true });
 
 export default mongoose.model("Application", applicationSchema);
 

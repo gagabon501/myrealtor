@@ -1,5 +1,18 @@
 import { useEffect, useState } from "react";
-import { Alert, Container, Snackbar, Stack, TextField, Typography, Button, Box } from "@mui/material";
+import {
+  Alert,
+  Container,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+  Button,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import PropertyCard from "../components/PropertyCard";
 import client from "../api/client";
@@ -13,6 +26,21 @@ const Properties = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const canManage = ["staff", "admin"].includes(user?.role);
+  const role = user?.role ? String(user.role).toLowerCase() : "public";
+  const isClient = role === "user";
+
+  const [interestOpen, setInterestOpen] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [interestForm, setInterestForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    notes: "",
+  });
+  const [applyNotes, setApplyNotes] = useState("");
+  const [submittingInterest, setSubmittingInterest] = useState(false);
+  const [submittingApply, setSubmittingApply] = useState(false);
 
   const loadProperties = () => {
     const endpoint = canManage ? "/properties/admin" : "/properties";
@@ -26,20 +54,6 @@ const Properties = () => {
     loadProperties();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canManage]);
-
-  const handleApply = async (property) => {
-    if (!user) {
-      setNotice("Please register to continue your application.");
-      navigate("/register");
-      return;
-    }
-    try {
-      await client.post("/applications", { propertyId: property._id });
-      setNotice("Application submitted");
-    } catch (err) {
-      setError(err.response?.data?.message || "Could not submit application");
-    }
-  };
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -62,6 +76,75 @@ const Properties = () => {
       loadProperties();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete property");
+    }
+  };
+
+  const openInterested = (property) => {
+    setSelectedProperty(property);
+    setInterestForm({
+      name: user?.profile?.fullName || user?.name || "",
+      email: user?.email || "",
+      phone: user?.profile?.phone || "",
+      notes: "",
+    });
+    setInterestOpen(true);
+  };
+
+  const openApply = (property) => {
+    if (!isClient) {
+      setNotice("Please register to apply.");
+      navigate("/register");
+      return;
+    }
+    setSelectedProperty(property);
+    setApplyNotes("");
+    setApplyOpen(true);
+  };
+
+  const submitInterest = async () => {
+    if (!selectedProperty) return;
+    setSubmittingInterest(true);
+    setError(null);
+    try {
+      await client.post("/services/brokerage/interest", {
+        propertyId: selectedProperty._id,
+        ...interestForm,
+      });
+      setNotice("Thanks! We recorded your interest.");
+      setInterestOpen(false);
+    } catch (err) {
+      const msg = err.response?.data?.message;
+      if (msg === "Interest already exists") {
+        setError("You already registered interest for this property.");
+      } else {
+        setError(msg || "Could not submit interest");
+      }
+    } finally {
+      setSubmittingInterest(false);
+    }
+  };
+
+  const submitApply = async () => {
+    if (!selectedProperty) return;
+    setSubmittingApply(true);
+    setError(null);
+    try {
+      await client.post("/applications", {
+        propertyId: selectedProperty._id,
+        notes: applyNotes,
+      });
+      setNotice("Application submitted");
+      setApplyOpen(false);
+      navigate("/dashboard");
+    } catch (err) {
+      const msg = err.response?.data?.message;
+      if (msg === "Application already exists") {
+        setError("You already applied for this property.");
+      } else {
+        setError(msg || "Could not submit application");
+      }
+    } finally {
+      setSubmittingApply(false);
     }
   };
 
@@ -147,7 +230,7 @@ const Properties = () => {
           <PropertyCard
             key={property._id}
             property={property}
-            onApply={handleApply}
+            onApply={isClient ? openApply : null}
             canManage={canManage}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -156,6 +239,7 @@ const Properties = () => {
             onReserve={handleReserve}
             onSold={handleSold}
             onWithdraw={handleWithdraw}
+            onInterested={openInterested}
           />
         ))}
       </Box>
@@ -170,6 +254,73 @@ const Properties = () => {
         onClose={() => setNotice("")}
         message={notice}
       />
+      <Dialog open={interestOpen} onClose={() => setInterestOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>I'm Interested</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Name"
+              value={interestForm.name}
+              onChange={(e) => setInterestForm({ ...interestForm, name: e.target.value })}
+              required
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={interestForm.email}
+              onChange={(e) => setInterestForm({ ...interestForm, email: e.target.value })}
+              required
+            />
+            <TextField
+              label="Phone"
+              value={interestForm.phone}
+              onChange={(e) => setInterestForm({ ...interestForm, phone: e.target.value })}
+            />
+            <TextField
+              label="Notes"
+              multiline
+              minRows={2}
+              value={interestForm.notes}
+              onChange={(e) => setInterestForm({ ...interestForm, notes: e.target.value })}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInterestOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={submitInterest}
+            disabled={submittingInterest || !interestForm.name || !interestForm.email}
+          >
+            {submittingInterest ? "Submitting..." : "Submit"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={applyOpen} onClose={() => setApplyOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Apply for this property</DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            label="Notes (optional)"
+            value={applyNotes}
+            onChange={(e) => setApplyNotes(e.target.value)}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setApplyOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={submitApply}
+            disabled={submittingApply}
+          >
+            {submittingApply ? "Submitting..." : "Submit Application"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

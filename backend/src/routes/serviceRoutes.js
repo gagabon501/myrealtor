@@ -39,7 +39,7 @@ router.post(
       const property = await Property.findById(req.body.propertyId);
       if (!property) return res.status(404).json({ message: "Property not found" });
       const earnest = req.body.earnestMoneyRequired ?? property.earnestMoneyRequired ?? false;
-      const lead = await InterestedBuyer.create({
+      const payload = {
         propertyId: req.body.propertyId,
         name: req.body.name,
         address: req.body.address,
@@ -47,7 +47,17 @@ router.post(
         email: req.body.email,
         notes: req.body.notes,
         earnestMoneyRequired: earnest,
+        status: "NEW",
+      };
+      // handle dedup
+      const existing = await InterestedBuyer.findOne({
+        propertyId: payload.propertyId,
+        emailLower: String(payload.email).toLowerCase(),
       });
+      if (existing) {
+        return res.status(409).json({ message: "Interest already exists" });
+      }
+      const lead = await InterestedBuyer.create(payload);
       await recordAudit({
         actor: req.body.email || "public",
         action: "BROKERAGE_INTEREST_CREATED",
@@ -55,6 +65,9 @@ router.post(
       });
       res.status(201).json(lead);
     } catch (err) {
+      if (err?.code === 11000) {
+        return res.status(409).json({ message: "Interest already exists" });
+      }
       next(err);
     }
   }

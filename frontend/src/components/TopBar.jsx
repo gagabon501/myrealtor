@@ -119,6 +119,9 @@ const TopBar = () => {
               <Button component={Link} to="/admin/inquiries">
                 Buyer Inquiries
               </Button>
+              <Button component={Link} to="/applications">
+                Applications
+              </Button>
               <Button component={Link} to="/staff/listing-requests">
                 Listing Requests
               </Button>

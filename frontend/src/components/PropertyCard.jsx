@@ -38,6 +38,8 @@ const PropertyCard = ({
   onReserve,
   onSold,
   onWithdraw,
+  onInterested,
+  onApply,
 }) => {
   const { user } = useAuth();
   const rawImages = property.images;
@@ -48,7 +50,14 @@ const PropertyCard = ({
     : [];
   const imageUrl = normalizeImageUrl(images[0]);
   const statusUpper = String(property.status || "DRAFT").toUpperCase();
-  const actionable = statusUpper === "PUBLISHED";
+  const published = property.published || statusUpper === "PUBLISHED";
+  const actionable =
+    published && (statusUpper === "PUBLISHED" || statusUpper === "RESERVED");
+  const role = user?.role ? String(user.role).toLowerCase() : "public";
+  const isClient = role === "user";
+  const isCompany = role === "staff" || role === "admin";
+  const canInterested = !isCompany;
+  const canApply = isClient;
   const prettyStatus = (s) => {
     const map = {
       PUBLISHED: "Published",
@@ -175,9 +184,9 @@ const PropertyCard = ({
           </ImageList>
         </Box>
       )}
-      {(onApply || canManage) && (
+      {(onApply || canManage || onInterested) && (
         <CardActions sx={{ mt: "auto" }}>
-          {onApply && (!user || user?.role === "user") && (
+          {onApply && canApply && (
             <Button
               size="small"
               onClick={() => onApply(property)}
@@ -186,11 +195,10 @@ const PropertyCard = ({
               {actionable || canManage ? "Apply" : statusLabel}
             </Button>
           )}
-          {!canManage && actionable && (
+          {onInterested && canInterested && actionable && (
             <Button
               size="small"
-              component="a"
-              href={`/properties/${property._id}/interest`}
+              onClick={() => onInterested(property)}
             >
               Interested
             </Button>

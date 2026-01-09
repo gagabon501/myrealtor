@@ -36,7 +36,7 @@ const Dashboard = () => {
 
   const loadApplications = async () => {
     try {
-      const res = await client.get("/applications/me");
+      const res = await client.get("/applications/mine");
       setApplications(res.data);
       if (!selectedAppId && res.data.length) {
         setSelectedAppId(res.data[0]._id);
@@ -157,10 +157,7 @@ const Dashboard = () => {
               >
                 <CardContent>
                   <Typography variant="subtitle1">
-                    {app.propertyId?.title || "Property"} • {app.stage}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Regulatory: {app.regulatoryStatus || "NOT_STARTED"}
+                    {app.propertyId?.title || "Property"}
                   </Typography>
                   <Typography color="text.secondary">Status: {app.status}</Typography>
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
