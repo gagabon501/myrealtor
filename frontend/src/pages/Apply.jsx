@@ -50,6 +50,10 @@ const Apply = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isCompany) {
+      setError("You are not allowed to apply with this account.");
+      return;
+    }
     setError(null);
     setSuccess(null);
     setLoading(true);
