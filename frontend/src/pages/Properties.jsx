@@ -15,15 +15,17 @@ const Properties = () => {
   const canManage = ["staff", "admin"].includes(user?.role);
 
   const loadProperties = () => {
+    const endpoint = canManage ? "/properties/admin" : "/properties";
     client
-      .get("/properties", { params: filters })
+      .get(endpoint, { params: filters })
       .then((res) => setProperties(res.data))
       .catch(() => setError("Failed to load properties"));
   };
 
   useEffect(() => {
     loadProperties();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canManage]);
 
   const handleApply = async (property) => {
     if (!user) {
