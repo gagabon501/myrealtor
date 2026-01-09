@@ -202,7 +202,12 @@ const PropertyCard = ({
           )}
           {onInterested && actionableInterested && (
             isInterested ? (
-              <Chip label="Interested" color="primary" size="small" sx={{ color: "#fff" }} />
+              <Chip
+                label="Submitted interest"
+                color="primary"
+                size="small"
+                sx={{ color: "#fff" }}
+              />
             ) : (
               <Button size="small" onClick={() => onInterested(property)}>
                 Interested
