@@ -1,11 +1,11 @@
-import { AppBar, Toolbar, Typography, Button, Stack, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Stack, Box, Menu, MenuItem } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import Badge from "@mui/material/Badge";
-import { useState } from "react";
 import { fetchUnreadCount } from "../api/notificationsApi";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 const ALLOWED_ROLES = ["user", "staff", "admin"];
 
@@ -21,6 +21,7 @@ const TopBar = () => {
   const isCompany = role === "staff" || role === "admin";
   const showServices = isPublic || isClient;
   const [unread, setUnread] = useState(0);
+  const [servicesAnchor, setServicesAnchor] = useState(null);
   if (isAuthed && !rawRole) {
     // eslint-disable-next-line no-console
     console.warn("TopBar: user is logged in but role missing", user);
@@ -111,9 +112,32 @@ const TopBar = () => {
             Properties
           </Button>
           {showServices && (
-            <Button component={Link} to="/services">
-              Services
-            </Button>
+            <>
+              <Button
+                onClick={(e) => setServicesAnchor(e.currentTarget)}
+                endIcon={<ExpandMoreIcon />}
+              >
+                Services
+              </Button>
+              <Menu
+                anchorEl={servicesAnchor}
+                open={Boolean(servicesAnchor)}
+                onClose={() => setServicesAnchor(null)}
+              >
+                <MenuItem component={Link} to="/services#brokerage" onClick={() => setServicesAnchor(null)}>
+                  Brokerage
+                </MenuItem>
+                <MenuItem component={Link} to="/services#appraisal" onClick={() => setServicesAnchor(null)}>
+                  Property Appraisal
+                </MenuItem>
+                <MenuItem component={Link} to="/services#titling" onClick={() => setServicesAnchor(null)}>
+                  Land Titling & Transfer
+                </MenuItem>
+                <MenuItem component={Link} to="/services#consultancy" onClick={() => setServicesAnchor(null)}>
+                  Consultancy
+                </MenuItem>
+              </Menu>
+            </>
           )}
           {isClient && (
             <>

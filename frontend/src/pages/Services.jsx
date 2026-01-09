@@ -106,9 +106,14 @@ const Services = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
-        Services Offered
-      </Typography>
+      <Box sx={{ textAlign: "center", mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          Services Offered
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+          Brokerage, appraisal, titling/transfer, and consultancy—managed in one place.
+        </Typography>
+      </Box>
       {notice && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice(null)}>
           {notice}
@@ -122,7 +127,7 @@ const Services = () => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <Card variant="outlined">
+          <Card id="brokerage" variant="outlined" sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6">Brokerage</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -133,7 +138,7 @@ const Services = () => {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card variant="outlined">
+          <Card id="appraisal" variant="outlined" sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6">Property Appraisal</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -143,7 +148,7 @@ const Services = () => {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card variant="outlined">
+          <Card id="titling" variant="outlined" sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6">Land Titling & Transfer</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -165,17 +170,17 @@ const Services = () => {
               </Typography>
               <Box component="form" onSubmit={handleAppraisalSubmit}>
                 <Stack spacing={1.5}>
-                  <TextField label="Name" value={appraisal.name} onChange={(e) => setAppraisal({ ...appraisal, name: e.target.value })} required />
-                  <TextField label="Address" value={appraisal.address} onChange={(e) => setAppraisal({ ...appraisal, address: e.target.value })} />
-                  <TextField label="Email" type="email" value={appraisal.email} onChange={(e) => setAppraisal({ ...appraisal, email: e.target.value })} required />
-                  <TextField label="Phone" value={appraisal.phone} onChange={(e) => setAppraisal({ ...appraisal, phone: e.target.value })} />
-                  <TextField label="Property location" value={appraisal.propertyLocation} onChange={(e) => setAppraisal({ ...appraisal, propertyLocation: e.target.value })} required />
-                  <TextField label="Size / area" value={appraisal.size} onChange={(e) => setAppraisal({ ...appraisal, size: e.target.value })} />
-                  <TextField label="Includes building? (true/false)" value={appraisal.includesBuilding} onChange={(e) => setAppraisal({ ...appraisal, includesBuilding: e.target.value })} />
-                  <TextField label="Number of floors" type="number" value={appraisal.numberOfFloors} onChange={(e) => setAppraisal({ ...appraisal, numberOfFloors: e.target.value })} />
-                  <TextField label="Time of build" value={appraisal.timeOfBuild} onChange={(e) => setAppraisal({ ...appraisal, timeOfBuild: e.target.value })} />
-                  <TextField label="Last major repair" value={appraisal.lastRepair} onChange={(e) => setAppraisal({ ...appraisal, lastRepair: e.target.value })} />
-                  <TextField label="Preferred appointment (date/time)" value={appraisal.appointment} onChange={(e) => setAppraisal({ ...appraisal, appointment: e.target.value })} />
+                  <TextField size="small" label="Name" value={appraisal.name} onChange={(e) => setAppraisal({ ...appraisal, name: e.target.value })} required />
+                  <TextField size="small" label="Address" value={appraisal.address} onChange={(e) => setAppraisal({ ...appraisal, address: e.target.value })} />
+                  <TextField size="small" label="Email" type="email" value={appraisal.email} onChange={(e) => setAppraisal({ ...appraisal, email: e.target.value })} required />
+                  <TextField size="small" label="Phone" value={appraisal.phone} onChange={(e) => setAppraisal({ ...appraisal, phone: e.target.value })} />
+                  <TextField size="small" label="Property location" value={appraisal.propertyLocation} onChange={(e) => setAppraisal({ ...appraisal, propertyLocation: e.target.value })} required />
+                  <TextField size="small" label="Size / area" value={appraisal.size} onChange={(e) => setAppraisal({ ...appraisal, size: e.target.value })} />
+                  <TextField size="small" label="Includes building? (true/false)" value={appraisal.includesBuilding} onChange={(e) => setAppraisal({ ...appraisal, includesBuilding: e.target.value })} />
+                  <TextField size="small" label="Number of floors" type="number" value={appraisal.numberOfFloors} onChange={(e) => setAppraisal({ ...appraisal, numberOfFloors: e.target.value })} />
+                  <TextField size="small" label="Time of build" value={appraisal.timeOfBuild} onChange={(e) => setAppraisal({ ...appraisal, timeOfBuild: e.target.value })} />
+                  <TextField size="small" label="Last major repair" value={appraisal.lastRepair} onChange={(e) => setAppraisal({ ...appraisal, lastRepair: e.target.value })} />
+                  <TextField size="small" label="Preferred appointment (date/time)" value={appraisal.appointment} onChange={(e) => setAppraisal({ ...appraisal, appointment: e.target.value })} />
                   <Button variant="outlined" component="label">
                     {appraisal.documents.length ? "Change documents" : "Upload documents"}
                     <input
@@ -196,7 +201,7 @@ const Services = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} id="titling-form">
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>
@@ -204,12 +209,12 @@ const Services = () => {
               </Typography>
               <Box component="form" onSubmit={handleTitlingSubmit}>
                 <Stack spacing={1.5}>
-                  <TextField label="Name" value={titling.name} onChange={(e) => setTitling({ ...titling, name: e.target.value })} required />
-                  <TextField label="Address" value={titling.address} onChange={(e) => setTitling({ ...titling, address: e.target.value })} />
-                  <TextField label="Email" type="email" value={titling.email} onChange={(e) => setTitling({ ...titling, email: e.target.value })} required />
-                  <TextField label="Phone" value={titling.phone} onChange={(e) => setTitling({ ...titling, phone: e.target.value })} />
-                  <TextField label="Property location" value={titling.propertyLocation} onChange={(e) => setTitling({ ...titling, propertyLocation: e.target.value })} required />
-                  <TextField label="Preferred appointment (date/time)" value={titling.appointment} onChange={(e) => setTitling({ ...titling, appointment: e.target.value })} />
+                  <TextField size="small" label="Name" value={titling.name} onChange={(e) => setTitling({ ...titling, name: e.target.value })} required />
+                  <TextField size="small" label="Address" value={titling.address} onChange={(e) => setTitling({ ...titling, address: e.target.value })} />
+                  <TextField size="small" label="Email" type="email" value={titling.email} onChange={(e) => setTitling({ ...titling, email: e.target.value })} required />
+                  <TextField size="small" label="Phone" value={titling.phone} onChange={(e) => setTitling({ ...titling, phone: e.target.value })} />
+                  <TextField size="small" label="Property location" value={titling.propertyLocation} onChange={(e) => setTitling({ ...titling, propertyLocation: e.target.value })} required />
+                  <TextField size="small" label="Preferred appointment (date/time)" value={titling.appointment} onChange={(e) => setTitling({ ...titling, appointment: e.target.value })} />
                   <Button variant="outlined" component="label">
                     {titling.documents.length ? "Change documents" : "Upload documents"}
                     <input
@@ -230,7 +235,7 @@ const Services = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} id="consultancy">
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>
@@ -238,11 +243,11 @@ const Services = () => {
               </Typography>
               <Box component="form" onSubmit={handleConsultancySubmit}>
                 <Stack spacing={1.5}>
-                  <TextField label="Name" value={consultancy.name} onChange={(e) => setConsultancy({ ...consultancy, name: e.target.value })} required />
-                  <TextField label="Email" type="email" value={consultancy.email} onChange={(e) => setConsultancy({ ...consultancy, email: e.target.value })} required />
-                  <TextField label="Phone" value={consultancy.phone} onChange={(e) => setConsultancy({ ...consultancy, phone: e.target.value })} />
-                  <TextField label="Topic / notes" value={consultancy.topic} onChange={(e) => setConsultancy({ ...consultancy, topic: e.target.value })} />
-                  <TextField label="Preferred appointment (date/time)" value={consultancy.appointment} onChange={(e) => setConsultancy({ ...consultancy, appointment: e.target.value })} />
+                  <TextField size="small" label="Name" value={consultancy.name} onChange={(e) => setConsultancy({ ...consultancy, name: e.target.value })} required />
+                  <TextField size="small" label="Email" type="email" value={consultancy.email} onChange={(e) => setConsultancy({ ...consultancy, email: e.target.value })} required />
+                  <TextField size="small" label="Phone" value={consultancy.phone} onChange={(e) => setConsultancy({ ...consultancy, phone: e.target.value })} />
+                  <TextField size="small" label="Topic / notes" multiline minRows={2} value={consultancy.topic} onChange={(e) => setConsultancy({ ...consultancy, topic: e.target.value })} />
+                  <TextField size="small" label="Preferred appointment (date/time)" value={consultancy.appointment} onChange={(e) => setConsultancy({ ...consultancy, appointment: e.target.value })} />
                   <Button type="submit" variant="contained">
                     Request consultancy
                   </Button>
