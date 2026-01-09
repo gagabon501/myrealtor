@@ -49,7 +49,11 @@ router.post(
       const statusOk = ["PUBLISHED", "AVAILABLE"].includes(status);
       const publishedOk = property.published === true || property.published === undefined;
       if (!publishedOk || !statusOk) {
-        return res.status(403).json({ message: "Property is not accepting interest" });
+        return res.status(403).json({
+          message: "Property is not accepting interest",
+          status,
+          published: property.published,
+        });
       }
       const earnest = req.body.earnestMoneyRequired ?? property.earnestMoneyRequired ?? false;
       const payload = {

@@ -124,6 +124,13 @@ const Properties = () => {
 
   const submitInterest = async () => {
     if (!selectedProperty) return;
+    const status = String(selectedProperty.status || "").toUpperCase();
+    const published = selectedProperty.published || status === "PUBLISHED";
+    const statusOk = ["PUBLISHED", "AVAILABLE"].includes(status);
+    if (!(published && statusOk)) {
+      setError("This property is not accepting interest right now.");
+      return;
+    }
     setSubmittingInterest(true);
     setError(null);
     try {
