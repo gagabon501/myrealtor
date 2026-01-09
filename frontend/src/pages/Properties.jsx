@@ -46,7 +46,7 @@ const Properties = () => {
     const endpoint = canManage ? "/properties/admin" : "/properties";
     client
       .get(endpoint, { params: filters })
-      .then((res) => setProperties(res.data))
+      .then((res) => setProperties(res.data || []))
       .catch(() => setError("Failed to load properties"));
   };
 

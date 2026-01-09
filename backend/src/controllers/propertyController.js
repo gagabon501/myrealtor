@@ -7,7 +7,7 @@ import path from "path";
 const ADMIN_STATUSES = ["DRAFT", "PUBLISHED", "RESERVED", "SOLD", "WITHDRAWN"];
 const PUBLIC_STATUSES = ["PUBLISHED", "RESERVED"];
 // allow legacy statuses for older data when published flag is missing
-const PUBLIC_STATUSES_LEGACY = ["PUBLISHED", "RESERVED", "AVAILABLE", "UNDER_NEGOTIATION"];
+const PUBLIC_STATUSES_LEGACY = ["PUBLISHED", "RESERVED", "AVAILABLE", "UNDER_NEGOTIATION", "AVAILABLE"];
 
 export const listProperties = async (req, res, next) => {
   try {
@@ -21,14 +21,12 @@ export const listProperties = async (req, res, next) => {
 
     if (!isStaff) {
       const normalized = status ? status.toUpperCase() : null;
-      const allowed = normalized ? [normalized] : PUBLIC_STATUSES_LEGACY;
       if (normalized && !PUBLIC_STATUSES_LEGACY.includes(normalized)) {
         return res.status(400).json({ message: "Invalid public status filter" });
       }
-      query.$and = [
-        { status: { $in: allowed } },
-        { $or: [{ published: true }, { published: { $exists: false } }] },
-      ];
+      const allowed = normalized ? [normalized] : PUBLIC_STATUSES_LEGACY;
+      query.status = { $in: allowed };
+      query.$or = [{ published: true }, { published: { $exists: false } }];
     } else if (status) {
       const normalized = status.toUpperCase();
       if (!ADMIN_STATUSES.includes(normalized)) {
