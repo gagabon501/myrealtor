@@ -80,6 +80,11 @@ const Properties = () => {
   };
 
   const openInterested = (property) => {
+    if (!user) {
+      setNotice("Please sign up or log in to submit your interest.");
+      navigate("/register");
+      return;
+    }
     setSelectedProperty(property);
     setInterestForm({
       name: user?.profile?.fullName || user?.name || "",
