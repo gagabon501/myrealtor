@@ -142,7 +142,7 @@ const Properties = () => {
       setInterestOpen(false);
     } catch (err) {
       const msg = err.response?.data?.message;
-      if (msg === "Interest already exists") {
+      if (err.response?.status === 409 || msg === "Interest already exists") {
         setError("You already registered interest for this property.");
       } else {
         setError(msg || "Could not submit interest");
