@@ -34,6 +34,7 @@ const Properties = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [interestForm, setInterestForm] = useState({
     name: "",
+    address: "",
     email: "",
     phone: "",
     notes: "",
@@ -98,6 +99,7 @@ const Properties = () => {
     setSelectedProperty(property);
     setInterestForm({
       name: user?.profile?.fullName || user?.name || "",
+      address: "",
       email: user?.email || "",
       phone: user?.profile?.phone || "",
       notes: "",
@@ -286,6 +288,12 @@ const Properties = () => {
               required
             />
             <TextField
+              label="Address"
+              value={interestForm.address}
+              onChange={(e) => setInterestForm({ ...interestForm, address: e.target.value })}
+              required
+            />
+            <TextField
               label="Email"
               type="email"
               value={interestForm.email}
@@ -311,7 +319,12 @@ const Properties = () => {
           <Button
             variant="contained"
             onClick={submitInterest}
-            disabled={submittingInterest || !interestForm.name || !interestForm.email}
+            disabled={
+              submittingInterest ||
+              !interestForm.name ||
+              !interestForm.email ||
+              !interestForm.address
+            }
           >
             {submittingInterest ? "Submitting..." : "Submit"}
           </Button>

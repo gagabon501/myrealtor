@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { body } from "express-validator";
 import InterestedBuyer from "../models/InterestedBuyer.js";
+import BuyerInquiry from "../models/BuyerInquiry.js";
 import AppraisalRequest from "../models/AppraisalRequest.js";
 import TitlingRequest from "../models/TitlingRequest.js";
 import ConsultancyRequest from "../models/ConsultancyRequest.js";
@@ -63,6 +64,21 @@ router.post(
         return res.status(409).json({ message: "Interest already exists" });
       }
       const lead = await InterestedBuyer.create(payload);
+      // Also upsert into BuyerInquiry so staff/admin inquiries module stays in sync
+      await BuyerInquiry.findOneAndUpdate(
+        { propertyId: payload.propertyId, "buyer.email": payload.email },
+        {
+          propertyId: payload.propertyId,
+          buyer: {
+            name: payload.name,
+            address: payload.address || "Not provided",
+            phone: payload.phone || "N/A",
+            email: payload.email,
+          },
+          notes: payload.notes,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
       await recordAudit({
         actor: req.body.email || "public",
         action: "BROKERAGE_INTEREST_CREATED",
