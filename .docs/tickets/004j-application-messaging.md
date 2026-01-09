@@ -25,6 +25,7 @@
 - Server-side ownership checks for buyer; role checks for staff/admin.
 - Message body trimmed and capped (2000 chars).
 - Internal notes visible to staff/admin only.
+- Regression check added: PropertyCard now uses `actionableInterested` guard (fixed undefined `actionable`).
 
 ### Testing notes
 - Buyer can view/send on own applications; cannot access others.
