@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [tab, setTab] = useState("buying");
   const [applications, setApplications] = useState([]);
   const [lastLoaded, setLastLoaded] = useState(null);
+  const [interests, setInterests] = useState([]);
   const [selectedAppId, setSelectedAppId] = useState("");
   const [documents, setDocuments] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -64,6 +65,16 @@ const Dashboard = () => {
       setLastLoaded(new Date());
     } catch (err) {
       setError("Failed to load applications");
+    }
+  };
+
+  const loadInterests = async () => {
+    if (!user || user.role !== "user") return;
+    try {
+      const res = await client.get("/services/brokerage/interest/mine");
+      setInterests(res.data?.interests || []);
+    } catch {
+      /* ignore */
     }
   };
 
@@ -103,12 +114,14 @@ const Dashboard = () => {
       return;
     }
     loadApplications();
+    loadInterests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
 
   useEffect(() => {
     const onFocus = () => {
       if (normalizedRole === "user") loadApplications();
+      if (normalizedRole === "user") loadInterests();
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
@@ -272,6 +285,52 @@ const Dashboard = () => {
 
       {tab === "buying" && (
         <Grid container spacing={3}>
+          <Grid item xs={12} md={5}>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                My Interests (Brokerage)
+              </Typography>
+              <Stack spacing={1.5}>
+                {interests.map((interest) => (
+                  <Card key={interest._id} variant="outlined">
+                    <CardContent>
+                      <Typography variant="subtitle1">
+                        {interest.propertyId?.title || "Property"}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        {interest.propertyId?.location}
+                      </Typography>
+                      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                        <Chip
+                          label={interest.status || "NEW"}
+                          color={
+                            interest.status === "CONTACTED"
+                              ? "info"
+                              : interest.status === "CLOSED"
+                              ? "success"
+                              : "default"
+                          }
+                          size="small"
+                        />
+                        {interest.propertyId?.price && (
+                          <Chip
+                            label={`₱${Number(interest.propertyId.price).toLocaleString()}`}
+                            size="small"
+                            variant="outlined"
+                          />
+                        )}
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                        Updated: {new Date(interest.updatedAt || interest.createdAt).toLocaleString()}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))}
+                {!interests.length && (
+                  <Typography color="text.secondary">No interests yet.</Typography>
+                )}
+              </Stack>
+            </Grid>
+
           <Grid item xs={12} md={7}>
             <Typography variant="h6" sx={{ mb: 1 }}>
               My Applications

@@ -139,10 +139,10 @@ router.get("/brokerage/interest/mine", authenticate, async (req, res, next) => {
         : userId
         ? { userId }
         : { emailLower };
-    const interests = await InterestedBuyer.find(query).select(
-      "propertyId createdAt status"
-    );
-    const propertyIds = interests.map((i) => i.propertyId);
+    const interests = await InterestedBuyer.find(query)
+      .select("propertyId createdAt status notes")
+      .populate("propertyId", "title location price status published");
+    const propertyIds = interests.map((i) => i.propertyId?._id || i.propertyId);
     res.json({ propertyIds, interests });
   } catch (err) {
     next(err);
