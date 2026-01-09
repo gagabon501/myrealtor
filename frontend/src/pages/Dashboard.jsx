@@ -35,6 +35,7 @@ const Dashboard = () => {
   );
 
   const loadApplications = async () => {
+    if (!user || user.role !== "user") return;
     try {
       const res = await client.get("/applications/mine");
       setApplications(res.data);
@@ -78,7 +79,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadApplications();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.role]);
 
   useEffect(() => {
     if (selectedAppId) {
