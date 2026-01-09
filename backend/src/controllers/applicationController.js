@@ -2,6 +2,7 @@ import { validationResult } from "express-validator";
 import Application from "../models/Application.js";
 import Property from "../models/Property.js";
 import { recordAudit } from "../utils/audit.js";
+import { addApplicationActivity, createNotification } from "../utils/notifications.js";
 
 export const createApplication = async (req, res, next) => {
   const errors = validationResult(req);
@@ -28,6 +29,24 @@ export const createApplication = async (req, res, next) => {
       propertyId,
       notes,
       status: "SUBMITTED",
+    });
+
+    await addApplicationActivity({
+      applicationId: application._id,
+      actor: req.user,
+      action: "SUBMITTED",
+      toStatus: "SUBMITTED",
+    });
+
+    await createNotification({
+      userId: req.user.id,
+      type: "APPLICATION_SUBMITTED",
+      title: "Application submitted",
+      message: property.title
+        ? `You applied for ${property.title}`
+        : "You submitted an application.",
+      link: "/dashboard",
+      metadata: { applicationId: application._id.toString(), propertyId },
     });
 
     await recordAudit({
@@ -120,6 +139,28 @@ export const updateWorkflow = async (req, res, next) => {
         await property.save();
       }
     }
+
+    await addApplicationActivity({
+      applicationId: application._id,
+      actor: req.user,
+      action: "STATUS_CHANGED",
+      fromStatus,
+      toStatus: status,
+    });
+
+    await createNotification({
+      userId: application.userId,
+      type: "APPLICATION_STATUS_CHANGED",
+      title: "Application updated",
+      message: `Status changed to ${status}`,
+      link: "/dashboard",
+      metadata: {
+        applicationId: application._id.toString(),
+        propertyId: application.propertyId.toString(),
+        from: fromStatus,
+        to: status,
+      },
+    });
 
     await recordAudit({
       actor: req.user.id,

@@ -18,6 +18,17 @@ const applicationSchema = new mongoose.Schema(
     stage: { type: String },
     regulatoryStatus: { type: String },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    activity: [
+      {
+        at: { type: Date, default: Date.now },
+        actorId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        actorRole: { type: String },
+        action: { type: String },
+        fromStatus: { type: String },
+        toStatus: { type: String },
+        note: { type: String },
+      },
+    ],
   },
   { timestamps: true }
 );

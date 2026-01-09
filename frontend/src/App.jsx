@@ -19,6 +19,7 @@ import MyListingRequests from "./pages/MyListingRequests";
 import StaffListingRequests from "./pages/StaffListingRequests";
 import CreateListingRequest from "./pages/CreateListingRequest";
 import TopBar from "./components/TopBar";
+import Notifications from "./pages/Notifications";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -135,6 +136,14 @@ const App = () => {
             element={
               <ProtectedRoute roles={["staff", "admin"]}>
                 <StaffListingRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
               </ProtectedRoute>
             }
           />

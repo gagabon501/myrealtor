@@ -162,6 +162,11 @@ const Dashboard = () => {
                     {app.propertyId?.title || "Property"}
                   </Typography>
                   <Typography color="text.secondary">Status: {app.status}</Typography>
+                  {app.activity?.length > 0 && (
+                    <Typography color="text.secondary" variant="caption">
+                      Last update: {new Date(app.activity[app.activity.length - 1].at).toLocaleString()}
+                    </Typography>
+                  )}
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <Button size="small" onClick={() => submitPayment(app._id)}>
                       Pay reservation

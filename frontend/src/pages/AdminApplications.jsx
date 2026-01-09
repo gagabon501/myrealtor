@@ -94,7 +94,12 @@ const AdminApplications = () => {
                   </Select>
                 </TableCell>
                 <TableCell>{app.notes || "-"}</TableCell>
-              </TableRow>
+              <TableCell>
+                {app.activity?.length
+                  ? new Date(app.activity[app.activity.length - 1].at).toLocaleString()
+                  : "—"}
+              </TableCell>
+            </TableRow>
             ))}
             {!apps.length && (
               <TableRow>
