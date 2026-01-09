@@ -29,7 +29,6 @@ const normalizeImageUrl = (image) => {
 
 const PropertyCard = ({
   property,
-  onApply,
   onEdit,
   onDelete,
   canManage,
