@@ -43,11 +43,13 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
       const property = await Property.findById(req.body.propertyId);
-      if (!property) return res.status(404).json({ message: "Property not found" });
+      if (!property)
+        return res.status(404).json({ message: "Property not found" });
       // Enforce buyer action gating: only published & market-ready statuses may receive interest
       const status = String(property.status || "").toUpperCase();
       const statusOk = ["PUBLISHED", "AVAILABLE"].includes(status);
-      const publishedOk = property.published === true || property.published === undefined;
+      const publishedOk =
+        property.published === true || property.published === undefined;
       if (!publishedOk || !statusOk) {
         return res.status(403).json({
           message: "Property is not accepting interest",
@@ -55,22 +57,29 @@ router.post(
           published: property.published,
         });
       }
-      const earnest = req.body.earnestMoneyRequired ?? property.earnestMoneyRequired ?? false;
+      const earnest =
+        req.body.earnestMoneyRequired ?? property.earnestMoneyRequired ?? false;
+      const userId = req.user?.id;
+      const emailSource = userId ? req.user.email : req.body.email;
       const payload = {
         propertyId: req.body.propertyId,
         name: req.body.name,
         address: req.body.address,
         phone: req.body.phone,
-        email: req.body.email,
+        email: emailSource,
         notes: req.body.notes,
         earnestMoneyRequired: earnest,
         status: "NEW",
+        userId,
       };
       // handle dedup
-      const existing = await InterestedBuyer.findOne({
-        propertyId: payload.propertyId,
-        emailLower: String(payload.email).toLowerCase(),
-      });
+      const dedupQuery = userId
+        ? { propertyId: payload.propertyId, userId }
+        : {
+            propertyId: payload.propertyId,
+            emailLower: String(payload.email).toLowerCase(),
+          };
+      const existing = await InterestedBuyer.findOne(dedupQuery);
       if (existing) {
         return res.status(409).json({ message: "Interest already exists" });
       }
@@ -93,7 +102,10 @@ router.post(
       await recordAudit({
         actor: req.body.email || "public",
         action: "BROKERAGE_INTEREST_CREATED",
-        context: { propertyId: lead.propertyId.toString(), leadId: lead._id.toString() },
+        context: {
+          propertyId: lead.propertyId.toString(),
+          leadId: lead._id.toString(),
+        },
       });
       res.status(201).json(lead);
     } catch (err) {
@@ -109,9 +121,11 @@ router.post(
 router.get("/brokerage/interest/mine", authenticate, async (req, res, next) => {
   try {
     const email = req.user?.email;
-    if (!email) return res.status(401).json({ message: "Unauthorized" });
-    const emailLower = String(email).toLowerCase();
-    const interests = await InterestedBuyer.find({ emailLower }).select("propertyId createdAt status");
+    const userId = req.user?.id;
+    if (!email && !userId) return res.status(401).json({ message: "Unauthorized" });
+    const emailLower = email ? String(email).toLowerCase() : null;
+    const query = userId ? { userId } : { emailLower };
+    const interests = await InterestedBuyer.find(query).select("propertyId createdAt status");
     const propertyIds = interests.map((i) => i.propertyId);
     res.json({ propertyIds, interests });
   } catch (err) {
@@ -134,7 +148,8 @@ router.post(
     try {
       const floors = Number(req.body.numberOfFloors || 0);
       const includesBuilding =
-        req.body.includesBuilding === "true" || req.body.includesBuilding === true;
+        req.body.includesBuilding === "true" ||
+        req.body.includesBuilding === true;
       let rate = 10000;
       if (includesBuilding) {
         rate += 10000 + Math.max(0, floors - 1) * 5000;
@@ -176,7 +191,11 @@ router.post(
   "/titling",
   authenticate,
   upload.array("documents", 20),
-  [body("name").notEmpty(), body("email").isEmail(), body("propertyLocation").notEmpty()],
+  [
+    body("name").notEmpty(),
+    body("email").isEmail(),
+    body("propertyLocation").notEmpty(),
+  ],
   async (req, res, next) => {
     try {
       const documents =
@@ -225,4 +244,3 @@ router.post(
 );
 
 export default router;
-

@@ -374,6 +374,7 @@ const Properties = () => {
               onChange={(e) =>
                 setInterestForm({ ...interestForm, email: e.target.value })
               }
+              disabled={isClient}
               required
             />
             <TextField

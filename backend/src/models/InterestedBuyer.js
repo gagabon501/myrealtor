@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const interestedBuyerSchema = new mongoose.Schema(
   {
     propertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property", required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     name: { type: String, required: true },
     address: String,
     phone: String,
@@ -20,6 +21,7 @@ const interestedBuyerSchema = new mongoose.Schema(
 );
 
 interestedBuyerSchema.index({ propertyId: 1, emailLower: 1 }, { unique: true });
+interestedBuyerSchema.index({ propertyId: 1, userId: 1 }, { unique: true, sparse: true });
 
 interestedBuyerSchema.pre("validate", function setLowerEmail(next) {
   if (this.email) {
