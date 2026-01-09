@@ -9,6 +9,11 @@ import {
   listProperties,
   updateProperty,
   deleteProperty,
+  publishProperty,
+  unpublishProperty,
+  markPropertySold,
+  markPropertyReserved,
+  withdrawProperty,
 } from "../controllers/propertyController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
@@ -55,6 +60,37 @@ router.put(
 );
 
 router.delete("/:id", authenticate, authorizeRoles("staff", "admin"), deleteProperty);
+
+router.post(
+  "/:id/publish",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  publishProperty
+);
+router.post(
+  "/:id/unpublish",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  unpublishProperty
+);
+router.post(
+  "/:id/mark-sold",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  markPropertySold
+);
+router.post(
+  "/:id/mark-reserved",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  markPropertyReserved
+);
+router.post(
+  "/:id/withdraw",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  withdrawProperty
+);
 
 export default router;
 

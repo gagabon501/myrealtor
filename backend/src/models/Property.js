@@ -7,9 +7,11 @@ const propertySchema = new mongoose.Schema(
     price: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["DRAFT", "AVAILABLE", "RESERVED", "UNDER_NEGOTIATION", "SOLD", "ARCHIVED"],
-      default: "AVAILABLE",
+      enum: ["DRAFT", "PUBLISHED", "RESERVED", "SOLD", "WITHDRAWN"],
+      default: "DRAFT",
     },
+    published: { type: Boolean, default: false },
+    publishedAt: { type: Date },
     description: String,
     tags: [String],
     images: [String],

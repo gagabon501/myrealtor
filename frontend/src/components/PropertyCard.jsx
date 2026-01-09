@@ -27,7 +27,18 @@ const normalizeImageUrl = (image) => {
   return `${apiBase}${cleaned}`;
 };
 
-const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
+const PropertyCard = ({
+  property,
+  onApply,
+  onEdit,
+  onDelete,
+  canManage,
+  onPublish,
+  onUnpublish,
+  onReserve,
+  onSold,
+  onWithdraw,
+}) => {
   const { user } = useAuth();
   const rawImages = property.images;
   const images = Array.isArray(rawImages)
@@ -36,21 +47,27 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
     ? [rawImages]
     : [];
   const imageUrl = normalizeImageUrl(images[0]);
-  const statusUpper = String(property.status || "AVAILABLE").toUpperCase();
-  const actionable = statusUpper === "AVAILABLE";
+  const statusUpper = String(property.status || "DRAFT").toUpperCase();
+  const actionable = statusUpper === "PUBLISHED";
   const prettyStatus = (s) => {
     const map = {
-      AVAILABLE: "Available",
+      PUBLISHED: "Published",
       RESERVED: "Reserved",
-      UNDER_NEGOTIATION: "Under negotiation",
       SOLD: "Sold",
       DRAFT: "Draft",
+      WITHDRAWN: "Withdrawn",
+      AVAILABLE: "Available",
+      UNDER_NEGOTIATION: "Under negotiation",
       ARCHIVED: "Archived",
     };
     const key = String(s || "").toUpperCase();
     return map[key] || key || "Unavailable";
   };
   const statusLabel = prettyStatus(property.status);
+  const publishedDate =
+    property.published && property.publishedAt
+      ? new Date(property.publishedAt).toLocaleDateString()
+      : null;
   return (
     <Card
       variant="outlined"
@@ -89,7 +106,15 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
           {property.earnestMoneyRequired && (
             <Chip label="Earnest money required" color="warning" size="small" />
           )}
+          {property.status === "RESERVED" && (
+            <Chip label="Reserved" color="warning" size="small" />
+          )}
         </Stack>
+        {canManage && publishedDate && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+            Published: {publishedDate}
+          </Typography>
+        )}
       </CardContent>
       {property.description && (
         <Box sx={{ px: 2, pb: 1 }}>
@@ -182,6 +207,48 @@ const PropertyCard = ({ property, onApply, onEdit, onDelete, canManage }) => {
               >
                 Delete
               </Button>
+              {statusUpper === "DRAFT" && (
+                <Button size="small" onClick={() => onPublish?.(property)}>
+                  Publish
+                </Button>
+              )}
+              {statusUpper === "PUBLISHED" && (
+                <>
+                  <Button size="small" onClick={() => onReserve?.(property)}>
+                    Mark Reserved
+                  </Button>
+                  <Button size="small" onClick={() => onSold?.(property)}>
+                    Mark Sold
+                  </Button>
+                  <Button size="small" onClick={() => onUnpublish?.(property)}>
+                    Unpublish
+                  </Button>
+                </>
+              )}
+              {statusUpper === "RESERVED" && (
+                <>
+                  <Button size="small" onClick={() => onSold?.(property)}>
+                    Mark Sold
+                  </Button>
+                  <Button size="small" onClick={() => onUnpublish?.(property)}>
+                    Unpublish
+                  </Button>
+                </>
+              )}
+              {statusUpper !== "SOLD" &&
+                statusUpper !== "WITHDRAWN" &&
+                statusUpper !== "DRAFT" &&
+                statusUpper !== "RESERVED" &&
+                statusUpper !== "PUBLISHED" && (
+                  <Button size="small" onClick={() => onPublish?.(property)}>
+                    Publish
+                  </Button>
+                )}
+              {statusUpper !== "SOLD" && statusUpper !== "WITHDRAWN" && (
+                <Button size="small" onClick={() => onWithdraw?.(property)}>
+                  Withdraw
+                </Button>
+              )}
             </>
           )}
         </CardActions>

@@ -4,43 +4,40 @@ import { recordAudit } from "../utils/audit.js";
 import fs from "fs";
 import path from "path";
 
+const ADMIN_STATUSES = ["DRAFT", "PUBLISHED", "RESERVED", "SOLD", "WITHDRAWN"];
+const PUBLIC_STATUSES = ["PUBLISHED", "RESERVED"];
+
 export const listProperties = async (req, res, next) => {
   try {
     const { location, status, minPrice, maxPrice, search } = req.query;
     const query = {};
-    const isAdmin = !!req.user;
-    const allowedAdmin = [
-      "DRAFT",
-      "AVAILABLE",
-      "RESERVED",
-      "UNDER_NEGOTIATION",
-      "SOLD",
-      "ARCHIVED",
-    ];
-    const allowedPublic = [
-      "AVAILABLE",
-      "RESERVED",
-      "UNDER_NEGOTIATION",
-      "SOLD",
-    ];
+    const role = req.user?.role;
+    const isStaff = role === "staff" || role === "admin";
 
     if (location) query.location = new RegExp(location, "i");
     if (search) query.title = new RegExp(search, "i");
-    if (status) {
-      const normalized = status.toUpperCase();
-      if (!isAdmin) {
-        if (!allowedPublic.includes(normalized)) {
+
+    if (!isStaff) {
+      query.published = true;
+      if (status) {
+        const normalized = status.toUpperCase();
+        if (!PUBLIC_STATUSES.includes(normalized)) {
           return res
             .status(400)
             .json({ message: "Invalid public status filter" });
         }
-      } else if (!allowedAdmin.includes(normalized)) {
+        query.status = normalized;
+      } else {
+        query.status = { $in: PUBLIC_STATUSES };
+      }
+    } else if (status) {
+      const normalized = status.toUpperCase();
+      if (!ADMIN_STATUSES.includes(normalized)) {
         return res.status(400).json({ message: "Invalid status filter" });
       }
       query.status = normalized;
-    } else if (!isAdmin) {
-      query.status = "AVAILABLE";
     }
+
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = Number(minPrice);
@@ -59,6 +56,14 @@ export const getProperty = async (req, res, next) => {
     const property = await Property.findById(req.params.id);
     if (!property)
       return res.status(404).json({ message: "Property not found" });
+    const role = req.user?.role;
+    const isStaff = role === "staff" || role === "admin";
+    if (
+      !isStaff &&
+      (!property.published || !PUBLIC_STATUSES.includes(property.status))
+    ) {
+      return res.status(404).json({ message: "Property not found" });
+    }
     res.json(property);
   } catch (err) {
     next(err);
@@ -79,18 +84,17 @@ export const createProperty = async (req, res, next) => {
     const payload = { ...req.body };
     if (payload.status) {
       const normalized = payload.status.toUpperCase();
-      const allowed = [
-        "DRAFT",
-        "AVAILABLE",
-        "RESERVED",
-        "UNDER_NEGOTIATION",
-        "SOLD",
-        "ARCHIVED",
-      ];
-      if (!allowed.includes(normalized)) {
+      if (!ADMIN_STATUSES.includes(normalized)) {
         return res.status(400).json({ message: "Invalid status" });
       }
       payload.status = normalized;
+      if (normalized === "PUBLISHED" || normalized === "RESERVED") {
+        payload.published = true;
+        payload.publishedAt = payload.publishedAt || new Date();
+      }
+      if (normalized === "SOLD" || normalized === "WITHDRAWN") {
+        payload.published = false;
+      }
     }
     if (req.body.earnestMoneyRequired !== undefined) {
       payload.earnestMoneyRequired =
@@ -123,18 +127,17 @@ export const updateProperty = async (req, res, next) => {
     const update = { ...req.body };
     if (update.status) {
       const normalized = update.status.toUpperCase();
-      const allowed = [
-        "DRAFT",
-        "AVAILABLE",
-        "RESERVED",
-        "UNDER_NEGOTIATION",
-        "SOLD",
-        "ARCHIVED",
-      ];
-      if (!allowed.includes(normalized)) {
+      if (!ADMIN_STATUSES.includes(normalized)) {
         return res.status(400).json({ message: "Invalid status" });
       }
       update.status = normalized;
+      if (normalized === "PUBLISHED" || normalized === "RESERVED") {
+        update.published = true;
+        update.publishedAt = update.publishedAt || new Date();
+      }
+      if (normalized === "SOLD" || normalized === "WITHDRAWN") {
+        update.published = false;
+      }
     }
     if (req.body.earnestMoneyRequired !== undefined) {
       update.earnestMoneyRequired =
@@ -195,5 +198,131 @@ export const deleteProperty = async (req, res, next) => {
     res.json({ success: true });
   } catch (err) {
     next(err);
+  }
+};
+
+const ensureProperty = async (id, res) => {
+  const property = await Property.findById(id);
+  if (!property) {
+    res.status(404).json({ message: "Property not found" });
+    return null;
+  }
+  return property;
+};
+
+export const publishProperty = async (req, res, next) => {
+  try {
+    const property = await ensureProperty(req.params.id, res);
+    if (!property) return;
+    if (property.status === "SOLD") {
+      return res
+        .status(400)
+        .json({ message: "Cannot publish a sold property without override" });
+    }
+    if (property.published && property.status === "PUBLISHED") {
+      return res.status(400).json({ message: "Property already published" });
+    }
+    property.status = "PUBLISHED";
+    property.published = true;
+    property.publishedAt = property.publishedAt || new Date();
+    await property.save();
+    await recordAudit({
+      actor: req.user.id,
+      action: "PROPERTY_PUBLISHED",
+      context: { propertyId: property._id.toString() },
+    });
+    return res.json(property);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const unpublishProperty = async (req, res, next) => {
+  try {
+    const property = await ensureProperty(req.params.id, res);
+    if (!property) return;
+    if (!property.published && property.status === "DRAFT") {
+      return res.status(400).json({ message: "Property already unpublished" });
+    }
+    property.published = false;
+    property.publishedAt = null;
+    property.status = "DRAFT";
+    await property.save();
+    await recordAudit({
+      actor: req.user.id,
+      action: "PROPERTY_UNPUBLISHED",
+      context: { propertyId: property._id.toString() },
+    });
+    return res.json(property);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const markPropertySold = async (req, res, next) => {
+  try {
+    const property = await ensureProperty(req.params.id, res);
+    if (!property) return;
+    if (property.status === "SOLD") {
+      return res.status(400).json({ message: "Property already marked sold" });
+    }
+    property.status = "SOLD";
+    property.published = false;
+    await property.save();
+    await recordAudit({
+      actor: req.user.id,
+      action: "PROPERTY_MARKED_SOLD",
+      context: { propertyId: property._id.toString() },
+    });
+    return res.json(property);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const markPropertyReserved = async (req, res, next) => {
+  try {
+    const property = await ensureProperty(req.params.id, res);
+    if (!property) return;
+    if (property.status === "SOLD" || property.status === "WITHDRAWN") {
+      return res
+        .status(400)
+        .json({ message: "Cannot reserve a sold or withdrawn property" });
+    }
+    property.status = "RESERVED";
+    property.published = true;
+    property.publishedAt = property.publishedAt || new Date();
+    await property.save();
+    await recordAudit({
+      actor: req.user.id,
+      action: "PROPERTY_MARKED_RESERVED",
+      context: { propertyId: property._id.toString() },
+    });
+    return res.json(property);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const withdrawProperty = async (req, res, next) => {
+  try {
+    const property = await ensureProperty(req.params.id, res);
+    if (!property) return;
+    if (property.status === "WITHDRAWN") {
+      return res
+        .status(400)
+        .json({ message: "Property already withdrawn from market" });
+    }
+    property.status = "WITHDRAWN";
+    property.published = false;
+    await property.save();
+    await recordAudit({
+      actor: req.user.id,
+      action: "PROPERTY_WITHDRAWN",
+      context: { propertyId: property._id.toString() },
+    });
+    return res.json(property);
+  } catch (err) {
+    return next(err);
   }
 };

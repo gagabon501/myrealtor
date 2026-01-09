@@ -63,6 +63,32 @@ const Properties = () => {
     }
   };
 
+  const lifecycleAction = async (property, endpoint, confirmation) => {
+    if (!window.confirm(confirmation)) return;
+    try {
+      const res = await client.post(`/properties/${property._id}/${endpoint}`);
+      setNotice(`Updated: ${res.data.status || "ok"}`);
+      loadProperties();
+    } catch (err) {
+      setError(err.response?.data?.message || "Action failed");
+    }
+  };
+
+  const handlePublish = (property) =>
+    lifecycleAction(property, "publish", "Publish this property?");
+  const handleUnpublish = (property) =>
+    lifecycleAction(property, "unpublish", "Unpublish this property?");
+  const handleReserve = (property) =>
+    lifecycleAction(property, "mark-reserved", "Mark this property as reserved?");
+  const handleSold = (property) =>
+    lifecycleAction(property, "mark-sold", "Mark this property as sold? This hides it from public.");
+  const handleWithdraw = (property) =>
+    lifecycleAction(
+      property,
+      "withdraw",
+      "Withdraw this property? It will be hidden from public."
+    );
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
@@ -123,6 +149,11 @@ const Properties = () => {
             canManage={canManage}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onPublish={handlePublish}
+            onUnpublish={handleUnpublish}
+            onReserve={handleReserve}
+            onSold={handleSold}
+            onWithdraw={handleWithdraw}
           />
         ))}
       </Box>

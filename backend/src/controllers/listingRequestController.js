@@ -257,7 +257,9 @@ export const publishListingRequest = async (req, res, next) => {
       description: listing.propertyDraft?.description,
       tags: listing.propertyDraft?.tags,
       earnestMoneyRequired: listing.propertyDraft?.earnestMoneyRequired,
-      status: "AVAILABLE",
+      status: "PUBLISHED",
+      published: true,
+      publishedAt: new Date(),
       metadata: {
         source: "PROPERTY_REQUEST",
         requestId: listing._id,
