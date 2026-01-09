@@ -124,7 +124,14 @@ const TopBar = () => {
                 open={Boolean(servicesAnchor)}
                 onClose={() => setServicesAnchor(null)}
               >
-                <MenuItem onClick={() => setServicesAnchor(null)}>Brokerage</MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setServicesAnchor(null);
+                    navigate("/sell/requests");
+                  }}
+                >
+                  Brokerage
+                </MenuItem>
                 <MenuItem onClick={() => setServicesAnchor(null)}>Property Appraisal</MenuItem>
                 <MenuItem onClick={() => setServicesAnchor(null)}>Land Titling & Transfer</MenuItem>
                 <MenuItem onClick={() => setServicesAnchor(null)}>Consultancy</MenuItem>
@@ -135,9 +142,6 @@ const TopBar = () => {
             <>
               <Button component={Link} to="/apply">
                 Apply
-              </Button>
-              <Button component={Link} to="/sell/requests">
-                My Listings
               </Button>
               <Button component={Link} to="/dashboard">
                 Dashboard
