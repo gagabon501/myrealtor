@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
@@ -10,8 +11,11 @@ import {
   Divider,
   Grid,
   MenuItem,
+  Paper,
   Stack,
   TextField,
+  Tabs,
+  Tab,
   Typography,
 } from "@mui/material";
 import client from "../api/client";
@@ -19,6 +23,10 @@ import { useAuth } from "../context/AuthContext";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const role = String(user?.role || "").toLowerCase();
+  const normalizedRole = role === "client" ? "user" : role;
+  const [tab, setTab] = useState("buying");
   const [applications, setApplications] = useState([]);
   const [selectedAppId, setSelectedAppId] = useState("");
   const [documents, setDocuments] = useState([]);
@@ -88,6 +96,10 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    if (normalizedRole === "staff" || normalizedRole === "admin") {
+      navigate("/staff", { replace: true });
+      return;
+    }
     loadApplications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
@@ -100,16 +112,6 @@ const Dashboard = () => {
       setDocPayload((prev) => ({ ...prev, applicationId: selectedAppId }));
     }
   }, [selectedAppId]);
-
-  const submitPayment = async (applicationId) => {
-    try {
-      await client.post("/payments", { applicationId, amount: 5000, gateway: "mock" });
-      setMessage("Payment recorded");
-      await loadPayments(applicationId);
-    } catch (err) {
-      setError("Payment failed");
-    }
-  };
 
   const uploadDocument = async (e) => {
     e.preventDefault();
@@ -140,73 +142,104 @@ const Dashboard = () => {
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Client Dashboard
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-          Welcome, {user?.profile?.fullName || user?.email}. Track your applications and share documents with Goshen Realty.
+        <Typography variant="body1" color="text.secondary">
+          Welcome, {user?.profile?.fullName || user?.email}. Track buying activity and manage your selling requests.
         </Typography>
       </Stack>
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                Total applications
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {stats.total}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                In review
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {stats.inProgress}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                Reserved
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {stats.reserved}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">
-                Approved
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {stats.approved}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      <Paper sx={{ mt: 2, mb: 3 }} variant="outlined">
+        <Tabs
+          value={tab}
+          onChange={(_e, v) => setTab(v)}
+          indicatorColor="primary"
+          textColor="primary"
+          variant="scrollable"
+          allowScrollButtonsMobile
+        >
+          <Tab value="buying" label="My Buying" />
+          <Tab value="selling" label="My Selling" />
+        </Tabs>
+      </Paper>
 
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 3 }}>
-        <Button variant="contained" onClick={() => setSelectedAppId("")} href="/properties">
-          Browse properties
-        </Button>
-        <Button variant="outlined" href="/apply">
-          Apply for a property
-        </Button>
-        <Button variant="outlined" href="/notifications">
-          View notifications
-        </Button>
-      </Stack>
+      {tab === "buying" && (
+        <>
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} md={3}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Total applications
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    {stats.total}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    In review
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    {stats.inProgress}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Reserved
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    {stats.reserved}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Approved
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    {stats.approved}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 3 }}>
+            <Button variant="contained" onClick={() => setSelectedAppId("")} href="/properties">
+              Browse properties
+            </Button>
+            <Button variant="outlined" href="/notifications">
+              View notifications
+            </Button>
+          </Stack>
+        </>
+      )}
+
+      {tab === "selling" && (
+        <Stack spacing={2} sx={{ mb: 3 }}>
+          <Alert severity="info">
+            Submit listing requests, upload ATS documents, and track approvals. Publishing remains staff-only.
+          </Alert>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+            <Button variant="contained" href="/sell/request">
+              Create Listing Request
+            </Button>
+            <Button variant="outlined" href="/sell/requests">
+              View My Listing Requests
+            </Button>
+          </Stack>
+        </Stack>
+      )}
 
       {message && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setMessage(null)}>
@@ -219,157 +252,158 @@ const Dashboard = () => {
         </Alert>
       )}
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={7}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            My Applications
-          </Typography>
-          <Stack spacing={2}>
-            {applications.map((app) => (
-              <Card
-                key={app._id}
-                variant={app._id === selectedAppId ? "elevation" : "outlined"}
-                onClick={() => setSelectedAppId(app._id)}
-                sx={{ cursor: "pointer" }}
-              >
-                <CardContent>
-                  <Typography variant="subtitle1">
-                    {app.propertyId?.title || "Property"}
-                  </Typography>
-                  <Typography color="text.secondary">Status: {app.status}</Typography>
-                  {app.activity?.length > 0 && (
-                    <Typography color="text.secondary" variant="caption">
-                      Last update: {new Date(app.activity[app.activity.length - 1].at).toLocaleString()}
-                    </Typography>
-                  )}
-                  <Button
-                    size="small"
-                    sx={{ mt: 1 }}
-                    href={`/applications/${app._id}/messages`}
-                  >
-                    Messages
-                  </Button>
-                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                    <Button size="small" onClick={() => submitPayment(app._id)}>
-                      Pay reservation
-                    </Button>
-                    <Chip label={app.assignedTo ? `Assigned to ${app.assignedTo.email}` : "Unassigned"} />
-                  </Stack>
-                </CardContent>
-              </Card>
-            ))}
-            {!applications.length && (
-              <Typography color="text.secondary">No applications yet.</Typography>
-            )}
-          </Stack>
-        </Grid>
-
-        <Grid item xs={12} md={5}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Upload documents
-          </Typography>
-          <Box component="form" onSubmit={uploadDocument}>
+      {tab === "buying" && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={7}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              My Applications
+            </Typography>
             <Stack spacing={2}>
-              <TextField
-                select
-                label="Application"
-                value={docPayload.applicationId}
-                onChange={(e) => setDocPayload({ ...docPayload, applicationId: e.target.value })}
-                required
-              >
-                {applications.map((app) => (
-                  <MenuItem key={app._id} value={app._id}>
-                    {app.propertyId?.title || app._id}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="Document type"
-                value={docPayload.type}
-                onChange={(e) => setDocPayload({ ...docPayload, type: e.target.value })}
-                required
-              />
-              <Button variant="outlined" component="label">
-                Select file
-                <input
-                  type="file"
-                  hidden
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                />
-              </Button>
-              {file && (
-                <Typography variant="body2" color="text.secondary">
-                  {file.name}
-                </Typography>
+              {applications.map((app) => (
+                <Card
+                  key={app._id}
+                  variant={app._id === selectedAppId ? "elevation" : "outlined"}
+                  onClick={() => setSelectedAppId(app._id)}
+                  sx={{ cursor: "pointer" }}
+                >
+                  <CardContent>
+                    <Typography variant="subtitle1">
+                      {app.propertyId?.title || "Property"}
+                    </Typography>
+                    <Typography color="text.secondary">Status: {app.status}</Typography>
+                    {app.activity?.length > 0 && (
+                      <Typography color="text.secondary" variant="caption">
+                        Last update: {new Date(app.activity[app.activity.length - 1].at).toLocaleString()}
+                      </Typography>
+                    )}
+                    <Button
+                      size="small"
+                      sx={{ mt: 1 }}
+                      href={`/applications/${app._id}/messages`}
+                    >
+                      Messages
+                    </Button>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Chip label={app.assignedTo ? `Assigned to ${app.assignedTo.email}` : "Unassigned"} />
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ))}
+              {!applications.length && (
+                <Typography color="text.secondary">No applications yet.</Typography>
               )}
-              <Button type="submit" variant="contained" disabled={!docPayload.applicationId}>
-                Upload
-              </Button>
             </Stack>
-          </Box>
-        </Grid>
-      </Grid>
+          </Grid>
 
-      <Divider sx={{ my: 4 }} />
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Documents
-          </Typography>
-          <Stack spacing={1.5}>
-            {documents.map((doc) => (
-              <Card key={doc._id} variant="outlined">
-                <CardContent>
-                  <Typography variant="subtitle2">{doc.type}</Typography>
+          <Grid item xs={12} md={5}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Upload documents
+            </Typography>
+            <Box component="form" onSubmit={uploadDocument}>
+              <Stack spacing={2}>
+                <TextField
+                  select
+                  label="Application"
+                  value={docPayload.applicationId}
+                  onChange={(e) => setDocPayload({ ...docPayload, applicationId: e.target.value })}
+                  required
+                >
+                  {applications.map((app) => (
+                    <MenuItem key={app._id} value={app._id}>
+                      {app.propertyId?.title || app._id}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  label="Document type"
+                  value={docPayload.type}
+                  onChange={(e) => setDocPayload({ ...docPayload, type: e.target.value })}
+                  required
+                />
+                <Button variant="outlined" component="label">
+                  Select file
+                  <input
+                    type="file"
+                    hidden
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  />
+                </Button>
+                {file && (
                   <Typography variant="body2" color="text.secondary">
-                    {doc.fileName} • {doc.status}
+                    {file.name}
                   </Typography>
-                </CardContent>
-              </Card>
-            ))}
-            {!documents.length && <Typography color="text.secondary">No documents yet.</Typography>}
-          </Stack>
+                )}
+                <Button type="submit" variant="contained" disabled={!docPayload.applicationId}>
+                  Upload
+                </Button>
+              </Stack>
+            </Box>
+          </Grid>
         </Grid>
+      )}
 
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Compliance tasks
-          </Typography>
-          <Stack spacing={1.5}>
-            {tasks.map((task) => (
-              <Card key={task._id} variant="outlined">
-                <CardContent>
-                  <Typography variant="subtitle2">{task.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {task.agency} • {task.status}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ))}
-            {!tasks.length && <Typography color="text.secondary">No compliance tasks yet.</Typography>}
-          </Stack>
-        </Grid>
+      {tab === "buying" && <Divider sx={{ my: 4 }} />}
 
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Payments
-          </Typography>
-          <Stack spacing={1.5}>
-            {payments.map((pay) => (
-              <Card key={pay._id} variant="outlined">
-                <CardContent>
-                  <Typography variant="subtitle2">{pay.reference}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {pay.amount} • {pay.status}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ))}
-            {!payments.length && <Typography color="text.secondary">No payments yet.</Typography>}
-          </Stack>
+      {tab === "buying" && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Documents
+            </Typography>
+            <Stack spacing={1.5}>
+              {documents.map((doc) => (
+                <Card key={doc._id} variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle2">{doc.type}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {doc.fileName} • {doc.status}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+              {!documents.length && <Typography color="text.secondary">No documents yet.</Typography>}
+            </Stack>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Compliance tasks
+            </Typography>
+            <Stack spacing={1.5}>
+              {tasks.map((task) => (
+                <Card key={task._id} variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle2">{task.title}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {task.agency} • {task.status}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+              {!tasks.length && <Typography color="text.secondary">No compliance tasks yet.</Typography>}
+            </Stack>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Payments
+            </Typography>
+            <Stack spacing={1.5}>
+              {payments.map((pay) => (
+                <Card key={pay._id} variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle2">{pay.reference}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {pay.amount} • {pay.status}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+              {!payments.length && <Typography color="text.secondary">No payments yet.</Typography>}
+            </Stack>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
     </Container>
   );
 };

@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
   Button,
   Container,
+  FormControl,
+  InputLabel,
   MenuItem,
   Select,
   Snackbar,
@@ -13,6 +15,9 @@ import {
   TableHead,
   TableRow,
   Typography,
+  TextField,
+  Stack,
+  Chip,
 } from "@mui/material";
 import client from "../api/client";
 
@@ -20,6 +25,8 @@ const STATUS_OPTIONS = ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "WI
 
 const AdminApplications = () => {
   const [apps, setApps] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busyId, setBusyId] = useState(null);
@@ -36,6 +43,36 @@ const AdminApplications = () => {
   useEffect(() => {
     load();
   }, []);
+
+  const filteredApps = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return apps.filter((app) => {
+      const matchesStatus =
+        statusFilter === "ALL" ? true : (app.status || "SUBMITTED") === statusFilter;
+      const haystack = [
+        app.propertyId?.title,
+        app.userId?.email,
+        app.notes,
+      ]
+        .join(" ")
+        .toLowerCase();
+      const matchesSearch = term ? haystack.includes(term) : true;
+      return matchesStatus && matchesSearch;
+    });
+  }, [apps, statusFilter, search]);
+
+  const summary = useMemo(() => {
+    const total = apps.length;
+    const byStatus = apps.reduce(
+      (acc, a) => {
+        const key = (a.status || "SUBMITTED").toUpperCase();
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      },
+      { SUBMITTED: 0, UNDER_REVIEW: 0, APPROVED: 0, REJECTED: 0, WITHDRAWN: 0 }
+    );
+    return { total, byStatus };
+  }, [apps]);
 
   const updateStatus = async (id, status) => {
     setBusyId(id);
@@ -55,6 +92,43 @@ const AdminApplications = () => {
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
         Applications
       </Typography>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        alignItems={{ xs: "stretch", sm: "center" }}
+        sx={{ mb: 2 }}
+      >
+        <TextField
+          size="small"
+          label="Search (property / applicant / notes)"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ minWidth: 220, maxWidth: 360 }}
+        />
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            label="Status"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <MenuItem value="ALL">All</MenuItem>
+            {STATUS_OPTIONS.map((s) => (
+              <MenuItem key={s} value={s}>
+                {s}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
+          <Chip label={`Total: ${summary.total}`} />
+          <Chip label={`Submitted: ${summary.byStatus.SUBMITTED || 0}`} color="primary" />
+          <Chip label={`Under review: ${summary.byStatus.UNDER_REVIEW || 0}`} color="info" />
+          <Chip label={`Approved: ${summary.byStatus.APPROVED || 0}`} color="success" />
+          <Chip label={`Rejected: ${summary.byStatus.REJECTED || 0}`} color="error" />
+          <Chip label={`Withdrawn: ${summary.byStatus.WITHDRAWN || 0}`} />
+        </Stack>
+      </Stack>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
           {error}
@@ -72,7 +146,7 @@ const AdminApplications = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {apps.map((app) => (
+            {filteredApps.map((app) => (
               <TableRow key={app._id} hover>
                 <TableCell>
                   {new Date(app.createdAt).toLocaleDateString()}
@@ -110,9 +184,9 @@ const AdminApplications = () => {
               </TableCell>
             </TableRow>
             ))}
-            {!apps.length && (
+            {!filteredApps.length && (
               <TableRow>
-                <TableCell colSpan={5}>No applications found.</TableCell>
+                <TableCell colSpan={7}>No applications match the current filters.</TableCell>
               </TableRow>
             )}
           </TableBody>

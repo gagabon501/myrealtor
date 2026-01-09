@@ -15,6 +15,12 @@ export const createApplication = async (req, res, next) => {
     const property = await Property.findById(propertyId);
     if (!property)
       return res.status(404).json({ message: "Property not found" });
+    const propertyStatus = String(property.status || "").toUpperCase();
+    if (!property.published || propertyStatus !== "PUBLISHED") {
+      return res
+        .status(403)
+        .json({ message: "Applications are allowed only on published properties" });
+    }
 
     const existing = await Application.findOne({
       propertyId,

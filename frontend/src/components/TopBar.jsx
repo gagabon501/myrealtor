@@ -1,4 +1,14 @@
-import { AppBar, Toolbar, Typography, Button, Stack, Box, Menu, MenuItem } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Stack,
+  Box,
+  Menu,
+  MenuItem,
+  Chip,
+} from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -106,11 +116,11 @@ const TopBar = () => {
           sx={{
             flexWrap: "wrap",
             justifyContent: { xs: "flex-start", md: "flex-end" },
+            alignItems: "center",
+            rowGap: 1,
           }}
         >
-          <Button component={Link} to="/properties">
-            Properties
-          </Button>
+          <Button component={Link} to="/properties">Properties</Button>
           {showServices && (
             <>
               <Button
@@ -140,49 +150,44 @@ const TopBar = () => {
           )}
           {isClient && (
             <>
-              <Button component={Link} to="/apply">
-                Apply
-              </Button>
-              <Button component={Link} to="/dashboard">
-                Dashboard
-              </Button>
+              <Button component={Link} to="/dashboard">Dashboard</Button>
+              <Button component={Link} to="/sell/requests">My Selling</Button>
             </>
           )}
           {isCompany && (
             <>
-              <Button component={Link} to="/properties/new">
-                Add Property
-              </Button>
-              <Button component={Link} to="/admin/inquiries">
-                Buyer Inquiries
-              </Button>
-              <Button component={Link} to="/applications">
-                Applications
-              </Button>
-              <Button component={Link} to="/staff/listing-requests">
-                Listing Requests
-              </Button>
+              <Button component={Link} to="/staff">Staff</Button>
+              <Button component={Link} to="/staff/listing-requests">Listing Requests</Button>
+              <Button component={Link} to="/properties/new">Add Property</Button>
+              <Button component={Link} to="/admin/inquiries">Buyer Inquiries</Button>
+              <Button component={Link} to="/applications">Applications</Button>
               {role === "admin" && (
-                <Button component={Link} to="/users">
-                  Users
-                </Button>
+                <Button component={Link} to="/users">Users</Button>
               )}
-              <Button component={Link} to="/dashboard">
-                Dashboard
-              </Button>
-              <Button component={Link} to="/staff">
-                Staff
-              </Button>
+              <Button component={Link} to="/dashboard">Dashboard</Button>
             </>
           )}
           {isAuthed && (
-            <Button component={Link} to="/notifications" startIcon={
-              <Badge color="error" badgeContent={unread} invisible={unread === 0}>
-                <NotificationsNoneIcon />
-              </Badge>
-            }>
+            <Button
+              component={Link}
+              to="/notifications"
+              startIcon={
+                <Badge color="error" badgeContent={unread} invisible={unread === 0}>
+                  <NotificationsNoneIcon />
+                </Badge>
+              }
+            >
               Notifications
             </Button>
+          )}
+          {isAuthed && (
+            <Chip
+              variant="outlined"
+              color="primary"
+              size="small"
+              label={`Signed in as ${user?.profile?.fullName || user?.email || "user"} • ${role}`}
+              sx={{ maxWidth: { xs: "100%", md: 360 } }}
+            />
           )}
           {isPublic && (
             <>

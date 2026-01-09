@@ -170,8 +170,33 @@ const StaffDashboard = () => {
   return (
     <Container sx={{ py: 4 }}>
       <Typography variant="h4" sx={{ mb: 2 }}>
-        Internal Case Management
+        Staff Workspace
       </Typography>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {[
+          { label: "Listing Requests", href: "/staff/listing-requests", desc: "ATS review & publish" },
+          { label: "Properties", href: "/properties", desc: "Lifecycle controls" },
+          { label: "Buyer Inquiries", href: "/admin/inquiries", desc: "Lead pipeline" },
+          { label: "Applications", href: "/applications", desc: "Buyer applications" },
+          { label: "Notifications", href: "/notifications", desc: "Recent alerts" },
+        ].map((item) => (
+          <Grid item xs={12} sm={6} md={4} key={item.label}>
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  {item.label}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {item.desc}
+                </Typography>
+                <Button sx={{ mt: 1 }} size="small" variant="contained" href={item.href}>
+                  Open
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
       {notice && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice(null)}>
           {notice}

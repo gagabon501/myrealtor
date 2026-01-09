@@ -79,7 +79,17 @@ const Properties = () => {
     }
   };
 
+  const isActionable = (property) => {
+    const status = String(property.status || "").toUpperCase();
+    const published = property.published || status === "PUBLISHED";
+    return published && status === "PUBLISHED";
+  };
+
   const openInterested = (property) => {
+    if (!isActionable(property)) {
+      setError("This property is not accepting interest right now.");
+      return;
+    }
     if (!user) {
       setNotice("Please sign up or log in to submit your interest.");
       navigate("/register");
@@ -96,6 +106,10 @@ const Properties = () => {
   };
 
   const openApply = (property) => {
+    if (!isActionable(property)) {
+      setError("This property is not accepting applications right now.");
+      return;
+    }
     if (!isClient) {
       setNotice("Please register to apply.");
       navigate("/register");

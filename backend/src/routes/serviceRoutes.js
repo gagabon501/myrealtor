@@ -38,6 +38,11 @@ router.post(
     try {
       const property = await Property.findById(req.body.propertyId);
       if (!property) return res.status(404).json({ message: "Property not found" });
+      // Enforce buyer action gating: only published & PUBLISHED status may receive interest
+      const status = String(property.status || "").toUpperCase();
+      if (!property.published || status !== "PUBLISHED") {
+        return res.status(403).json({ message: "Property is not accepting interest" });
+      }
       const earnest = req.body.earnestMoneyRequired ?? property.earnestMoneyRequired ?? false;
       const payload = {
         propertyId: req.body.propertyId,

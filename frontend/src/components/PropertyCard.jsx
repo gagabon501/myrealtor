@@ -51,7 +51,8 @@ const PropertyCard = ({
   const statusUpper = String(property.status || "DRAFT").toUpperCase();
   const published = property.published || statusUpper === "PUBLISHED";
   const actionableApply = published && statusUpper === "PUBLISHED";
-  const actionableInterested = published;
+  const actionableInterested =
+    published && statusUpper !== "RESERVED" && statusUpper !== "SOLD";
   const role = user?.role ? String(user.role).toLowerCase() : "public";
   const isClient = role === "user";
   const isCompany = role === "staff" || role === "admin";
@@ -119,7 +120,11 @@ const PropertyCard = ({
           )}
         </Stack>
         {canManage && publishedDate && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "block", mt: 0.5 }}
+          >
             Published: {publishedDate}
           </Typography>
         )}
@@ -195,10 +200,7 @@ const PropertyCard = ({
             </Button>
           )}
           {onInterested && canInterested && actionableInterested && (
-            <Button
-              size="small"
-              onClick={() => onInterested(property)}
-            >
+            <Button size="small" onClick={() => onInterested(property)}>
               Interested
             </Button>
           )}
