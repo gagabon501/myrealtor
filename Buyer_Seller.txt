@@ -1,0 +1,23 @@
+Here’s what the Admin/Staff “Applications” screen represents and how it fits:
+Purpose: It’s the back-office queue for buyer Applications (formal “Apply” actions on published properties). Staff/Admin review and advance these applications—this is the buyer-side spine after a property is published via ATS approval.
+Data shown (per row):
+Created date
+Property title
+Applicant (email)
+Status (SUBMITTED | UNDER_REVIEW | APPROVED | REJECTED | WITHDRAWN) with inline update
+Notes (from the applicant)
+Messages link (application message thread)
+Last activity timestamp (if populated)
+How it fits the overall flow:
+1) Seller submits Listing Request + ATS → Staff approves ATS → Staff publishes property.
+2) Property is PUBLISHED → Buyers can click Apply (deduped per property/user).
+3) Those submissions land here as Applications; staff can triage and update status.
+4) When staff sets status to APPROVED, the backend currently syncs the Property to RESERVED (read-only for buyer) to block new buyer actions.
+5) Notifications and activity logs (from Ticket 004i) are triggered on create/status change; buyers see updates in their dashboard.
+Roles: Staff/Admin only (RBAC enforced in routes and ProtectedRoute). Buyers/public cannot access this page.
+Back-end linkage:
+Model: Application (unique per property/user; statuses above; activity log).
+Routes: /api/applications (list staff/admin); /api/applications/:id/status (status updates).
+Frontend: AdminApplications.jsx table for inline status changes; message link goes to application message thread.
+Operational value: Lets staff quickly see all buyer applications, update pipeline status, and open message threads. It complements Buyer Inquiries (interest leads) and the Listing Requests/ATS publishing flow.
+If you’d like, I can add quick filters (status, search by property/applicant) and summary chips similar to the Buyer Inquiries enhancements to make triage faster.
