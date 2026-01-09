@@ -12,8 +12,12 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import client from "../api/client";
+import { useAuth } from "../context/AuthContext";
 
 const Apply = () => {
+  const { user } = useAuth();
+  const role = user?.role ? String(user.role).toLowerCase() : "public";
+  const isCompany = role === "staff" || role === "admin";
   const [properties, setProperties] = useState([]);
   const [form, setForm] = useState({ propertyId: "", notes: "" });
   const [loading, setLoading] = useState(false);
@@ -27,11 +31,18 @@ const Apply = () => {
   );
 
   useEffect(() => {
+    const endpoint = isCompany ? "/properties/admin" : "/properties";
     client
-      .get("/properties", { params: { status: "AVAILABLE" } })
-      .then((res) => setProperties(res.data))
+      .get(endpoint)
+      .then((res) => {
+        const allowed = ["PUBLISHED", "RESERVED"];
+        const filtered = res.data.filter((p) =>
+          allowed.includes(String(p.status || "").toUpperCase())
+        );
+        setProperties(filtered);
+      })
       .catch(() => setError("Failed to load properties"));
-  }, []);
+  }, [isCompany]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
