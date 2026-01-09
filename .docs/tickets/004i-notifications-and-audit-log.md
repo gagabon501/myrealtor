@@ -1,35 +1,43 @@
 ## Ticket 004i — Notifications & Application Activity Log
 
 ### Summary
+
 - Added Notification model + endpoints for list/unread/read.
 - Added Application activity trail (embedded).
 - Hooked notifications and activity into application create/status change.
 - Frontend notifications page + navbar badge; shows latest activity on client/admin apps.
+- Added notification type APPLICATION_MESSAGE_RECEIVED (used by 004j).
 
 ### Endpoints
+
 - `GET /api/notifications` (auth) — user’s notifications, newest first (limit 50)
 - `GET /api/notifications/unread-count` (auth)
 - `PATCH /api/notifications/:id/read` (auth, owner only)
 - `PATCH /api/notifications/read-all` (auth)
 
 ### Models
+
 - `Notification`: user, type, title, message, link, metadata, isRead, timestamps. Indexes on user/isRead/createdAt.
 - `Application`: added `activity` array { at, actorId, actorRole, action, fromStatus, toStatus, note }.
 
 ### Hooks
+
 - Application create → activity SUBMITTED + notification to buyer.
 - Status change → activity STATUS_CHANGED + notification to buyer; property sync to RESERVED on APPROVED remains idempotent.
 
 ### Frontend
+
 - Navbar badge with unread count; `/notifications` page to list/mark read/mark all read.
 - Apply/Properties dialogs already handle 403/409; apply CTA only for published + role=user.
 - Dashboard and admin applications show last activity timestamp.
 
 ### Tests (manual)
+
 - User applies → notification + activity, unread count increments.
 - Duplicate apply → 409, no extra notification/activity.
 - Status change by staff → buyer notification + activity from→to.
 - Notifications list/read/read-all scoped to current user only.
+
 # Vibe Coding with AI — 004i — Notifications + Application Activity Log
 
 **File:** `.docs/004i-notifications-and-audit-log.md`

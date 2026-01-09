@@ -20,6 +20,13 @@ export const createNotification = async ({
   });
 };
 
+// Optional email hook stub; replace with real provider if configured.
+export const sendMessageEmailStub = ({ to, subject, text }) => {
+  if (!to || !subject || !text) return;
+  // eslint-disable-next-line no-console
+  console.log("[email:stub] to:", to, "subject:", subject, "text:", text.slice(0, 200));
+};
+
 export const addApplicationActivity = async ({
   applicationId,
   actor,

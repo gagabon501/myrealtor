@@ -94,6 +94,15 @@ const AdminApplications = () => {
                   </Select>
                 </TableCell>
                 <TableCell>{app.notes || "-"}</TableCell>
+                <TableCell>
+                  <Button
+                    size="small"
+                    component="a"
+                    href={`/admin/applications/${app._id}/messages`}
+                  >
+                    Messages
+                  </Button>
+                </TableCell>
               <TableCell>
                 {app.activity?.length
                   ? new Date(app.activity[app.activity.length - 1].at).toLocaleString()

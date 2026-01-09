@@ -167,6 +167,13 @@ const Dashboard = () => {
                       Last update: {new Date(app.activity[app.activity.length - 1].at).toLocaleString()}
                     </Typography>
                   )}
+                  <Button
+                    size="small"
+                    sx={{ mt: 1 }}
+                    href={`/applications/${app._id}/messages`}
+                  >
+                    Messages
+                  </Button>
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <Button size="small" onClick={() => submitPayment(app._id)}>
                       Pay reservation
