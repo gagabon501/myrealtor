@@ -38,6 +38,9 @@ export const createApplication = async (req, res, next) => {
 
     res.status(201).json(application);
   } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(409).json({ message: "Application already exists" });
+    }
     next(err);
   }
 };
