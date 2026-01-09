@@ -260,7 +260,7 @@ const PropertyCard = ({
           )}
         </CardActions>
       )}
-      {!canManage && !actionable && (
+      {!canManage && !actionableInterested && (
         <Typography
           variant="caption"
           color="text.secondary"
