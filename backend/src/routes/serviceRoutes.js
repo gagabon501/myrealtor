@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { body } from "express-validator";
+import { validationResult } from "express-validator";
 import InterestedBuyer from "../models/InterestedBuyer.js";
 import BuyerInquiry from "../models/BuyerInquiry.js";
 import AppraisalRequest from "../models/AppraisalRequest.js";
@@ -37,11 +38,17 @@ router.post(
   ],
   async (req, res, next) => {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
       const property = await Property.findById(req.body.propertyId);
       if (!property) return res.status(404).json({ message: "Property not found" });
-      // Enforce buyer action gating: only published & PUBLISHED status may receive interest
+      // Enforce buyer action gating: only published & market-ready statuses may receive interest
       const status = String(property.status || "").toUpperCase();
-      if (!property.published || status !== "PUBLISHED") {
+      const statusOk = ["PUBLISHED", "AVAILABLE"].includes(status);
+      const publishedOk = property.published === true || property.published === undefined;
+      if (!publishedOk || !statusOk) {
         return res.status(403).json({ message: "Property is not accepting interest" });
       }
       const earnest = req.body.earnestMoneyRequired ?? property.earnestMoneyRequired ?? false;
