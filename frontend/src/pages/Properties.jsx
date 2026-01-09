@@ -19,7 +19,7 @@ import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
 const Properties = () => {
-  const [properties, setProperties] = useState([]);
+  const [propertyList, setPropertyList] = useState([]);
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState("");
   const [filters, setFilters] = useState({ search: "", location: "", minPrice: "", maxPrice: "" });
@@ -46,7 +46,7 @@ const Properties = () => {
     const endpoint = canManage ? "/properties/admin" : "/properties";
     client
       .get(endpoint, { params: filters })
-      .then((res) => setProperties(res.data || []))
+      .then((res) => setPropertyList(res.data || []))
       .catch(() => setError("Failed to load properties"));
   };
 
@@ -228,7 +228,7 @@ const Properties = () => {
           alignItems: "stretch",
         }}
       >
-        {properties.map((property) => (
+        {propertyList.map((property) => (
           <PropertyCard
             key={property._id}
             property={property}
@@ -245,7 +245,7 @@ const Properties = () => {
           />
         ))}
       </Box>
-      {!properties.length && (
+      {!propertyList.length && (
         <Typography color="text.secondary" sx={{ mt: 2 }}>
           No properties found.
         </Typography>
