@@ -66,10 +66,14 @@ const Services = () => {
       const res = await client.post("/services/appraisal", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setNotice(`Appraisal submitted. Quote: ₱${res.data.rate.toLocaleString()} (50% upfront).`);
+      setNotice(
+        `Appraisal submitted. Quote: ₱${res.data.rate.toLocaleString()} (50% upfront).`
+      );
       setAppraisal(initialAppraisal);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit appraisal request");
+      setError(
+        err.response?.data?.message || "Failed to submit appraisal request"
+      );
     }
   };
 
@@ -88,7 +92,9 @@ const Services = () => {
       setNotice("Titling/transfer request submitted.");
       setTitling(initialTitling);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit titling request");
+      setError(
+        err.response?.data?.message || "Failed to submit titling request"
+      );
     }
   };
 
@@ -100,7 +106,9 @@ const Services = () => {
       setNotice("Consultancy appointment requested.");
       setConsultancy(initialConsultancy);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit consultancy request");
+      setError(
+        err.response?.data?.message || "Failed to submit consultancy request"
+      );
     }
   };
 
@@ -110,12 +118,12 @@ const Services = () => {
         Services
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        Detailed workflows for Brokerage, Appraisal, Titling/Transfer, and Consultancy will be added
-        soon. Please contact us directly for assistance.
+        Detailed workflows for Brokerage, Appraisal, Titling/Transfer, and
+        Consultancy will be added soon. Please contact us directly for
+        assistance.
       </Typography>
     </Container>
   );
 };
 
 export default Services;
-

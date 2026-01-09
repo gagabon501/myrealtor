@@ -1,0 +1,36 @@
+Before we go down to the rabbit hole, let us step back and re-assess this application.
+
+A. Purpose: The App is a client-facing website and internal admin dashboard that digitizes Goshen Realty ABCD’s property listings and service requests (Brokerage, Appraisal, Titling/Transfer, Consultancy), including document intake, appointment booking, and status tracking.
+
+B. Services Offered:
+
+1. Brokerage - This is the main service that the company offers. It is a service that allows the client to sell their property and get a buyer for it. The function is divided into two personas:
+    a. Seller - The client who is selling their property. The following are the steps for the seller persona:
+        - Client visits the website (app), chooses the CTA "Create Listing Request" and fills up the form (this workflow is already done in the current stage of the app development - keep this)
+         - Give docs of properties: Title, Tax Declaration, Sketch Plan, Vicinity Map, Photos of property - Uploaded in the website
+         - Visits the property (optional) - take photos and advertise in our Facebook (now in the App)
+         - If photos are provided, they no longer need to visit the site
+         - Client prepares authority to sell form - can be done in the website and can also sign in the website.
+         - Client will also need to declare to the Company (Goshen) that an "Earnest Money" is required for those interested buyers
+         - Once authority to sell is signed, the Company now can advertise in the site.
+    b. Buyer - The client who is interested in buying a property. The following are the steps for the buyer persona:
+        - Chooses a property to buy from the Property Listing page by clicking the "INTERESTED" button. If he is not yet a registered user (public), he will be directed to Sign-Up page.
+        - Once logged in, the Buyer will be directed to a page where it will display the chosen property (description/location/price/photos of the property) and will require the buyer to fill-in in the online form the following info: Name, address, phone, email, and optional notes.
+        - The buyer will be contacted by the company (Goshen). A meeting will be set-up.
+        - Once the interested buyer decides go and buy the property, the company will ask for "Earnest Money". He will fill-in an Earnest Money Agreement. This form is an online form with the ability to digitally sign it.  NOTE: Not all sales require earnest money. So when advertising the property, it should have an indicator that an Earnest Money is required. At this stage of the app, this has not been done yet.
+        - Buyer will give Earnest Money to the Company. Once done, Company will setup a meeting between Seller and Buyer to finalise the sale. They will meet up in front of a notary public and with the broker present. Payment is usally cash basis or manager's check. Both the seller and the buyer will sign the Deed of Absolute Sale and will be notarised.
+        - Once sale is done, the Company will update the Property Listing and tag it as SOLD and remove it from the Property Listing Page. - updating of Property Listing status is now working. Keep this.
+
+
+3. Property Appraisal (at this stage of the app, this has not been done yet - TODO)
+   a. Client goes to the website, fills up a form (Name, Address, Email, Phone, Location of property, Size-Area of Property (Floor area for building), Time of Build (for buildings only), Last major repair (date)). Upload documents: Title, Tax Declaration, and picture of property.
+   b. Client will book for an appoint with the Company via the site's calendar. Company will confirm the booking and the app will send a confirmation email to the client.
+   c. Client will need to pay for a mobilisation fund (downpayent) based on rates: Land only - 10,000, with Building another 10,000, every floor additional 5,000. 50% of the total rate shall be paid before going to the property for appraisal and the other 50% will be paid before the appraisal report is released. Report will be prepared via the site using a pro-forma. This rate will be advertised to the client's page (registered users - not visible to public).
+
+4. Land Titling and Title Transfer (at this stage of the app, this has not been done yet - TODO)
+   a. Client goes to the website, fills up a form - Name, Address, Email, Phone, Location of property, Upload documents: Deed of Sale, Deed of conveyances, etc. - during upload, the document upload shall have a title and the actual PDF/JPG copy of the document - no limit of number of documents to upload.
+   b. Make an appointment with the company via online calendar - Online Booking Calendar has not been done yet (TODO)
+   c. Schedule of rates to be displayed in the users page - (at this stage of the app, this has not been done yet - TODO)
+
+5. Consultancy (advertise in page)
+   a. Book an appointment via online calendar. Online Booking Calendar has not been done yet (TODO)
