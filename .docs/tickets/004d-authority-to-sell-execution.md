@@ -1936,3 +1936,146 @@ If you want, next we can:
 - Add **audit log protection**
 - Or move to **004f (post-publish buyer inquiry flow)**
 ```
+
+---
+
+TICKET 004f — Published Property Lifecycle Controls (Staff/Admin)
+
+GOAL
+Implement proper lifecycle management for published properties after ATS approval.
+Staff/Admin must be able to control visibility and sales state without creating duplicate records or breaking public visibility rules.
+
+SCOPE (Backend + Frontend)
+
+---
+
+1. PROPERTY LIFECYCLE STATES
+
+---
+
+Extend Property model to support lifecycle fields:
+
+- published (boolean)
+- publishedAt (date, nullable)
+- status (enum):
+  - DRAFT
+  - PUBLISHED
+  - RESERVED
+  - SOLD
+  - WITHDRAWN
+
+Rules:
+
+- Only one Property record per approved ListingRequest
+- published === true only when status === PUBLISHED
+- SOLD and WITHDRAWN properties must NOT be publicly visible
+- RESERVED may remain visible but must be clearly labeled
+
+---
+
+2. BACKEND — API CHANGES
+
+---
+
+A. New staff/admin-only endpoints:
+
+- POST /api/properties/:id/publish
+- POST /api/properties/:id/unpublish
+- POST /api/properties/:id/mark-sold
+- POST /api/properties/:id/mark-reserved
+- POST /api/properties/:id/withdraw
+
+B. Enforce permissions:
+
+- Only roles: ADMIN, STAFF
+- Return 403 for all other roles
+
+C. Idempotency & safety:
+
+- Prevent publishing an already published property
+- Prevent SOLD → PUBLISHED without explicit override (return 400)
+- Do NOT create new Property records in these endpoints
+- Always update existing Property by ID
+
+D. Audit logging:
+
+- Record action, propertyId, actorId, timestamp
+- Example actions:
+  - PROPERTY_PUBLISHED
+  - PROPERTY_UNPUBLISHED
+  - PROPERTY_MARKED_SOLD
+  - PROPERTY_MARKED_RESERVED
+  - PROPERTY_WITHDRAWN
+
+---
+
+3. FRONTEND — STAFF UI
+
+---
+
+A. In Staff Property List / Detail View:
+Show lifecycle controls based on current status:
+
+- If DRAFT → show "Publish"
+- If PUBLISHED → show "Unpublish", "Mark as Reserved", "Mark as Sold"
+- If RESERVED → show "Mark as Sold", "Unpublish"
+- If SOLD or WITHDRAWN → no publish actions
+
+B. Confirmation modals required for:
+
+- Publish
+- Unpublish
+- Mark as Sold
+- Withdraw
+
+C. Visual labels:
+
+- Status badge (Published / Reserved / Sold / Withdrawn)
+- Published date shown when applicable
+
+---
+
+4. FRONTEND — PUBLIC & USER VISIBILITY
+
+---
+
+A. Public (not logged in):
+
+- Only see properties where:
+  - published === true
+  - status === PUBLISHED or RESERVED
+
+B. Logged-in users:
+
+- Same visibility as public
+- PLUS their own ListingRequests (unchanged)
+
+C. Staff/Admin:
+
+- See all properties regardless of status
+
+---
+
+5. HARD CONSTRAINTS (DO NOT VIOLATE)
+
+---
+
+- DO NOT modify ATS approval logic
+- DO NOT create duplicate Property records
+- DO NOT expose unpublished properties publicly
+- DO NOT rely on frontend-only checks; enforce in API
+- Keep existing routes intact unless explicitly extending
+
+---
+
+6. ACCEPTANCE CHECKLIST
+
+---
+
+✔ Staff can publish/unpublish without duplicates  
+✔ SOLD properties disappear from public listings  
+✔ RESERVED properties remain visible but labeled  
+✔ Public API never leaks unpublished data  
+✔ Audit log records every lifecycle change
+
+Implement cleanly, refactor where needed, and explain any non-obvious decisions in comments.

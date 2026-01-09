@@ -1,6 +1,7 @@
 ## Ticket 004g — Buyer Interest / Apply workflow
 
 Implemented:
+
 - Interested lead de-dup on `(propertyId, emailLower)` with 409 handling and audit.
 - Applications model with status enum, unique `(propertyId,userId)`, audits, RBAC endpoints.
 - Frontend modals for Interested (public/user) and Apply (user) on Properties.
@@ -8,9 +9,11 @@ Implemented:
 - Staff/Admin hidden CTAs; public/user see appropriate buttons.
 
 Test plan (quick):
+
 - POST `/services/brokerage/interest` twice same property/email -> second returns 409.
 - POST `/applications` as user then repeat -> 409.
 - GET `/applications/mine` (user) returns own; `/applications` (staff/admin) returns all; PATCH status works.
+
 # Ticket 004g — Buyer Interest / Apply workflow (end-to-end) + de-duplication + staff pipeline
 
 **Proposed filename:** `004g-buyer-apply-interest-workflow.md`
