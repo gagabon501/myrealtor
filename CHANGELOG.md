@@ -5,11 +5,10 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Unreleased]
 - Pending changes not yet tagged.
 
-## [Backend 1.1.111 / Frontend 0.2.111] – Admin UX gating + filters
-- Enforced buyer actions to published properties only (interest/apply).
-- Added signed-in user/role chip and user-dashboard redirect to Staff workspace for staff/admin.
-- Enhanced Staff dashboards and nav clarity; added filters/search + status chips to inquiries and applications tables.
-- Services page and docs set updated; forms/blueprints added to source.
+## [Backend 1.1.112 / Frontend 0.2.112] – User-facing status for services
+- Brokerage: fixed interest `/mine` query (userId/email) and backfill; pills and My Interests list now show consistently.
+- Dashboard: My Interests and My Service Requests now show brokerage, appraisal, titling, and consultancy statuses for the logged-in user.
+- Added “mine” endpoints for appraisal/titling/consultancy (auth, user-scoped).
 
 ## [Backend 1.1.19 / Frontend 0.2.19] – Multi-image properties
 - Allow up to 4 images per property (create/update).

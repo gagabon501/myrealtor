@@ -166,7 +166,8 @@ router.get("/appraisal/mine", authenticate, async (req, res, next) => {
   try {
     const email = req.user?.email;
     const userId = req.user?.id;
-    if (!email && !userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!email && !userId)
+      return res.status(401).json({ message: "Unauthorized" });
     const regexEmail = email ? new RegExp(`^${email}$`, "i") : null;
     const query =
       userId && regexEmail
@@ -188,7 +189,8 @@ router.get("/titling/mine", authenticate, async (req, res, next) => {
   try {
     const email = req.user?.email;
     const userId = req.user?.id;
-    if (!email && !userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!email && !userId)
+      return res.status(401).json({ message: "Unauthorized" });
     const regexEmail = email ? new RegExp(`^${email}$`, "i") : null;
     const query =
       userId && regexEmail
@@ -210,7 +212,8 @@ router.get("/consultancy/mine", authenticate, async (req, res, next) => {
   try {
     const email = req.user?.email;
     const userId = req.user?.id;
-    if (!email && !userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!email && !userId)
+      return res.status(401).json({ message: "Unauthorized" });
     const regexEmail = email ? new RegExp(`^${email}$`, "i") : null;
     const query =
       userId && regexEmail

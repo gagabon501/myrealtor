@@ -426,7 +426,9 @@ const Dashboard = () => {
                       sx={{ mt: 0.5 }}
                     >
                       Updated:{" "}
-                      {new Date(item.updatedAt || item.createdAt).toLocaleString()}
+                      {new Date(
+                        item.updatedAt || item.createdAt
+                      ).toLocaleString()}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -437,7 +439,11 @@ const Dashboard = () => {
                 </Typography>
               )}
 
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={{ mt: 1 }}
+              >
                 Titling / Transfer
               </Typography>
               {titlings.map((item, idx) => (
@@ -456,7 +462,9 @@ const Dashboard = () => {
                       sx={{ mt: 0.5 }}
                     >
                       Updated:{" "}
-                      {new Date(item.updatedAt || item.createdAt).toLocaleString()}
+                      {new Date(
+                        item.updatedAt || item.createdAt
+                      ).toLocaleString()}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -467,7 +475,11 @@ const Dashboard = () => {
                 </Typography>
               )}
 
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={{ mt: 1 }}
+              >
                 Consultancy
               </Typography>
               {consultancies.map((item, idx) => (
@@ -486,7 +498,9 @@ const Dashboard = () => {
                       sx={{ mt: 0.5 }}
                     >
                       Updated:{" "}
-                      {new Date(item.updatedAt || item.createdAt).toLocaleString()}
+                      {new Date(
+                        item.updatedAt || item.createdAt
+                      ).toLocaleString()}
                     </Typography>
                   </CardContent>
                 </Card>
