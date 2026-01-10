@@ -140,8 +140,20 @@ router.get("/brokerage/interest/mine", authenticate, async (req, res, next) => {
         ? { userId }
         : { emailLower };
     const interests = await InterestedBuyer.find(query)
-      .select("propertyId createdAt status notes")
+      .select("propertyId createdAt updatedAt status notes userId emailLower")
       .populate("propertyId", "title location price status published");
+
+    // backfill userId on legacy interests matched by email
+    if (userId && emailLower) {
+      const toUpdate = interests.filter((i) => !i.userId);
+      if (toUpdate.length) {
+        await Promise.all(
+          toUpdate.map((i) =>
+            InterestedBuyer.findByIdAndUpdate(i._id, { userId }, { new: true })
+          )
+        );
+      }
+    }
     const propertyIds = interests.map((i) => i.propertyId?._id || i.propertyId);
     res.json({ propertyIds, interests });
   } catch (err) {
