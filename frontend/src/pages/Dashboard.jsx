@@ -26,6 +26,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const role = String(user?.role || "").toLowerCase();
   const normalizedRole = role === "client" ? "user" : role;
+  const isUser = normalizedRole === "user";
   const [tab, setTab] = useState("buying");
   const [applications, setApplications] = useState([]);
   const [lastLoaded, setLastLoaded] = useState(null);
@@ -55,7 +56,7 @@ const Dashboard = () => {
   }, [applications]);
 
   const loadApplications = async () => {
-    if (!user || user.role !== "user") return;
+    if (!isUser) return;
     try {
       const res = await client.get("/applications/mine");
       setApplications(res.data);
@@ -69,7 +70,7 @@ const Dashboard = () => {
   };
 
   const loadInterests = async () => {
-    if (!user || user.role !== "user") return;
+    if (!isUser) return;
     try {
       const res = await client.get("/services/brokerage/interest/mine");
       setInterests(res.data?.interests || []);
@@ -109,7 +110,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (normalizedRole === "staff" || normalizedRole === "admin") {
+    if (!isUser) {
       navigate("/staff", { replace: true });
       return;
     }
@@ -120,8 +121,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     const onFocus = () => {
-      if (normalizedRole === "user") loadApplications();
-      if (normalizedRole === "user") loadInterests();
+      if (isUser) loadApplications();
+      if (isUser) loadInterests();
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
