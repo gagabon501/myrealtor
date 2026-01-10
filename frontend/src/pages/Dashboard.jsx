@@ -34,6 +34,7 @@ const Dashboard = () => {
   const [appraisals, setAppraisals] = useState([]);
   const [titlings, setTitlings] = useState([]);
   const [consultancies, setConsultancies] = useState([]);
+  const [listingRequests, setListingRequests] = useState([]);
   const [selectedAppId, setSelectedAppId] = useState("");
   const [documents, setDocuments] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -112,6 +113,16 @@ const Dashboard = () => {
     }
   };
 
+  const loadListingRequests = async () => {
+    if (!isUser) return;
+    try {
+      const res = await client.get("/listing-requests/mine");
+      setListingRequests(res.data || []);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const loadDocuments = async (applicationId) => {
     if (!applicationId) return;
     try {
@@ -152,6 +163,7 @@ const Dashboard = () => {
     loadAppraisals();
     loadTitlings();
     loadConsultancies();
+    loadListingRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
 
@@ -162,6 +174,7 @@ const Dashboard = () => {
       if (isUser) loadAppraisals();
       if (isUser) loadTitlings();
       if (isUser) loadConsultancies();
+      if (isUser) loadListingRequests();
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
@@ -322,6 +335,62 @@ const Dashboard = () => {
             <Button variant="outlined" href="/sell/requests">
               View My Listing Requests
             </Button>
+          </Stack>
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            My Listing Requests
+          </Typography>
+          <Stack spacing={1.5}>
+            {listingRequests.map((req) => {
+              const status = String(req.status || "ATS_PENDING").toUpperCase();
+              const title = req.propertyDraft?.title || "Listing Request";
+              const loc = req.propertyDraft?.location;
+              const price = req.propertyDraft?.price;
+              const isPublished = !!req.publishedPropertyId;
+              return (
+                <Card key={req._id} variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1">{title}</Typography>
+                    {loc && (
+                      <Typography variant="body2" color="text.secondary">
+                        {loc}
+                      </Typography>
+                    )}
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Chip
+                        label={status.replace("ATS_", "ATS ").replace("_", " ")}
+                        color={
+                          status === "ATS_APPROVED"
+                            ? "success"
+                            : status === "ATS_REJECTED"
+                            ? "error"
+                            : "default"
+                        }
+                        size="small"
+                      />
+                      {isPublished && <Chip label="Published" size="small" color="primary" />}
+                      {price !== undefined && (
+                        <Chip
+                          label={`₱${Number(price).toLocaleString()}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
+                    </Stack>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                      sx={{ mt: 0.5 }}
+                    >
+                      Updated: {new Date(req.updatedAt || req.createdAt).toLocaleString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {!listingRequests.length && (
+              <Typography color="text.secondary">No listing requests yet.</Typography>
+            )}
           </Stack>
         </Stack>
       )}
