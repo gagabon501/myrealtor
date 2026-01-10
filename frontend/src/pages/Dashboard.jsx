@@ -31,6 +31,9 @@ const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [lastLoaded, setLastLoaded] = useState(null);
   const [interests, setInterests] = useState([]);
+  const [appraisals, setAppraisals] = useState([]);
+  const [titlings, setTitlings] = useState([]);
+  const [consultancies, setConsultancies] = useState([]);
   const [selectedAppId, setSelectedAppId] = useState("");
   const [documents, setDocuments] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -79,6 +82,36 @@ const Dashboard = () => {
     }
   };
 
+  const loadAppraisals = async () => {
+    if (!isUser) return;
+    try {
+      const res = await client.get("/services/appraisal/mine");
+      setAppraisals(res.data?.items || []);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const loadTitlings = async () => {
+    if (!isUser) return;
+    try {
+      const res = await client.get("/services/titling/mine");
+      setTitlings(res.data?.items || []);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const loadConsultancies = async () => {
+    if (!isUser) return;
+    try {
+      const res = await client.get("/services/consultancy/mine");
+      setConsultancies(res.data?.items || []);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const loadDocuments = async (applicationId) => {
     if (!applicationId) return;
     try {
@@ -116,6 +149,9 @@ const Dashboard = () => {
     }
     loadApplications();
     loadInterests();
+    loadAppraisals();
+    loadTitlings();
+    loadConsultancies();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
 
@@ -123,6 +159,9 @@ const Dashboard = () => {
     const onFocus = () => {
       if (isUser) loadApplications();
       if (isUser) loadInterests();
+      if (isUser) loadAppraisals();
+      if (isUser) loadTitlings();
+      if (isUser) loadConsultancies();
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
@@ -167,7 +206,8 @@ const Dashboard = () => {
           Client Dashboard
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Welcome, {user?.profile?.fullName || user?.email}. Track buying activity and manage your selling requests.
+          Welcome, {user?.profile?.fullName || user?.email}. Track buying
+          activity and manage your selling requests.
         </Typography>
       </Stack>
 
@@ -238,8 +278,16 @@ const Dashboard = () => {
             </Grid>
           </Grid>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 3 }}>
-            <Button variant="contained" onClick={() => setSelectedAppId("")} href="/properties">
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            sx={{ mb: 3 }}
+          >
+            <Button
+              variant="contained"
+              onClick={() => setSelectedAppId("")}
+              href="/properties"
+            >
               Browse properties
             </Button>
             <Button variant="outlined" href="/notifications">
@@ -249,7 +297,11 @@ const Dashboard = () => {
               Refresh applications
             </Button>
             {lastLoaded && (
-              <Typography variant="caption" color="text.secondary" sx={{ alignSelf: "center" }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ alignSelf: "center" }}
+              >
                 Last updated: {lastLoaded.toLocaleString()}
               </Typography>
             )}
@@ -260,7 +312,8 @@ const Dashboard = () => {
       {tab === "selling" && (
         <Stack spacing={2} sx={{ mb: 3 }}>
           <Alert severity="info">
-            Submit listing requests, upload ATS documents, and track approvals. Publishing remains staff-only.
+            Submit listing requests, upload ATS documents, and track approvals.
+            Publishing remains staff-only.
           </Alert>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
             <Button variant="contained" href="/sell/request">
@@ -274,7 +327,11 @@ const Dashboard = () => {
       )}
 
       {message && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setMessage(null)}>
+        <Alert
+          severity="success"
+          sx={{ mb: 2 }}
+          onClose={() => setMessage(null)}
+        >
           {message}
         </Alert>
       )}
@@ -287,50 +344,160 @@ const Dashboard = () => {
       {tab === "buying" && (
         <Grid container spacing={3}>
           <Grid item xs={12} md={5}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                My Interests (Brokerage)
-              </Typography>
-              <Stack spacing={1.5}>
-                {interests.map((interest) => (
-                  <Card key={interest._id || interest.propertyId} variant="outlined">
-                    <CardContent>
-                      <Typography variant="subtitle1">
-                        {interest.propertyId?.title || "Property"}
-                      </Typography>
-                      <Typography color="text.secondary">
-                        {interest.propertyId?.location}
-                      </Typography>
-                      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              My Interests (Brokerage)
+            </Typography>
+            <Stack spacing={1.5}>
+              {interests.map((interest) => (
+                <Card
+                  key={interest._id || interest.propertyId}
+                  variant="outlined"
+                >
+                  <CardContent>
+                    <Typography variant="subtitle1">
+                      {interest.propertyId?.title || "Property"}
+                    </Typography>
+                    <Typography color="text.secondary">
+                      {interest.propertyId?.location}
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Chip
+                        label={interest.status || "NEW"}
+                        color={
+                          interest.status === "CONTACTED"
+                            ? "info"
+                            : interest.status === "CLOSED"
+                            ? "success"
+                            : "default"
+                        }
+                        size="small"
+                      />
+                      {interest.propertyId?.price && (
                         <Chip
-                          label={interest.status || "NEW"}
-                          color={
-                            interest.status === "CONTACTED"
-                              ? "info"
-                              : interest.status === "CLOSED"
-                              ? "success"
-                              : "default"
-                          }
+                          label={`₱${Number(
+                            interest.propertyId.price
+                          ).toLocaleString()}`}
                           size="small"
+                          variant="outlined"
                         />
-                        {interest.propertyId?.price && (
-                          <Chip
-                            label={`₱${Number(interest.propertyId.price).toLocaleString()}`}
-                            size="small"
-                            variant="outlined"
-                          />
-                        )}
-                      </Stack>
-                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-                        Updated: {new Date(interest.updatedAt || interest.createdAt).toLocaleString()}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                ))}
-                {!interests.length && (
-                  <Typography color="text.secondary">No interests yet.</Typography>
-                )}
-              </Stack>
-            </Grid>
+                      )}
+                    </Stack>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                      sx={{ mt: 0.5 }}
+                    >
+                      Updated:{" "}
+                      {new Date(
+                        interest.updatedAt || interest.createdAt
+                      ).toLocaleString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+              {!interests.length && (
+                <Typography color="text.secondary">
+                  No interests yet.
+                </Typography>
+              )}
+
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                My Service Requests
+              </Typography>
+
+              <Typography variant="subtitle2" color="text.secondary">
+                Appraisal
+              </Typography>
+              {appraisals.map((item, idx) => (
+                <Card key={`appraisal-${idx}`} variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1">
+                      {item.propertyLocation || "Appraisal request"}
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Chip label={item.status || "SUBMITTED"} size="small" />
+                    </Stack>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                      sx={{ mt: 0.5 }}
+                    >
+                      Updated:{" "}
+                      {new Date(item.updatedAt || item.createdAt).toLocaleString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+              {!appraisals.length && (
+                <Typography color="text.secondary">
+                  No appraisal requests yet.
+                </Typography>
+              )}
+
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
+                Titling / Transfer
+              </Typography>
+              {titlings.map((item, idx) => (
+                <Card key={`titling-${idx}`} variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1">
+                      {item.propertyLocation || "Titling request"}
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Chip label={item.status || "SUBMITTED"} size="small" />
+                    </Stack>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                      sx={{ mt: 0.5 }}
+                    >
+                      Updated:{" "}
+                      {new Date(item.updatedAt || item.createdAt).toLocaleString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+              {!titlings.length && (
+                <Typography color="text.secondary">
+                  No titling requests yet.
+                </Typography>
+              )}
+
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
+                Consultancy
+              </Typography>
+              {consultancies.map((item, idx) => (
+                <Card key={`consultancy-${idx}`} variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1">
+                      {item.topic || "Consultancy request"}
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Chip label={item.status || "SUBMITTED"} size="small" />
+                    </Stack>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                      sx={{ mt: 0.5 }}
+                    >
+                      Updated:{" "}
+                      {new Date(item.updatedAt || item.createdAt).toLocaleString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+              {!consultancies.length && (
+                <Typography color="text.secondary">
+                  No consultancy requests yet.
+                </Typography>
+              )}
+            </Stack>
+          </Grid>
 
           <Grid item xs={12} md={7}>
             <Typography variant="h6" sx={{ mb: 1 }}>
@@ -348,10 +515,15 @@ const Dashboard = () => {
                     <Typography variant="subtitle1">
                       {app.propertyId?.title || "Property"}
                     </Typography>
-                    <Typography color="text.secondary">Status: {app.status}</Typography>
+                    <Typography color="text.secondary">
+                      Status: {app.status}
+                    </Typography>
                     {app.activity?.length > 0 && (
                       <Typography color="text.secondary" variant="caption">
-                        Last update: {new Date(app.activity[app.activity.length - 1].at).toLocaleString()}
+                        Last update:{" "}
+                        {new Date(
+                          app.activity[app.activity.length - 1].at
+                        ).toLocaleString()}
                       </Typography>
                     )}
                     <Button
@@ -362,13 +534,21 @@ const Dashboard = () => {
                       Messages
                     </Button>
                     <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                      <Chip label={app.assignedTo ? `Assigned to ${app.assignedTo.email}` : "Unassigned"} />
+                      <Chip
+                        label={
+                          app.assignedTo
+                            ? `Assigned to ${app.assignedTo.email}`
+                            : "Unassigned"
+                        }
+                      />
                     </Stack>
                   </CardContent>
                 </Card>
               ))}
               {!applications.length && (
-                <Typography color="text.secondary">No applications yet.</Typography>
+                <Typography color="text.secondary">
+                  No applications yet.
+                </Typography>
               )}
             </Stack>
           </Grid>
@@ -383,7 +563,12 @@ const Dashboard = () => {
                   select
                   label="Application"
                   value={docPayload.applicationId}
-                  onChange={(e) => setDocPayload({ ...docPayload, applicationId: e.target.value })}
+                  onChange={(e) =>
+                    setDocPayload({
+                      ...docPayload,
+                      applicationId: e.target.value,
+                    })
+                  }
                   required
                 >
                   {applications.map((app) => (
@@ -395,7 +580,9 @@ const Dashboard = () => {
                 <TextField
                   label="Document type"
                   value={docPayload.type}
-                  onChange={(e) => setDocPayload({ ...docPayload, type: e.target.value })}
+                  onChange={(e) =>
+                    setDocPayload({ ...docPayload, type: e.target.value })
+                  }
                   required
                 />
                 <Button variant="outlined" component="label">
@@ -411,7 +598,11 @@ const Dashboard = () => {
                     {file.name}
                   </Typography>
                 )}
-                <Button type="submit" variant="contained" disabled={!docPayload.applicationId}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={!docPayload.applicationId}
+                >
                   Upload
                 </Button>
               </Stack>
@@ -439,7 +630,11 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               ))}
-              {!documents.length && <Typography color="text.secondary">No documents yet.</Typography>}
+              {!documents.length && (
+                <Typography color="text.secondary">
+                  No documents yet.
+                </Typography>
+              )}
             </Stack>
           </Grid>
 
@@ -458,7 +653,11 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               ))}
-              {!tasks.length && <Typography color="text.secondary">No compliance tasks yet.</Typography>}
+              {!tasks.length && (
+                <Typography color="text.secondary">
+                  No compliance tasks yet.
+                </Typography>
+              )}
             </Stack>
           </Grid>
 
@@ -477,7 +676,9 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               ))}
-              {!payments.length && <Typography color="text.secondary">No payments yet.</Typography>}
+              {!payments.length && (
+                <Typography color="text.secondary">No payments yet.</Typography>
+              )}
             </Stack>
           </Grid>
         </Grid>
@@ -487,4 +688,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

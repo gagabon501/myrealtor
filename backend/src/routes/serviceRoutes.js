@@ -161,6 +161,72 @@ router.get("/brokerage/interest/mine", authenticate, async (req, res, next) => {
   }
 });
 
+// Appraisal requests for current user
+router.get("/appraisal/mine", authenticate, async (req, res, next) => {
+  try {
+    const email = req.user?.email;
+    const userId = req.user?.id;
+    if (!email && !userId) return res.status(401).json({ message: "Unauthorized" });
+    const regexEmail = email ? new RegExp(`^${email}$`, "i") : null;
+    const query =
+      userId && regexEmail
+        ? { $or: [{ userId }, { email: regexEmail }] }
+        : userId
+        ? { userId }
+        : { email: regexEmail };
+    const items = await AppraisalRequest.find(query)
+      .select("propertyLocation status createdAt updatedAt rate")
+      .sort({ createdAt: -1 });
+    res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Titling/transfer requests for current user
+router.get("/titling/mine", authenticate, async (req, res, next) => {
+  try {
+    const email = req.user?.email;
+    const userId = req.user?.id;
+    if (!email && !userId) return res.status(401).json({ message: "Unauthorized" });
+    const regexEmail = email ? new RegExp(`^${email}$`, "i") : null;
+    const query =
+      userId && regexEmail
+        ? { $or: [{ userId }, { email: regexEmail }] }
+        : userId
+        ? { userId }
+        : { email: regexEmail };
+    const items = await TitlingRequest.find(query)
+      .select("propertyLocation status createdAt updatedAt")
+      .sort({ createdAt: -1 });
+    res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Consultancy requests for current user
+router.get("/consultancy/mine", authenticate, async (req, res, next) => {
+  try {
+    const email = req.user?.email;
+    const userId = req.user?.id;
+    if (!email && !userId) return res.status(401).json({ message: "Unauthorized" });
+    const regexEmail = email ? new RegExp(`^${email}$`, "i") : null;
+    const query =
+      userId && regexEmail
+        ? { $or: [{ userId }, { email: regexEmail }] }
+        : userId
+        ? { userId }
+        : { email: regexEmail };
+    const items = await ConsultancyRequest.find(query)
+      .select("topic status createdAt updatedAt")
+      .sort({ createdAt: -1 });
+    res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post(
   "/appraisal",
   authenticate,
