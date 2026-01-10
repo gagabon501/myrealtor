@@ -291,7 +291,7 @@ const Dashboard = () => {
               </Typography>
               <Stack spacing={1.5}>
                 {interests.map((interest) => (
-                  <Card key={interest._id} variant="outlined">
+                  <Card key={interest._id || interest.propertyId} variant="outlined">
                     <CardContent>
                       <Typography variant="subtitle1">
                         {interest.propertyId?.title || "Property"}
