@@ -5,6 +5,71 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Unreleased]
 - Pending changes not yet tagged.
 
+## [Backend 1.2.0 / Frontend 0.3.0] – V0 Completion & V1 Foundation
+
+### Backend Changes
+- **New Models:**
+  - `EarnestMoneyAgreement`: Full lifecycle for earnest money with seller/buyer details, property reference, financial terms, and PDF finalization
+  - `Appointment`: Calendar/booking system for all service types (appraisal, titling, consultancy, property viewings)
+  - `AppraisalReport`: Complete appraisal report management with sections, certification, and PDF generation
+
+- **PropertyListingRequest Model Updates:**
+  - Added `seller` schema (fullName, address, phone, email)
+  - Added `atsDetails` schema (titleNosTaxDec, lotArea, ownersNetPrice, periodStart, periodEnd, remarks)
+  - Added `signature` schema for digital consent
+  - Added `finalPdf` schema for generated PDF tracking
+  - New status: `ATS_FINALIZED`
+
+- **PDF Generation:**
+  - Added `pdfkit` dependency for PDF generation
+  - Created `pdfGenerator.js` utility with templates for:
+    - Authority to Sell (ATS) documents
+    - Earnest Money Agreements (EMA)
+    - Appraisal Reports
+
+- **New API Routes:**
+  - `/api/earnest-money` - Full CRUD for EMA with finalize/void endpoints
+  - `/api/appointments` - Appointment booking with confirm/cancel/complete workflow
+  - `/api/appraisal-reports` - Report management with draft/finalize/release workflow
+  - `/api/listing-requests/:id/seller` - Update seller details endpoint
+  - `/api/listing-requests/:id/finalize` - ATS finalization with PDF generation
+
+- **Service Routes Enhancements:**
+  - Staff/admin endpoints for managing appraisal, titling, consultancy requests
+  - Status update endpoints for all service types
+  - Brokerage interest management routes
+
+- **Document Library Updates:**
+  - New modules: `EARNEST_MONEY`, `APPRAISAL_REPORT`
+  - New owner types: `EarnestMoneyAgreement`, `AppraisalReport`
+  - New categories for reports and agreements
+
+### Frontend Changes
+- **New Pages:**
+  - `StaffServiceRequests`: Manage appraisal, titling, consultancy, and brokerage interests
+  - `StaffEarnestMoney`: Create, manage, finalize EMAs with PDF generation
+  - `StaffAppraisalReports`: Create, edit, finalize, and release appraisal reports
+
+- **Services Page Enhancement:**
+  - Complete forms for appraisal, titling, and consultancy requests
+  - Building details collection for appraisal
+  - Document upload support
+  - Proper validation and user feedback
+
+- **Staff Dashboard Updates:**
+  - Added navigation to Service Requests, Earnest Money, and Appraisal Reports pages
+
+- **New Routes:**
+  - `/staff/services` - Service request management
+  - `/staff/earnest-money` - EMA management
+  - `/staff/appraisal-reports` - Appraisal report management
+
+### V0 Checklist Completion
+- Authority to Sell workflow with seller details and PDF generation
+- Earnest Money Agreement management
+- All service request forms functional
+- Staff management interfaces for all services
+
 ## [Backend 1.1.112 / Frontend 0.2.112] – User-facing status for services
 - Brokerage: fixed interest `/mine` query (userId/email) and backfill; pills and My Interests list now show consistently.
 - Dashboard: My Interests and My Service Requests now show brokerage, appraisal, titling, and consultancy statuses for the logged-in user.

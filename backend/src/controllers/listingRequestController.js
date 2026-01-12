@@ -4,6 +4,7 @@ import PropertyListingRequest from "../models/PropertyListingRequest.js";
 import Document from "../models/Document.js";
 import Property from "../models/Property.js";
 import { recordAudit } from "../utils/audit.js";
+import { generateAtsPdf } from "../utils/pdfGenerator.js";
 
 const auditWrap = async ({ actor, action, context }) =>
   recordAudit({ actor, action, context });
@@ -303,6 +304,127 @@ export const publishListingRequest = async (req, res, next) => {
       },
     });
     return res.status(201).json(property);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const updateSellerDetails = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { seller, atsDetails, signature } = req.body;
+
+    const listing = await PropertyListingRequest.findById(id);
+    if (!listing) {
+      return res.status(404).json({ message: "Listing request not found" });
+    }
+
+    // Only owner or staff can update
+    const role = req.user?.role || "public";
+    const isStaff = role === "staff" || role === "admin";
+    if (!isStaff && String(listing.createdBy) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // Prevent updates after finalization
+    if (listing.status === "ATS_FINALIZED") {
+      return res.status(400).json({ message: "Cannot update finalized ATS" });
+    }
+
+    // Update fields
+    if (seller) {
+      listing.seller = {
+        ...listing.seller,
+        ...seller,
+      };
+    }
+
+    if (atsDetails) {
+      listing.atsDetails = {
+        ...listing.atsDetails,
+        ...atsDetails,
+      };
+    }
+
+    if (signature) {
+      listing.signature = {
+        ...listing.signature,
+        ...signature,
+        signedAt: signature.consentChecked ? new Date() : listing.signature?.signedAt,
+        ipAddress: req.ip,
+        userAgent: req.get("User-Agent"),
+      };
+    }
+
+    await listing.save();
+
+    await auditWrap({
+      actor: req.user.id,
+      action: "SELLER_DETAILS_UPDATED",
+      context: { requestId: listing._id.toString() },
+    });
+
+    return res.json(listing);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const finalizeAts = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const listing = await PropertyListingRequest.findById(id);
+
+    if (!listing) {
+      return res.status(404).json({ message: "Listing request not found" });
+    }
+
+    if (listing.status !== "ATS_APPROVED") {
+      return res.status(400).json({ message: "ATS must be approved before finalization" });
+    }
+
+    // Ensure seller details exist
+    if (!listing.seller?.fullName) {
+      return res.status(400).json({ message: "Seller details are required for finalization" });
+    }
+
+    // Ensure signature consent
+    if (!listing.signature?.consentChecked) {
+      return res.status(400).json({ message: "Seller signature consent is required" });
+    }
+
+    // Generate PDF
+    const version = (listing.finalPdf?.version || 0) + 1;
+    const pdfResult = await generateAtsPdf({
+      requestId: listing._id.toString(),
+      seller: listing.seller,
+      propertyDraft: listing.propertyDraft,
+      atsDetails: listing.atsDetails,
+      signature: listing.signature,
+      version,
+    });
+
+    listing.status = "ATS_FINALIZED";
+    listing.finalPdf = {
+      storageKey: pdfResult.storageKey,
+      url: pdfResult.url,
+      version,
+      finalizedAt: new Date(),
+      finalizedBy: req.user.id,
+    };
+
+    await listing.save();
+
+    await auditWrap({
+      actor: req.user.id,
+      action: "ATS_FINALIZED",
+      context: {
+        requestId: listing._id.toString(),
+        pdfVersion: version,
+      },
+    });
+
+    return res.json(listing);
   } catch (err) {
     return next(err);
   }

@@ -1,5 +1,49 @@
 import mongoose from "mongoose";
 
+const sellerDetailsSchema = new mongoose.Schema(
+  {
+    fullName: { type: String, required: true },
+    address: String,
+    phone: String,
+    email: String,
+  },
+  { _id: false }
+);
+
+const signatureSchema = new mongoose.Schema(
+  {
+    signedName: String,
+    signedAt: Date,
+    consentChecked: { type: Boolean, default: false },
+    ipAddress: String,
+    userAgent: String,
+  },
+  { _id: false }
+);
+
+const atsDetailsSchema = new mongoose.Schema(
+  {
+    titleNosTaxDec: String,
+    lotArea: String,
+    ownersNetPrice: Number,
+    periodStart: Date,
+    periodEnd: Date,
+    remarks: String,
+  },
+  { _id: false }
+);
+
+const finalPdfSchema = new mongoose.Schema(
+  {
+    storageKey: String,
+    url: String,
+    version: { type: Number, default: 1 },
+    finalizedAt: Date,
+    finalizedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  },
+  { _id: false }
+);
+
 const propertyDraftSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
@@ -17,10 +61,18 @@ const propertyListingRequestSchema = new mongoose.Schema(
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     status: {
       type: String,
-      enum: ["DRAFT", "SUBMITTED", "ATS_PENDING", "ATS_APPROVED", "ATS_REJECTED"],
+      enum: ["DRAFT", "SUBMITTED", "ATS_PENDING", "ATS_APPROVED", "ATS_REJECTED", "ATS_FINALIZED"],
       default: "ATS_PENDING",
     },
     propertyDraft: propertyDraftSchema,
+    // Seller details for ATS
+    seller: sellerDetailsSchema,
+    // ATS specific details
+    atsDetails: atsDetailsSchema,
+    // Signature for ATS consent
+    signature: signatureSchema,
+    // Finalized PDF
+    finalPdf: finalPdfSchema,
     reviewerNotes: String,
     linkedPropertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property" },
     atsApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

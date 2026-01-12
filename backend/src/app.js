@@ -19,6 +19,9 @@ import inquiryRoutes from "./routes/inquiryRoutes.js";
 import documentLibraryRoutes from "./routes/documentLibraryRoutes.js";
 import listingRequestRoutes from "./routes/listingRequestRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import earnestMoneyRoutes from "./routes/earnestMoneyRoutes.js";
+import appointmentRoutes from "./routes/appointmentRoutes.js";
+import appraisalReportRoutes from "./routes/appraisalReportRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -70,6 +73,9 @@ app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/document-library", documentLibraryRoutes);
 app.use("/api/listing-requests", listingRequestRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/earnest-money", earnestMoneyRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/appraisal-reports", appraisalReportRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });

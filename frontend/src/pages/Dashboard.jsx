@@ -367,7 +367,9 @@ const Dashboard = () => {
                         }
                         size="small"
                       />
-                      {isPublished && <Chip label="Published" size="small" color="primary" />}
+                      {isPublished && (
+                        <Chip label="Published" size="small" color="primary" />
+                      )}
                       {price !== undefined && (
                         <Chip
                           label={`₱${Number(price).toLocaleString()}`}
@@ -382,14 +384,19 @@ const Dashboard = () => {
                       display="block"
                       sx={{ mt: 0.5 }}
                     >
-                      Updated: {new Date(req.updatedAt || req.createdAt).toLocaleString()}
+                      Updated:{" "}
+                      {new Date(
+                        req.updatedAt || req.createdAt
+                      ).toLocaleString()}
                     </Typography>
                   </CardContent>
                 </Card>
               );
             })}
             {!listingRequests.length && (
-              <Typography color="text.secondary">No listing requests yet.</Typography>
+              <Typography color="text.secondary">
+                No listing requests yet.
+              </Typography>
             )}
           </Stack>
         </Stack>

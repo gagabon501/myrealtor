@@ -11,7 +11,7 @@ import TitlingRequest from "../models/TitlingRequest.js";
 import ConsultancyRequest from "../models/ConsultancyRequest.js";
 import Property from "../models/Property.js";
 import { recordAudit } from "../utils/audit.js";
-import { authenticate } from "../middleware/auth.js";
+import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -334,6 +334,275 @@ router.post(
         userId: req.user.id,
       });
       res.status(201).json(rec);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ==================== STAFF/ADMIN MANAGEMENT ROUTES ====================
+
+// List all appraisal requests (staff/admin)
+router.get(
+  "/appraisal",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { status } = req.query;
+      const filter = {};
+      if (status) filter.status = status;
+      const items = await AppraisalRequest.find(filter)
+        .populate("userId", "email profile.fullName")
+        .sort({ createdAt: -1 });
+      res.json(items);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Get single appraisal request (staff/admin)
+router.get(
+  "/appraisal/:id",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const item = await AppraisalRequest.findById(req.params.id)
+        .populate("userId", "email profile.fullName");
+      if (!item) {
+        return res.status(404).json({ message: "Appraisal request not found" });
+      }
+      res.json(item);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Update appraisal request status (staff/admin)
+router.patch(
+  "/appraisal/:id/status",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { status } = req.body;
+      const validStatuses = ["SUBMITTED", "IN_REVIEW", "APPOINTMENT_SET", "IN_PROGRESS", "REPORT_READY", "COMPLETED", "CANCELLED"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const item = await AppraisalRequest.findByIdAndUpdate(
+        req.params.id,
+        { status },
+        { new: true }
+      );
+      if (!item) {
+        return res.status(404).json({ message: "Appraisal request not found" });
+      }
+      await recordAudit({
+        actor: req.user.id,
+        action: "APPRAISAL_STATUS_UPDATED",
+        context: { requestId: item._id.toString(), status },
+      });
+      res.json(item);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// List all titling requests (staff/admin)
+router.get(
+  "/titling",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { status } = req.query;
+      const filter = {};
+      if (status) filter.status = status;
+      const items = await TitlingRequest.find(filter)
+        .populate("userId", "email profile.fullName")
+        .sort({ createdAt: -1 });
+      res.json(items);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Get single titling request (staff/admin)
+router.get(
+  "/titling/:id",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const item = await TitlingRequest.findById(req.params.id)
+        .populate("userId", "email profile.fullName");
+      if (!item) {
+        return res.status(404).json({ message: "Titling request not found" });
+      }
+      res.json(item);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Update titling request status (staff/admin)
+router.patch(
+  "/titling/:id/status",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { status } = req.body;
+      const validStatuses = ["SUBMITTED", "IN_REVIEW", "APPOINTMENT_SET", "IN_PROGRESS", "COMPLETED", "CANCELLED"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const item = await TitlingRequest.findByIdAndUpdate(
+        req.params.id,
+        { status },
+        { new: true }
+      );
+      if (!item) {
+        return res.status(404).json({ message: "Titling request not found" });
+      }
+      await recordAudit({
+        actor: req.user.id,
+        action: "TITLING_STATUS_UPDATED",
+        context: { requestId: item._id.toString(), status },
+      });
+      res.json(item);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// List all consultancy requests (staff/admin)
+router.get(
+  "/consultancy",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { status } = req.query;
+      const filter = {};
+      if (status) filter.status = status;
+      const items = await ConsultancyRequest.find(filter)
+        .populate("userId", "email profile.fullName")
+        .sort({ createdAt: -1 });
+      res.json(items);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Get single consultancy request (staff/admin)
+router.get(
+  "/consultancy/:id",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const item = await ConsultancyRequest.findById(req.params.id)
+        .populate("userId", "email profile.fullName");
+      if (!item) {
+        return res.status(404).json({ message: "Consultancy request not found" });
+      }
+      res.json(item);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Update consultancy request status (staff/admin)
+router.patch(
+  "/consultancy/:id/status",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { status } = req.body;
+      const validStatuses = ["SUBMITTED", "APPOINTMENT_SET", "COMPLETED", "CANCELLED"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const item = await ConsultancyRequest.findByIdAndUpdate(
+        req.params.id,
+        { status },
+        { new: true }
+      );
+      if (!item) {
+        return res.status(404).json({ message: "Consultancy request not found" });
+      }
+      await recordAudit({
+        actor: req.user.id,
+        action: "CONSULTANCY_STATUS_UPDATED",
+        context: { requestId: item._id.toString(), status },
+      });
+      res.json(item);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// List all brokerage interests (staff/admin)
+router.get(
+  "/brokerage/interest",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { status, propertyId } = req.query;
+      const filter = {};
+      if (status) filter.status = status;
+      if (propertyId) filter.propertyId = propertyId;
+      const items = await InterestedBuyer.find(filter)
+        .populate("propertyId", "title location price status")
+        .populate("userId", "email profile.fullName")
+        .sort({ createdAt: -1 });
+      res.json(items);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Update brokerage interest status (staff/admin)
+router.patch(
+  "/brokerage/interest/:id/status",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { status } = req.body;
+      const validStatuses = ["NEW", "CONTACTED", "CLOSED"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const item = await InterestedBuyer.findByIdAndUpdate(
+        req.params.id,
+        { status },
+        { new: true }
+      );
+      if (!item) {
+        return res.status(404).json({ message: "Interest not found" });
+      }
+      await recordAudit({
+        actor: req.user.id,
+        action: "BROKERAGE_INTEREST_STATUS_UPDATED",
+        context: { interestId: item._id.toString(), status },
+      });
+      res.json(item);
     } catch (err) {
       next(err);
     }

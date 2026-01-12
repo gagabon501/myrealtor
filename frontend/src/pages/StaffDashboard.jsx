@@ -178,6 +178,9 @@ const StaffDashboard = () => {
           { label: "Properties", href: "/properties", desc: "Lifecycle controls" },
           { label: "Buyer Inquiries", href: "/admin/inquiries", desc: "Lead pipeline" },
           { label: "Applications", href: "/applications", desc: "Buyer applications" },
+          { label: "Service Requests", href: "/staff/services", desc: "Appraisal, Titling, Consultancy" },
+          { label: "Earnest Money", href: "/staff/earnest-money", desc: "EMA management" },
+          { label: "Appraisal Reports", href: "/staff/appraisal-reports", desc: "Report generation" },
           { label: "Notifications", href: "/notifications", desc: "Recent alerts" },
         ].map((item) => (
           <Grid item xs={12} sm={6} md={4} key={item.label}>

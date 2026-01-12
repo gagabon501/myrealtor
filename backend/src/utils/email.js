@@ -22,6 +22,21 @@ if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS) {
   });
 }
 
+export const sendEmail = async ({ to, subject, text, html }) => {
+  if (!transporter) {
+    console.warn("SMTP not configured, skipping email send");
+    return;
+  }
+
+  await transporter.sendMail({
+    from: SMTP_FROM,
+    to,
+    subject,
+    text,
+    html,
+  });
+};
+
 export const sendRegistrationEmail = async ({ to, name }) => {
   if (!transporter) {
     console.warn("SMTP not configured, skipping email send");

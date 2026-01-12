@@ -9,6 +9,8 @@ import {
   rejectListingRequest,
   setEarnestMoneyRequired,
   publishListingRequest,
+  updateSellerDetails,
+  finalizeAts,
 } from "../controllers/listingRequestController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
@@ -51,6 +53,21 @@ router.patch(
   authenticate,
   authorizeRoles("staff", "admin"),
   setEarnestMoneyRequired
+);
+
+// Update seller details (owner or staff/admin)
+router.patch(
+  "/:id/seller",
+  authenticate,
+  updateSellerDetails
+);
+
+// Finalize ATS and generate PDF (staff/admin only)
+router.post(
+  "/:id/finalize",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  finalizeAts
 );
 
 export default router;
