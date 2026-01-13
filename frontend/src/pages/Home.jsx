@@ -354,14 +354,15 @@ const Home = () => {
                 <Paper
                   sx={{
                     position: "absolute",
-                    bottom: -30,
-                    left: -30,
+                    bottom: -80,
+                    left: -50,
                     p: 2.5,
                     background: "rgba(255, 255, 255, 0.95)",
                     backdropFilter: "blur(10px)",
                     borderRadius: 3,
                     boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2)",
-                    display: { xs: "none", md: "block" },
+                    display: { xs: "none", lg: "block" },
+                    zIndex: 10,
                   }}
                 >
                   <Stack direction="row" spacing={3}>
