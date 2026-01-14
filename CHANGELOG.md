@@ -5,6 +5,44 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Unreleased]
 - Pending changes not yet tagged.
 
+## [Backend 1.2.1 / Frontend 0.3.1] – Appraisal Service Enhancements
+
+### Backend Changes
+- **Enhanced `/appraisal/mine` endpoint:**
+  - Now includes report status and PDF download URL for each request
+  - Fetches associated AppraisalReport data automatically
+  - Returns appointment date with request data
+
+- **Appraisal Status Notifications:**
+  - In-app notifications sent on status changes (IN_REVIEW, APPOINTMENT_SET, IN_PROGRESS, REPORT_READY, COMPLETED, CANCELLED)
+  - Email notifications with status-specific messages
+  - Links to dashboard for easy access
+
+- **New Appointment Endpoint:**
+  - `PATCH /appraisal/:id/appointment` for scheduling site visits
+  - Auto-advances status to APPOINTMENT_SET when appropriate
+  - Sends email confirmation with date, time, and property details
+  - Creates in-app notification for client
+
+### Frontend Changes
+- **Dashboard Appraisal Cards:**
+  - Color-coded status chips (success for COMPLETED, error for CANCELLED, info for REPORT_READY)
+  - Report status chip when report exists (DRAFT, FINAL, RELEASED)
+  - Appointment date display
+  - Appraisal rate display
+  - "Download Report" button when report is RELEASED
+
+- **Services Page Complete Redesign:**
+  - Modern hero section with gradient background and decorative elements
+  - Interactive feature cards for each service (Appraisal, Titling, Consultancy)
+  - Color-coded service themes (blue for appraisal, green for titling, purple for consultancy)
+  - Full-width tabs with icons and dynamic indicator colors
+  - Enhanced forms with input icons (person, email, phone, location, schedule)
+  - Pricing structure panel for appraisal service
+  - Gradient submit buttons with hover effects
+  - Sign-in prompt banner for unauthenticated users
+  - Dashed upload buttons with file count chips
+
 ## [Backend 1.2.0 / Frontend 0.3.0] – Modern UI Redesign
 
 ### Frontend Changes

@@ -7,10 +7,13 @@ import { validationResult } from "express-validator";
 import InterestedBuyer from "../models/InterestedBuyer.js";
 import BuyerInquiry from "../models/BuyerInquiry.js";
 import AppraisalRequest from "../models/AppraisalRequest.js";
+import AppraisalReport from "../models/AppraisalReport.js";
 import TitlingRequest from "../models/TitlingRequest.js";
 import ConsultancyRequest from "../models/ConsultancyRequest.js";
 import Property from "../models/Property.js";
 import { recordAudit } from "../utils/audit.js";
+import { createNotification } from "../utils/notifications.js";
+import { sendEmail } from "../utils/email.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
 const router = Router();
@@ -175,9 +178,36 @@ router.get("/appraisal/mine", authenticate, async (req, res, next) => {
         : userId
         ? { userId }
         : { email: regexEmail };
-    const items = await AppraisalRequest.find(query)
-      .select("propertyLocation status createdAt updatedAt rate")
+    const requests = await AppraisalRequest.find(query)
+      .select("propertyLocation status createdAt updatedAt rate appointment")
       .sort({ createdAt: -1 });
+
+    // Fetch associated reports for these requests
+    const requestIds = requests.map((r) => r._id);
+    const reports = await AppraisalReport.find({
+      appraisalRequestId: { $in: requestIds },
+    }).select("appraisalRequestId status pdfUrl");
+
+    // Map reports by request ID
+    const reportMap = {};
+    reports.forEach((r) => {
+      reportMap[r.appraisalRequestId.toString()] = {
+        reportStatus: r.status,
+        pdfUrl: r.status === "RELEASED" ? r.pdfUrl : null,
+      };
+    });
+
+    // Merge report data into items
+    const items = requests.map((r) => {
+      const obj = r.toObject();
+      const report = reportMap[r._id.toString()];
+      if (report) {
+        obj.reportStatus = report.reportStatus;
+        obj.pdfUrl = report.pdfUrl;
+      }
+      return obj;
+    });
+
     res.json({ items });
   } catch (err) {
     next(err);
@@ -406,6 +436,102 @@ router.patch(
         action: "APPRAISAL_STATUS_UPDATED",
         context: { requestId: item._id.toString(), status },
       });
+
+      // Send notification to the client
+      const statusMessages = {
+        IN_REVIEW: "Your appraisal request is now under review.",
+        APPOINTMENT_SET: `Your appraisal appointment has been scheduled${item.appointment ? ` for ${new Date(item.appointment).toLocaleDateString()}` : ""}.`,
+        IN_PROGRESS: "Your property appraisal is now in progress.",
+        REPORT_READY: "Your appraisal report is ready for review.",
+        COMPLETED: "Your appraisal has been completed. You can now download the report from your dashboard.",
+        CANCELLED: "Your appraisal request has been cancelled.",
+      };
+
+      if (item.userId && statusMessages[status]) {
+        await createNotification({
+          userId: item.userId,
+          type: "appraisal_status",
+          title: "Appraisal Status Update",
+          message: statusMessages[status],
+          link: "/dashboard",
+        });
+
+        // Also send email notification
+        if (item.email) {
+          await sendEmail({
+            to: item.email,
+            subject: `Appraisal Status Update: ${status.replace("_", " ")}`,
+            text: `Dear ${item.name || "Client"},\n\n${statusMessages[status]}\n\nProperty: ${item.propertyLocation}\n\nYou can view more details in your dashboard at ${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard\n\nBest regards,\nMyRealtor Team`,
+          });
+        }
+      }
+
+      res.json(item);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Set/update appraisal appointment (staff/admin)
+router.patch(
+  "/appraisal/:id/appointment",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  async (req, res, next) => {
+    try {
+      const { appointment } = req.body;
+      if (!appointment) {
+        return res.status(400).json({ message: "Appointment date is required" });
+      }
+
+      const appointmentDate = new Date(appointment);
+      if (isNaN(appointmentDate.getTime())) {
+        return res.status(400).json({ message: "Invalid date format" });
+      }
+
+      // Update appointment and set status to APPOINTMENT_SET if still in early stages
+      const item = await AppraisalRequest.findById(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Appraisal request not found" });
+      }
+
+      item.appointment = appointmentDate;
+      // Auto-advance status if still in early stages
+      if (["SUBMITTED", "IN_REVIEW"].includes(item.status)) {
+        item.status = "APPOINTMENT_SET";
+      }
+      await item.save();
+
+      await recordAudit({
+        actor: req.user.id,
+        action: "APPRAISAL_APPOINTMENT_SET",
+        context: {
+          requestId: item._id.toString(),
+          appointment: appointmentDate.toISOString(),
+        },
+      });
+
+      // Send notification to client
+      if (item.userId) {
+        await createNotification({
+          userId: item.userId,
+          type: "appraisal_appointment",
+          title: "Appraisal Appointment Scheduled",
+          message: `Your appraisal appointment has been scheduled for ${appointmentDate.toLocaleDateString()} at ${appointmentDate.toLocaleTimeString()}.`,
+          link: "/dashboard",
+        });
+      }
+
+      // Send email confirmation
+      if (item.email) {
+        await sendEmail({
+          to: item.email,
+          subject: "Appraisal Appointment Confirmation",
+          text: `Dear ${item.name || "Client"},\n\nYour appraisal appointment has been scheduled.\n\nDate: ${appointmentDate.toLocaleDateString()}\nTime: ${appointmentDate.toLocaleTimeString()}\nProperty: ${item.propertyLocation}\n\nPlease ensure someone is available at the property during the scheduled time. If you need to reschedule, please contact us.\n\nBest regards,\nMyRealtor Team`,
+        });
+      }
+
       res.json(item);
     } catch (err) {
       next(err);

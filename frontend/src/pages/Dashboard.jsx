@@ -492,9 +492,64 @@ const Dashboard = () => {
                     <Typography variant="subtitle1">
                       {item.propertyLocation || "Appraisal request"}
                     </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                      <Chip label={item.status || "SUBMITTED"} size="small" />
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap" useFlexGap>
+                      <Chip
+                        label={item.status || "SUBMITTED"}
+                        size="small"
+                        color={
+                          item.status === "COMPLETED"
+                            ? "success"
+                            : item.status === "CANCELLED"
+                            ? "error"
+                            : item.status === "REPORT_READY"
+                            ? "info"
+                            : "default"
+                        }
+                      />
+                      {item.reportStatus && (
+                        <Chip
+                          label={`Report: ${item.reportStatus}`}
+                          size="small"
+                          color={
+                            item.reportStatus === "RELEASED"
+                              ? "success"
+                              : item.reportStatus === "FINAL"
+                              ? "info"
+                              : "default"
+                          }
+                          variant="outlined"
+                        />
+                      )}
+                      {item.rate && (
+                        <Chip
+                          label={`₱${Number(item.rate).toLocaleString()}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
                     </Stack>
+                    {item.appointment && (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1 }}
+                      >
+                        Appointment:{" "}
+                        {new Date(item.appointment).toLocaleDateString()}
+                      </Typography>
+                    )}
+                    {item.pdfUrl && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        href={item.pdfUrl}
+                        target="_blank"
+                        sx={{ mt: 1 }}
+                      >
+                        Download Report
+                      </Button>
+                    )}
                     <Typography
                       variant="caption"
                       color="text.secondary"
