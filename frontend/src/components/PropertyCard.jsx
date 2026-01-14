@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -27,6 +28,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ImageIcon from "@mui/icons-material/Image";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const normalizeImageUrl = (image) => {
   if (!image) return null;
@@ -55,13 +58,38 @@ const PropertyCard = ({
   isInterested = false,
 }) => {
   const { user } = useAuth();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const rawImages = property.images;
-  const images = Array.isArray(rawImages)
+  const allImages = Array.isArray(rawImages)
     ? rawImages
     : rawImages
     ? [rawImages]
     : [];
-  const imageUrl = normalizeImageUrl(images[0]);
+  // Limit to max 4 images
+  const images = allImages.slice(0, 4);
+  const imageUrls = images.map(normalizeImageUrl).filter(Boolean);
+  const currentImageUrl = imageUrls[currentImageIndex] || null;
+  const hasMultipleImages = imageUrls.length > 1;
+
+  const handlePrevImage = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setCurrentImageIndex((prev) => (prev === 0 ? imageUrls.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setCurrentImageIndex((prev) => (prev === imageUrls.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleDotClick = (e, index) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setCurrentImageIndex(index);
+  };
+
   const statusUpper = String(property.status || "DRAFT").toUpperCase();
   const published = property.published || statusUpper === "PUBLISHED" || statusUpper === "AVAILABLE";
   const actionableApply = published && (statusUpper === "PUBLISHED" || statusUpper === "AVAILABLE");
@@ -114,12 +142,12 @@ const PropertyCard = ({
         },
       }}
     >
-      {/* Image Section */}
+      {/* Image Section with Slider */}
       <Box sx={{ position: "relative", overflow: "hidden" }}>
-        {imageUrl ? (
+        {currentImageUrl ? (
           <CardActionArea
             component="a"
-            href={imageUrl}
+            href={currentImageUrl}
             target="_blank"
             rel="noreferrer"
           >
@@ -131,8 +159,8 @@ const PropertyCard = ({
                 objectFit: "cover",
                 transition: "transform 0.5s ease",
               }}
-              image={imageUrl}
-              alt={property.title}
+              image={currentImageUrl}
+              alt={`${property.title} - Image ${currentImageIndex + 1}`}
             />
           </CardActionArea>
         ) : (
@@ -146,6 +174,102 @@ const PropertyCard = ({
             }}
           >
             <ImageIcon sx={{ fontSize: 64, color: "#cbd5e1" }} />
+          </Box>
+        )}
+
+        {/* Navigation Arrows */}
+        {hasMultipleImages && (
+          <>
+            <IconButton
+              onClick={handlePrevImage}
+              sx={{
+                position: "absolute",
+                left: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                width: 32,
+                height: 32,
+                "&:hover": {
+                  backgroundColor: "#fff",
+                },
+              }}
+            >
+              <ChevronLeftIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+            <IconButton
+              onClick={handleNextImage}
+              sx={{
+                position: "absolute",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                backgroundColor: "rgba(255,255,255,0.9)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                width: 32,
+                height: 32,
+                "&:hover": {
+                  backgroundColor: "#fff",
+                },
+              }}
+            >
+              <ChevronRightIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </>
+        )}
+
+        {/* Dot Indicators */}
+        {hasMultipleImages && (
+          <Stack
+            direction="row"
+            spacing={0.75}
+            sx={{
+              position: "absolute",
+              bottom: 12,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 2,
+            }}
+          >
+            {imageUrls.map((_, index) => (
+              <Box
+                key={index}
+                onClick={(e) => handleDotClick(e, index)}
+                sx={{
+                  width: index === currentImageIndex ? 20 : 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: index === currentImageIndex ? "#fff" : "rgba(255,255,255,0.5)",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                  "&:hover": {
+                    backgroundColor: "#fff",
+                  },
+                }}
+              />
+            ))}
+          </Stack>
+        )}
+
+        {/* Image Counter */}
+        {imageUrls.length > 0 && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backdropFilter: "blur(4px)",
+              borderRadius: 1,
+              px: 1,
+              py: 0.25,
+            }}
+          >
+            <Typography variant="caption" sx={{ color: "#fff", fontWeight: 500 }}>
+              {currentImageIndex + 1}/{imageUrls.length}
+            </Typography>
           </Box>
         )}
 
