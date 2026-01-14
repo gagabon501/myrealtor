@@ -5,7 +5,71 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Unreleased]
 - Pending changes not yet tagged.
 
-## [Backend 1.2.0 / Frontend 0.3.0] – V0 Completion & V1 Foundation
+## [Backend 1.2.0 / Frontend 0.3.0] – Modern UI Redesign
+
+### Frontend Changes
+- **Complete UI Overhaul:**
+  - Modern theme with custom color palette (sky blue #0ea5e9, indigo #6366f1)
+  - Inter font family with refined typography scale
+  - Tailwind-inspired shadow system
+  - Component overrides for buttons, cards, text fields, chips, dialogs
+
+- **TopBar Redesign:**
+  - Glassmorphism navigation with scroll-triggered effects
+  - Mobile-responsive drawer menu with user avatar
+  - Active route indicators with gradient underlines
+  - Services dropdown menu
+  - Gradient CTA buttons
+
+- **Home Page:**
+  - Stunning hero section with animated gradient backgrounds
+  - Floating animated orbs with blur effects
+  - "How It Works" feature card with step-by-step guide
+  - Floating stats card (500+ properties, 98% satisfied)
+  - Trust badges (DHSUD Compliant, Licensed Brokers, Secure Platform)
+  - Features section with icon cards
+  - Stats section with gradient numbers
+  - Modern CTA block with dual buttons
+
+- **Properties Page:**
+  - Hero header with gradient background
+  - Floating search card with filter chips
+  - Skeleton loading states
+  - Modern grid layout with responsive columns
+  - Empty state with icon and messaging
+
+- **PropertyCard:**
+  - Premium card design with hover lift animation
+  - Image zoom effect on hover
+  - Gradient status badges (Available, Reserved, Sold, etc.)
+  - Price tags with blur backdrop
+  - Feature icons (bed, bath, area)
+  - Interest/Apply action buttons with tooltips
+
+- **Login Page:**
+  - Full-screen gradient background with animated elements
+  - Centered glassmorphic card
+  - Icon-enhanced form fields
+  - Trust indicators below form
+
+- **Register Page:**
+  - Split layout with benefits section on left
+  - Animated background orbs
+  - Two-column form layout
+  - Gradient submit button
+  - Checklist of platform benefits
+
+- **Global CSS:**
+  - Animation keyframes (fadeIn, fadeInUp, float, shimmer, bounce, etc.)
+  - Utility classes for gradients and glassmorphism
+  - Hover effects (lift, scale, glow)
+  - Custom scrollbar styling
+  - Reduced motion support for accessibility
+  - Selection color customization
+
+---
+
+## [Backend 1.1.112 / Frontend 0.2.112] – V0 Completion & V1 Foundation
 
 ### Backend Changes
 - **New Models:**
