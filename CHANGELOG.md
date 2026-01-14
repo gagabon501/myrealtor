@@ -5,6 +5,24 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Unreleased]
 - Pending changes not yet tagged.
 
+## [Frontend 0.3.2] – Property Display Enhancements
+
+### Frontend Changes
+- **PropertyCard Image Slider:**
+  - Added left/right navigation arrows to cycle through property images
+  - Dot indicators at bottom showing current position (active dot expands)
+  - Image counter badge in top-right corner (e.g., "1/4", "2/4")
+  - Maximum of 4 images displayed per property
+  - Smooth transitions and hover effects on controls
+
+- **Property Sorting:**
+  - Properties now sorted by status: AVAILABLE/PUBLISHED first, then RESERVED
+  - Within each status group, sorted by date (newest first)
+
+- **Bug Fix:**
+  - Fixed "not accepting inquiries" message showing on AVAILABLE properties
+  - Properties with status AVAILABLE now correctly show Interest/Apply buttons
+
 ## [Backend 1.2.1 / Frontend 0.3.1] – Appraisal Service Enhancements
 
 ### Backend Changes
