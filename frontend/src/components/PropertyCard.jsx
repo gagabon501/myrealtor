@@ -63,8 +63,8 @@ const PropertyCard = ({
     : [];
   const imageUrl = normalizeImageUrl(images[0]);
   const statusUpper = String(property.status || "DRAFT").toUpperCase();
-  const published = property.published || statusUpper === "PUBLISHED";
-  const actionableApply = published && statusUpper === "PUBLISHED";
+  const published = property.published || statusUpper === "PUBLISHED" || statusUpper === "AVAILABLE";
+  const actionableApply = published && (statusUpper === "PUBLISHED" || statusUpper === "AVAILABLE");
   const actionableInterested =
     published && statusUpper !== "RESERVED" && statusUpper !== "SOLD";
   const role = user?.role ? String(user.role).toLowerCase() : "public";
