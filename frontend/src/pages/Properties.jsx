@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Alert,
   Container,
@@ -80,6 +80,31 @@ const Properties = () => {
       setLoading(false);
     }
   };
+
+  // Sort properties: AVAILABLE/PUBLISHED first, then RESERVED, then others
+  // Within each group, sort by createdAt descending (newest first)
+  const sortedProperties = useMemo(() => {
+    const statusPriority = (status) => {
+      const s = String(status || "").toUpperCase();
+      if (s === "AVAILABLE" || s === "PUBLISHED") return 0;
+      if (s === "RESERVED") return 1;
+      return 2;
+    };
+
+    return [...propertyList].sort((a, b) => {
+      const priorityA = statusPriority(a.status);
+      const priorityB = statusPriority(b.status);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // Within same status group, sort by date (newest first)
+      const dateA = new Date(a.createdAt || 0);
+      const dateB = new Date(b.createdAt || 0);
+      return dateB - dateA;
+    });
+  }, [propertyList]);
 
   const loadInterested = async () => {
     if (!isClient) return;
@@ -503,9 +528,9 @@ const Properties = () => {
               </Grid>
             ))}
           </Grid>
-        ) : propertyList.length > 0 ? (
+        ) : sortedProperties.length > 0 ? (
           <Grid container spacing={3}>
-            {propertyList.map((property) => (
+            {sortedProperties.map((property) => (
               <Grid item xs={12} sm={6} lg={4} key={property._id}>
                 <PropertyCard
                   property={property}
