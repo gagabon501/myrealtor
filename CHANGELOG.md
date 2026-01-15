@@ -6,6 +6,68 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Backend 1.3.0 / Frontend 0.4.0] – Appointment Booking System
+
+### Backend Changes
+
+- **Appointment Model Updates:**
+  - Added `CLOSED` status to appointment status enum
+  - Added `closedBy`, `closedAt`, and `closureNotes` fields for case closure tracking
+
+- **New iCal Utility (`utils/ical.js`):**
+  - RFC 5545 compliant iCalendar file generation
+  - Google Calendar URL generator for direct calendar integration
+  - Supports all service types with proper event formatting
+
+- **New Appointment Endpoints:**
+  - `POST /appointments/:id/close` - Close completed appointments with notes
+  - `POST /appointments/:id/no-show` - Mark appointments as no-show
+  - `GET /appointments/availability` - Check booked time slots for a date
+  - `GET /appointments/:id/ical` - Download .ics file for calendar import
+  - `GET /appointments/:id/google-calendar` - Get Google Calendar add-event URL
+
+### Frontend Changes
+
+- **New Components:**
+  - `AppointmentBookingWidget` - Reusable booking widget with MUI X date picker, time slot selection, availability check, and Google Calendar integration
+  - `AppointmentCalendar` - Monthly calendar view for staff with color-coded appointments by status and service type
+  - `AppointmentDetailModal` - Modal for viewing/managing appointments with actions (confirm, cancel, reschedule, complete, close, no-show)
+
+- **New Pages:**
+  - `StaffAppointments` - Staff appointment management page with stats cards, calendar view, and list view
+
+- **Services Page Enhancement:**
+  - Integrated `AppointmentBookingWidget` after successful service request submission
+  - Users can immediately book an appointment after submitting appraisal/titling/consultancy requests
+
+- **Dashboard Enhancement:**
+  - Added "My Appointments" section showing upcoming appointments
+  - Google Calendar and .ics export buttons for confirmed appointments
+  - Status chips with color coding (REQUESTED=warning, CONFIRMED=success, etc.)
+
+- **Navigation Updates:**
+  - Added "Appointments" link in TopBar for staff/admin (desktop and mobile)
+  - Route `/staff/appointments` added to App.jsx
+
+- **New Dependencies:**
+  - `@mui/x-date-pickers` - MUI date/time picker components
+  - `@date-io/dayjs` - Date adapter for MUI pickers
+
+### Workflow
+
+```
+User Flow:
+1. Submit service request → Booking widget appears
+2. Select date/time → Appointment created (REQUESTED)
+3. View in Dashboard with calendar export options
+
+Staff Flow:
+1. Navigate to /staff/appointments
+2. View calendar with color-coded appointments
+3. Click to open detail modal
+4. Actions: Confirm → Complete → Close (or Cancel/No-Show)
+```
+
 ## [Frontend 0.3.5] – Goshen Realty Branding
 
 ### Frontend Changes
