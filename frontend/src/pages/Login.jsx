@@ -21,6 +21,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import HomeWorkIcon from "@mui/icons-material/HomeWork";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import GoshenLogo from "../assets/Goshen_Realty_Logo.svg";
 
 const Login = () => {
   const { login } = useAuth();
@@ -124,31 +125,20 @@ const Login = () => {
               sx={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 1.5,
+                justifyContent: "center",
                 textDecoration: "none",
                 mb: 3,
               }}
             >
-              <Box
-                sx={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 2.5,
-                  background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontWeight: 800,
-                  fontSize: "1.1rem",
-                  boxShadow: "0 4px 14px rgba(14, 165, 233, 0.4)",
+              <img
+                src={GoshenLogo}
+                alt="Goshen Realty"
+                style={{
+                  height: 80,
+                  width: "auto",
+                  objectFit: "contain",
                 }}
-              >
-                MR
-              </Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a" }}>
-                MyRealtor
-              </Typography>
+              />
             </Box>
 
             <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a", mb: 1 }}>
@@ -253,7 +243,7 @@ const Login = () => {
           </Box>
 
           <Divider sx={{ my: 4 }}>
-            <Chip label="New to MyRealtor?" size="small" sx={{ color: "#64748b" }} />
+            <Chip label="New to Goshen Realty?" size="small" sx={{ color: "#64748b" }} />
           </Divider>
 
           <Box sx={{ textAlign: "center" }}>

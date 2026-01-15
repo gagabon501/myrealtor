@@ -6,6 +6,18 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Frontend 0.3.5] – Goshen Realty Branding
+
+### Frontend Changes
+
+- **App Logo Update:**
+  - Replaced placeholder "MR" logo with official Goshen Realty logo
+  - Created SVG version for transparent background and scalability
+  - Logo now displays in TopBar navigation, Login page, and Register page
+
+- **Brand Text Updates:**
+  - Updated "MyRealtor" references to "Goshen Realty" in Login and Register pages
+
 ## [Frontend 0.3.4] – Properties Layout Expansion
 
 ### Frontend Changes

@@ -23,6 +23,7 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import LockIcon from "@mui/icons-material/Lock";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import GoshenLogo from "../assets/Goshen_Realty_Logo.svg";
 
 const Register = () => {
   const { register } = useAuth();
@@ -169,7 +170,7 @@ const Register = () => {
                   lineHeight: 1.7,
                 }}
               >
-                Join thousands of clients who trust MyRealtor for their real estate needs in the Philippines.
+                Join thousands of clients who trust Goshen Realty for their real estate needs in the Philippines.
               </Typography>
 
               <Stack spacing={2}>
@@ -217,31 +218,20 @@ const Register = () => {
                   sx={{
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: 1.5,
+                    justifyContent: "center",
                     textDecoration: "none",
                     mb: 2,
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 2.5,
-                      background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      fontWeight: 800,
-                      fontSize: "1.1rem",
-                      boxShadow: "0 4px 14px rgba(14, 165, 233, 0.4)",
+                  <img
+                    src={GoshenLogo}
+                    alt="Goshen Realty"
+                    style={{
+                      height: 80,
+                      width: "auto",
+                      objectFit: "contain",
                     }}
-                  >
-                    MR
-                  </Box>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a" }}>
-                    MyRealtor
-                  </Typography>
+                  />
                 </Box>
 
                 <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a", mb: 1 }}>

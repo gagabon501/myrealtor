@@ -45,6 +45,7 @@ import HandshakeIcon from "@mui/icons-material/Handshake";
 import GavelIcon from "@mui/icons-material/Gavel";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import GoshenLogo from "../assets/Goshen_Realty_Logo.svg";
 
 const ALLOWED_ROLES = ["user", "staff", "admin"];
 
@@ -368,7 +369,7 @@ const TopBar = () => {
               textDecoration: "none",
               display: "flex",
               alignItems: "center",
-              gap: 1.5,
+              gap: 1,
               px: 1,
               py: 0.5,
               borderRadius: 2,
@@ -379,44 +380,19 @@ const TopBar = () => {
             }}
           >
             <Box
-              sx={{
-                width: 42,
-                height: 42,
-                borderRadius: "12px",
-                background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-                display: "grid",
-                placeItems: "center",
-                color: "#fff",
-                fontWeight: 800,
-                fontSize: "1rem",
-                letterSpacing: -0.5,
-                boxShadow: "0 4px 14px rgba(14, 165, 233, 0.4)",
-              }}
+              component={Link}
+              to="/"
+              sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}
             >
-              MR
-            </Box>
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 800,
-                  color: "#0f172a",
-                  lineHeight: 1.1,
-                  fontSize: "1.1rem",
+              <img
+                src={GoshenLogo}
+                alt="Goshen Realty"
+                style={{
+                  height: 48,
+                  width: "auto",
+                  objectFit: "contain",
                 }}
-              >
-                MyRealtor
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: "text.secondary",
-                  fontWeight: 500,
-                  letterSpacing: 1,
-                }}
-              >
-                PHILIPPINES
-              </Typography>
+              />
             </Box>
           </Box>
 
