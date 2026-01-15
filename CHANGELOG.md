@@ -5,6 +5,11 @@ All notable changes to this project are documented here. Version numbers refer t
 ## [Unreleased]
 - Pending changes not yet tagged.
 
+## [Frontend 0.3.3] – Developer Documentation
+
+### Project Changes
+- **CLAUDE.md:** Added Claude Code guidance file with project overview, development commands, tech stack, architecture patterns, domain rules, and development guidelines for AI-assisted development.
+
 ## [Frontend 0.3.2] – Property Display Enhancements
 
 ### Frontend Changes
