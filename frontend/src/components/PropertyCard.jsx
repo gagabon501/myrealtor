@@ -75,13 +75,17 @@ const PropertyCard = ({
   const handlePrevImage = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    setCurrentImageIndex((prev) => (prev === 0 ? imageUrls.length - 1 : prev - 1));
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? imageUrls.length - 1 : prev - 1
+    );
   };
 
   const handleNextImage = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    setCurrentImageIndex((prev) => (prev === imageUrls.length - 1 ? 0 : prev + 1));
+    setCurrentImageIndex((prev) =>
+      prev === imageUrls.length - 1 ? 0 : prev + 1
+    );
   };
 
   const handleDotClick = (e, index) => {
@@ -91,8 +95,12 @@ const PropertyCard = ({
   };
 
   const statusUpper = String(property.status || "DRAFT").toUpperCase();
-  const published = property.published || statusUpper === "PUBLISHED" || statusUpper === "AVAILABLE";
-  const actionableApply = published && (statusUpper === "PUBLISHED" || statusUpper === "AVAILABLE");
+  const published =
+    property.published ||
+    statusUpper === "PUBLISHED" ||
+    statusUpper === "AVAILABLE";
+  const actionableApply =
+    published && (statusUpper === "PUBLISHED" || statusUpper === "AVAILABLE");
   const actionableInterested =
     published && statusUpper !== "RESERVED" && statusUpper !== "SOLD";
   const role = user?.role ? String(user.role).toLowerCase() : "public";
@@ -100,17 +108,53 @@ const PropertyCard = ({
   const canApply = isClient;
 
   const statusConfig = {
-    PUBLISHED: { label: "Available", color: "success", bg: "linear-gradient(135deg, #10b981, #059669)" },
-    RESERVED: { label: "Reserved", color: "warning", bg: "linear-gradient(135deg, #f59e0b, #d97706)" },
-    SOLD: { label: "Sold", color: "error", bg: "linear-gradient(135deg, #ef4444, #dc2626)" },
-    DRAFT: { label: "Draft", color: "default", bg: "linear-gradient(135deg, #64748b, #475569)" },
-    WITHDRAWN: { label: "Withdrawn", color: "default", bg: "linear-gradient(135deg, #64748b, #475569)" },
-    AVAILABLE: { label: "Available", color: "success", bg: "linear-gradient(135deg, #10b981, #059669)" },
-    UNDER_NEGOTIATION: { label: "Under Negotiation", color: "info", bg: "linear-gradient(135deg, #6366f1, #4f46e5)" },
-    ARCHIVED: { label: "Archived", color: "default", bg: "linear-gradient(135deg, #64748b, #475569)" },
+    PUBLISHED: {
+      label: "Available",
+      color: "success",
+      bg: "linear-gradient(135deg, #10b981, #059669)",
+    },
+    RESERVED: {
+      label: "Reserved",
+      color: "warning",
+      bg: "linear-gradient(135deg, #f59e0b, #d97706)",
+    },
+    SOLD: {
+      label: "Sold",
+      color: "error",
+      bg: "linear-gradient(135deg, #ef4444, #dc2626)",
+    },
+    DRAFT: {
+      label: "Draft",
+      color: "default",
+      bg: "linear-gradient(135deg, #64748b, #475569)",
+    },
+    WITHDRAWN: {
+      label: "Withdrawn",
+      color: "default",
+      bg: "linear-gradient(135deg, #64748b, #475569)",
+    },
+    AVAILABLE: {
+      label: "Available",
+      color: "success",
+      bg: "linear-gradient(135deg, #10b981, #059669)",
+    },
+    UNDER_NEGOTIATION: {
+      label: "Under Negotiation",
+      color: "info",
+      bg: "linear-gradient(135deg, #6366f1, #4f46e5)",
+    },
+    ARCHIVED: {
+      label: "Archived",
+      color: "default",
+      bg: "linear-gradient(135deg, #64748b, #475569)",
+    },
   };
 
-  const status = statusConfig[statusUpper] || { label: statusUpper, color: "default", bg: "#64748b" };
+  const status = statusConfig[statusUpper] || {
+    label: statusUpper,
+    color: "default",
+    bg: "#64748b",
+  };
 
   const formatPrice = (price) => {
     if (!price) return "Price on Request";
@@ -124,6 +168,7 @@ const PropertyCard = ({
     <Card
       sx={{
         height: "100%",
+        width: "100%",
         display: "flex",
         flexDirection: "column",
         borderRadius: 3,
@@ -155,7 +200,7 @@ const PropertyCard = ({
               component="img"
               className="property-image"
               sx={{
-                height: { xs: 200, md: 220 },
+                height: { xs: 160, sm: 200, md: 220 },
                 objectFit: "cover",
                 transition: "transform 0.5s ease",
               }}
@@ -166,14 +211,14 @@ const PropertyCard = ({
         ) : (
           <Box
             sx={{
-              height: { xs: 200, md: 220 },
+              height: { xs: 160, sm: 200, md: 220 },
               background: "linear-gradient(135deg, #f1f5f9, #e2e8f0)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <ImageIcon sx={{ fontSize: 64, color: "#cbd5e1" }} />
+            <ImageIcon sx={{ fontSize: { xs: 48, sm: 64 }, color: "#cbd5e1" }} />
           </Box>
         )}
 
@@ -240,7 +285,10 @@ const PropertyCard = ({
                   width: index === currentImageIndex ? 20 : 8,
                   height: 8,
                   borderRadius: 4,
-                  backgroundColor: index === currentImageIndex ? "#fff" : "rgba(255,255,255,0.5)",
+                  backgroundColor:
+                    index === currentImageIndex
+                      ? "#fff"
+                      : "rgba(255,255,255,0.5)",
                   cursor: "pointer",
                   transition: "all 0.3s ease",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
@@ -267,7 +315,10 @@ const PropertyCard = ({
               py: 0.25,
             }}
           >
-            <Typography variant="caption" sx={{ color: "#fff", fontWeight: 500 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "#fff", fontWeight: 500 }}
+            >
               {currentImageIndex + 1}/{imageUrls.length}
             </Typography>
           </Box>
@@ -293,13 +344,13 @@ const PropertyCard = ({
         <Box
           sx={{
             position: "absolute",
-            bottom: 12,
-            right: 12,
+            bottom: { xs: 8, sm: 12 },
+            right: { xs: 8, sm: 12 },
             background: "rgba(15, 23, 42, 0.9)",
             backdropFilter: "blur(8px)",
             borderRadius: 2,
-            px: 2,
-            py: 0.75,
+            px: { xs: 1, sm: 2 },
+            py: { xs: 0.5, sm: 0.75 },
           }}
         >
           <Typography
@@ -307,6 +358,7 @@ const PropertyCard = ({
             sx={{
               color: "#fff",
               fontWeight: 700,
+              fontSize: { xs: "0.8rem", sm: "1rem" },
               letterSpacing: "-0.01em",
             }}
           >
@@ -332,7 +384,10 @@ const PropertyCard = ({
             }}
           >
             <ImageIcon sx={{ fontSize: 16, color: "#fff" }} />
-            <Typography variant="caption" sx={{ color: "#fff", fontWeight: 600 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "#fff", fontWeight: 600 }}
+            >
               {images.length}
             </Typography>
           </Box>
@@ -363,7 +418,7 @@ const PropertyCard = ({
       </Box>
 
       {/* Content Section */}
-      <CardContent sx={{ flex: 1, p: 2.5 }}>
+      <CardContent sx={{ flex: 1, p: { xs: 1.5, sm: 2, md: 2.5 } }}>
         <Typography
           variant="h6"
           sx={{
@@ -371,6 +426,7 @@ const PropertyCard = ({
             color: "#0f172a",
             mb: 0.5,
             lineHeight: 1.3,
+            fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
             overflow: "hidden",
             textOverflow: "ellipsis",
             display: "-webkit-box",
@@ -381,12 +437,13 @@ const PropertyCard = ({
           {property.title}
         </Typography>
 
-        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 2 }}>
-          <LocationOnIcon sx={{ fontSize: 16, color: "#64748b" }} />
+        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: { xs: 1, sm: 2 } }}>
+          <LocationOnIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: "#64748b" }} />
           <Typography
             variant="body2"
             sx={{
               color: "#64748b",
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -400,34 +457,45 @@ const PropertyCard = ({
         {(property.bedrooms || property.bathrooms || property.area) && (
           <Stack
             direction="row"
-            spacing={2}
+            spacing={{ xs: 1, sm: 2 }}
             sx={{
-              mb: 2,
-              p: 1.5,
+              mb: { xs: 1, sm: 2 },
+              p: { xs: 1, sm: 1.5 },
               background: "#f8fafc",
               borderRadius: 2,
+              flexWrap: "wrap",
+              gap: { xs: 0.5, sm: 0 },
             }}
           >
             {property.bedrooms && (
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <BedIcon sx={{ fontSize: 18, color: "#0ea5e9" }} />
-                <Typography variant="body2" sx={{ fontWeight: 600, color: "#0f172a" }}>
+                <BedIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: "#0ea5e9" }} />
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 600, color: "#0f172a", fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                >
                   {property.bedrooms}
                 </Typography>
               </Stack>
             )}
             {property.bathrooms && (
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <BathtubIcon sx={{ fontSize: 18, color: "#0ea5e9" }} />
-                <Typography variant="body2" sx={{ fontWeight: 600, color: "#0f172a" }}>
+                <BathtubIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: "#0ea5e9" }} />
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 600, color: "#0f172a", fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                >
                   {property.bathrooms}
                 </Typography>
               </Stack>
             )}
             {property.area && (
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <SquareFootIcon sx={{ fontSize: 18, color: "#0ea5e9" }} />
-                <Typography variant="body2" sx={{ fontWeight: 600, color: "#0f172a" }}>
+                <SquareFootIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: "#0ea5e9" }} />
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 600, color: "#0f172a", fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                >
                   {property.area} sqm
                 </Typography>
               </Stack>
@@ -435,7 +503,7 @@ const PropertyCard = ({
           </Stack>
         )}
 
-        {/* Description */}
+        {/* Description - hidden on mobile */}
         {property.description && (
           <Typography
             variant="body2"
@@ -444,7 +512,7 @@ const PropertyCard = ({
               lineHeight: 1.6,
               overflow: "hidden",
               textOverflow: "ellipsis",
-              display: "-webkit-box",
+              display: { xs: "none", sm: "-webkit-box" },
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
             }}
@@ -454,7 +522,12 @@ const PropertyCard = ({
         )}
 
         {/* Tags */}
-        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 2, gap: 0.5 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          sx={{ mt: 2, gap: 0.5 }}
+        >
           {property.earnestMoneyRequired && (
             <Chip
               label="Earnest Money"
@@ -484,9 +557,14 @@ const PropertyCard = ({
 
       {/* Actions Section */}
       <Divider />
-      <CardActions sx={{ p: 2, background: "#fafafa" }}>
+      <CardActions sx={{ p: { xs: 1, sm: 1.5, md: 2 }, background: "#fafafa" }}>
         {canManage ? (
-          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ width: "100%", gap: 0.5 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            flexWrap="wrap"
+            sx={{ width: "100%", gap: 0.5 }}
+          >
             <Tooltip title="Edit">
               <IconButton
                 size="small"
@@ -523,7 +601,9 @@ const PropertyCard = ({
                   ml: "auto",
                   background: "linear-gradient(135deg, #10b981, #059669)",
                   color: "#fff",
-                  "&:hover": { background: "linear-gradient(135deg, #34d399, #10b981)" },
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #34d399, #10b981)",
+                  },
                 }}
               >
                 Publish
@@ -532,10 +612,18 @@ const PropertyCard = ({
 
             {statusUpper === "PUBLISHED" && (
               <>
-                <Button size="small" onClick={() => onReserve?.(property)} sx={{ fontSize: "0.75rem" }}>
+                <Button
+                  size="small"
+                  onClick={() => onReserve?.(property)}
+                  sx={{ fontSize: "0.75rem" }}
+                >
                   Reserve
                 </Button>
-                <Button size="small" onClick={() => onSold?.(property)} sx={{ fontSize: "0.75rem" }}>
+                <Button
+                  size="small"
+                  onClick={() => onSold?.(property)}
+                  sx={{ fontSize: "0.75rem" }}
+                >
                   Mark Sold
                 </Button>
                 <IconButton
@@ -550,10 +638,18 @@ const PropertyCard = ({
 
             {statusUpper === "RESERVED" && (
               <>
-                <Button size="small" onClick={() => onSold?.(property)} sx={{ fontSize: "0.75rem" }}>
+                <Button
+                  size="small"
+                  onClick={() => onSold?.(property)}
+                  sx={{ fontSize: "0.75rem" }}
+                >
                   Mark Sold
                 </Button>
-                <Button size="small" onClick={() => onUnpublish?.(property)} sx={{ fontSize: "0.75rem" }}>
+                <Button
+                  size="small"
+                  onClick={() => onUnpublish?.(property)}
+                  sx={{ fontSize: "0.75rem" }}
+                >
                   Unpublish
                 </Button>
               </>

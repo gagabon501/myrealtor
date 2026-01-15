@@ -6,6 +6,17 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Frontend 0.3.4] – Properties Layout Expansion
+
+### Frontend Changes
+
+- **Properties Page Layout:**
+  - Expanded container width from `lg` to `xl` for better property grid display
+  - Search section and properties grid now utilize more screen real estate
+
+- **Code Quality:**
+  - Formatting improvements in PropertyCard and Properties components
+
 ## [Frontend 0.3.2] – Property Display Enhancements
 
 ### Frontend Changes

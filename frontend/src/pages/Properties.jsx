@@ -288,7 +288,8 @@ const Properties = () => {
       "Withdraw this property? It will be hidden from public."
     );
 
-  const hasActiveFilters = filters.search || filters.location || filters.minPrice || filters.maxPrice;
+  const hasActiveFilters =
+    filters.search || filters.location || filters.minPrice || filters.maxPrice;
 
   return (
     <Box sx={{ minHeight: "100vh", background: "#f8fafc" }}>
@@ -353,7 +354,7 @@ const Properties = () => {
       </Box>
 
       {/* Search Section - Floating Card */}
-      <Container maxWidth="lg" sx={{ mt: { xs: -6, md: -8 }, mb: 4 }}>
+      <Container maxWidth="xl" sx={{ mt: { xs: -6, md: -8 }, mb: 4 }}>
         <Paper
           component="form"
           onSubmit={applyFilters}
@@ -447,9 +448,11 @@ const Properties = () => {
                 fullWidth
                 sx={{
                   py: 1.75,
-                  background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
+                  background:
+                    "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
                   "&:hover": {
-                    background: "linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)",
+                    background:
+                      "linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)",
                   },
                 }}
               >
@@ -459,8 +462,21 @@ const Properties = () => {
           </Grid>
 
           {hasActiveFilters && (
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2, pt: 2, borderTop: "1px solid", borderColor: "divider" }}>
-              <Typography variant="body2" sx={{ color: "text.secondary", mr: 1 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{
+                mt: 2,
+                pt: 2,
+                borderTop: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", mr: 1 }}
+              >
                 Active filters:
               </Typography>
               {filters.search && (
@@ -479,9 +495,13 @@ const Properties = () => {
               )}
               {(filters.minPrice || filters.maxPrice) && (
                 <Chip
-                  label={`₱${filters.minPrice || "0"} - ₱${filters.maxPrice || "∞"}`}
+                  label={`₱${filters.minPrice || "0"} - ₱${
+                    filters.maxPrice || "∞"
+                  }`}
                   size="small"
-                  onDelete={() => setFilters({ ...filters, minPrice: "", maxPrice: "" })}
+                  onDelete={() =>
+                    setFilters({ ...filters, minPrice: "", maxPrice: "" })
+                  }
                 />
               )}
               <Button size="small" onClick={clearFilters} sx={{ ml: 1 }}>
@@ -493,14 +513,19 @@ const Properties = () => {
       </Container>
 
       {/* Properties Grid */}
-      <Container maxWidth="lg" sx={{ pb: 6 }}>
+      <Container maxWidth="xl" sx={{ pb: 6 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
             {error}
           </Alert>
         )}
 
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 3 }}
+        >
           <Typography variant="h6" sx={{ fontWeight: 600, color: "#0f172a" }}>
             {loading ? "Loading..." : `${propertyList.length} Properties Found`}
           </Typography>
@@ -511,7 +536,8 @@ const Properties = () => {
               sx={{
                 background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                 "&:hover": {
-                  background: "linear-gradient(135deg, #34d399 0%, #10b981 100%)",
+                  background:
+                    "linear-gradient(135deg, #34d399 0%, #10b981 100%)",
                 },
               }}
             >
@@ -522,16 +548,20 @@ const Properties = () => {
 
         {loading ? (
           <Grid container spacing={3}>
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Grid item xs={12} sm={6} lg={4} key={i}>
-                <Skeleton variant="rounded" height={400} sx={{ borderRadius: 3 }} />
+            {[1, 2, 3, 4].map((i) => (
+              <Grid key={i} size={{ xs: 12, sm: 6 }} sx={{ display: "flex" }}>
+                <Skeleton
+                  variant="rounded"
+                  height={400}
+                  sx={{ borderRadius: 3, width: "100%" }}
+                />
               </Grid>
             ))}
           </Grid>
         ) : sortedProperties.length > 0 ? (
           <Grid container spacing={3}>
             {sortedProperties.map((property) => (
-              <Grid item xs={12} sm={6} lg={4} key={property._id}>
+              <Grid key={property._id} size={{ xs: 12, sm: 6 }} sx={{ display: "flex" }}>
                 <PropertyCard
                   property={property}
                   onApply={isClient ? openApply : null}
@@ -560,7 +590,9 @@ const Properties = () => {
               borderColor: "divider",
             }}
           >
-            <ApartmentIcon sx={{ fontSize: 64, color: "text.disabled", mb: 2 }} />
+            <ApartmentIcon
+              sx={{ fontSize: 64, color: "text.disabled", mb: 2 }}
+            />
             <Typography variant="h6" sx={{ color: "text.secondary", mb: 1 }}>
               No properties found
             </Typography>
@@ -588,7 +620,11 @@ const Properties = () => {
           }}
         >
           <DialogTitle sx={{ pb: 1 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
                   Express Interest
@@ -654,7 +690,10 @@ const Properties = () => {
             </Stack>
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setInterestOpen(false)} sx={{ color: "text.secondary" }}>
+            <Button
+              onClick={() => setInterestOpen(false)}
+              sx={{ color: "text.secondary" }}
+            >
               Cancel
             </Button>
             <Button
@@ -687,7 +726,11 @@ const Properties = () => {
           }}
         >
           <DialogTitle sx={{ pb: 1 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
                   Apply for Property
@@ -703,7 +746,8 @@ const Properties = () => {
           </DialogTitle>
           <DialogContent dividers>
             <Alert severity="info" sx={{ mb: 2 }}>
-              Your profile information will be used for this application. You can add notes below.
+              Your profile information will be used for this application. You
+              can add notes below.
             </Alert>
             <TextField
               fullWidth
@@ -716,7 +760,10 @@ const Properties = () => {
             />
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setApplyOpen(false)} sx={{ color: "text.secondary" }}>
+            <Button
+              onClick={() => setApplyOpen(false)}
+              sx={{ color: "text.secondary" }}
+            >
               Cancel
             </Button>
             <Button
