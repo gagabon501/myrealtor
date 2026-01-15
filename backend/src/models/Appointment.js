@@ -17,7 +17,7 @@ const appointmentSchema = new mongoose.Schema(
     confirmedEndAt: Date,
     status: {
       type: String,
-      enum: ["REQUESTED", "CONFIRMED", "CANCELLED", "COMPLETED", "NO_SHOW"],
+      enum: ["REQUESTED", "CONFIRMED", "CANCELLED", "COMPLETED", "NO_SHOW", "CLOSED"],
       default: "REQUESTED",
     },
     notes: String,
@@ -27,6 +27,9 @@ const appointmentSchema = new mongoose.Schema(
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     cancelledAt: Date,
     cancellationReason: String,
+    closedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    closedAt: Date,
+    closureNotes: String,
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }

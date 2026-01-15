@@ -9,6 +9,11 @@ import {
   cancelAppointment,
   completeAppointment,
   rescheduleAppointment,
+  closeAppointment,
+  markNoShow,
+  getAvailability,
+  getICalExport,
+  getGoogleCalendarUrl,
 } from "../controllers/appointmentController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
@@ -72,5 +77,30 @@ router.patch(
   ],
   rescheduleAppointment
 );
+
+// Staff/Admin - close appointment (after completion)
+router.post(
+  "/:id/close",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  closeAppointment
+);
+
+// Staff/Admin - mark no-show
+router.post(
+  "/:id/no-show",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  markNoShow
+);
+
+// Public - check availability for a date
+router.get("/availability", getAvailability);
+
+// Authenticated - download iCal file
+router.get("/:id/ical", authenticate, getICalExport);
+
+// Authenticated - get Google Calendar URL
+router.get("/:id/google-calendar", authenticate, getGoogleCalendarUrl);
 
 export default router;

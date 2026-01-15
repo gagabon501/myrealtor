@@ -2,6 +2,7 @@ import { validationResult } from "express-validator";
 import Appointment from "../models/Appointment.js";
 import { recordAudit } from "../utils/audit.js";
 import { sendEmail } from "../utils/email.js";
+import { generateICalEvent, generateGoogleCalendarUrl } from "../utils/ical.js";
 
 const auditWrap = async ({ actor, action, context }) =>
   recordAudit({ actor, action, context });
@@ -258,6 +259,166 @@ export const rescheduleAppointment = async (req, res, next) => {
     });
 
     res.json(appointment);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const closeAppointment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+
+    const appointment = await Appointment.findById(id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    if (appointment.status !== "COMPLETED") {
+      return res.status(400).json({
+        message: "Can only close appointments that are marked as COMPLETED"
+      });
+    }
+
+    appointment.status = "CLOSED";
+    appointment.closedBy = req.user.id;
+    appointment.closedAt = new Date();
+    if (notes) appointment.closureNotes = notes;
+
+    await appointment.save();
+
+    await auditWrap({
+      actor: req.user.id,
+      action: "APPOINTMENT_CLOSED",
+      context: { appointmentId: appointment._id.toString() },
+    });
+
+    res.json(appointment);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const markNoShow = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+
+    const appointment = await Appointment.findById(id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    appointment.status = "NO_SHOW";
+    if (notes) appointment.internalNotes = `${appointment.internalNotes || ""}\n${notes}`.trim();
+
+    await appointment.save();
+
+    await auditWrap({
+      actor: req.user.id,
+      action: "APPOINTMENT_NO_SHOW",
+      context: { appointmentId: appointment._id.toString() },
+    });
+
+    res.json(appointment);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAvailability = async (req, res, next) => {
+  try {
+    const { date, serviceType } = req.query;
+
+    if (!date) {
+      return res.status(400).json({ message: "Date parameter is required" });
+    }
+
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const filter = {
+      status: { $in: ["REQUESTED", "CONFIRMED"] },
+      $or: [
+        {
+          requestedStartAt: { $gte: startOfDay, $lte: endOfDay },
+        },
+        {
+          confirmedStartAt: { $gte: startOfDay, $lte: endOfDay },
+        },
+      ],
+    };
+
+    if (serviceType) {
+      filter.serviceType = serviceType;
+    }
+
+    const appointments = await Appointment.find(filter).select(
+      "requestedStartAt requestedEndAt confirmedStartAt confirmedEndAt serviceType status"
+    );
+
+    // Return booked time slots
+    const bookedSlots = appointments.map((apt) => ({
+      start: apt.confirmedStartAt || apt.requestedStartAt,
+      end: apt.confirmedEndAt || apt.requestedEndAt,
+      serviceType: apt.serviceType,
+      status: apt.status,
+    }));
+
+    res.json({ date, bookedSlots });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getICalExport = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id);
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    // Check access for non-staff users
+    const role = req.user?.role || "public";
+    const isStaff = role === "staff" || role === "admin";
+    if (!isStaff && String(appointment.userId) !== String(req.user?.id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const icsContent = generateICalEvent(appointment);
+
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="appointment-${appointment._id}.ics"`
+    );
+    res.send(icsContent);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getGoogleCalendarUrl = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id);
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    // Check access for non-staff users
+    const role = req.user?.role || "public";
+    const isStaff = role === "staff" || role === "admin";
+    if (!isStaff && String(appointment.userId) !== String(req.user?.id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const url = generateGoogleCalendarUrl(appointment);
+    res.json({ url });
   } catch (err) {
     next(err);
   }

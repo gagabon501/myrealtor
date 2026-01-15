@@ -18,7 +18,12 @@ import {
   Tab,
   Typography,
 } from "@mui/material";
-import client from "../api/client";
+import {
+  Schedule as ScheduleIcon,
+  Google as GoogleIcon,
+  Download as DownloadIcon,
+} from "@mui/icons-material";
+import client, { apiBase } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
 const Dashboard = () => {
@@ -43,6 +48,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [docPayload, setDocPayload] = useState({ applicationId: "", type: "" });
   const [file, setFile] = useState(null);
+  const [appointments, setAppointments] = useState([]);
 
   const selectedApp = useMemo(
     () => applications.find((app) => app._id === selectedAppId),
@@ -113,6 +119,16 @@ const Dashboard = () => {
     }
   };
 
+  const loadAppointments = async () => {
+    if (!isUser) return;
+    try {
+      const res = await client.get("/appointments/mine");
+      setAppointments(res.data || []);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const loadListingRequests = async () => {
     if (!isUser) return;
     try {
@@ -163,6 +179,7 @@ const Dashboard = () => {
     loadAppraisals();
     loadTitlings();
     loadConsultancies();
+    loadAppointments();
     loadListingRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
@@ -174,6 +191,7 @@ const Dashboard = () => {
       if (isUser) loadAppraisals();
       if (isUser) loadTitlings();
       if (isUser) loadConsultancies();
+      if (isUser) loadAppointments();
       if (isUser) loadListingRequests();
     };
     window.addEventListener("focus", onFocus);
@@ -641,6 +659,112 @@ const Dashboard = () => {
                   No consultancy requests yet.
                 </Typography>
               )}
+
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                <ScheduleIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                My Appointments
+              </Typography>
+              {appointments
+                .filter((apt) => !["CANCELLED", "CLOSED"].includes(apt.status))
+                .slice(0, 5)
+                .map((apt) => {
+                  const serviceLabels = {
+                    APPRAISAL: "Appraisal",
+                    TITLING: "Titling",
+                    CONSULTANCY: "Consultancy",
+                    BROKERAGE_VIEWING: "Viewing",
+                  };
+                  const statusColors = {
+                    REQUESTED: "warning",
+                    CONFIRMED: "success",
+                    COMPLETED: "info",
+                    NO_SHOW: "error",
+                  };
+                  const displayDate = apt.confirmedStartAt || apt.requestedStartAt;
+                  return (
+                    <Card key={apt._id} variant="outlined" sx={{ mb: 1 }}>
+                      <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+                        <Typography variant="subtitle2">
+                          {serviceLabels[apt.serviceType] || apt.serviceType}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {new Date(displayDate).toLocaleString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </Typography>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{ mt: 1 }}
+                          alignItems="center"
+                          flexWrap="wrap"
+                          useFlexGap
+                        >
+                          <Chip
+                            label={apt.status}
+                            size="small"
+                            color={statusColors[apt.status] || "default"}
+                          />
+                          {apt.status === "CONFIRMED" && (
+                            <>
+                              <Button
+                                size="small"
+                                startIcon={<GoogleIcon />}
+                                onClick={async () => {
+                                  try {
+                                    const res = await client.get(
+                                      `/appointments/${apt._id}/google-calendar`
+                                    );
+                                    window.open(res.data.url, "_blank");
+                                  } catch {
+                                    /* ignore */
+                                  }
+                                }}
+                                sx={{ fontSize: "0.7rem", py: 0.25, px: 1 }}
+                              >
+                                Google
+                              </Button>
+                              <Button
+                                size="small"
+                                startIcon={<DownloadIcon />}
+                                onClick={() => {
+                                  const token = localStorage.getItem("token");
+                                  window.open(
+                                    `${apiBase}/api/appointments/${apt._id}/ical?token=${token}`,
+                                    "_blank"
+                                  );
+                                }}
+                                sx={{ fontSize: "0.7rem", py: 0.25, px: 1 }}
+                              >
+                                .ics
+                              </Button>
+                            </>
+                          )}
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              {!appointments.filter(
+                (apt) => !["CANCELLED", "CLOSED"].includes(apt.status)
+              ).length && (
+                <Typography color="text.secondary">
+                  No upcoming appointments.
+                </Typography>
+              )}
+              <Button
+                size="small"
+                variant="text"
+                href="/services"
+                sx={{ mt: 1 }}
+              >
+                Book an appointment
+              </Button>
             </Stack>
           </Grid>
 

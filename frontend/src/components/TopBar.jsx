@@ -45,6 +45,7 @@ import HandshakeIcon from "@mui/icons-material/Handshake";
 import GavelIcon from "@mui/icons-material/Gavel";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
+import EventIcon from "@mui/icons-material/Event";
 import GoshenLogo from "../assets/Goshen_Realty_Logo.svg";
 
 const ALLOWED_ROLES = ["user", "staff", "admin"];
@@ -254,6 +255,12 @@ const TopBar = () => {
               <ListItemButton component={Link} to="/staff/listing-requests" onClick={() => setMobileOpen(false)}>
                 <ListItemIcon><AssignmentIcon color="primary" /></ListItemIcon>
                 <ListItemText primary="Listing Requests" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/staff/appointments" onClick={() => setMobileOpen(false)}>
+                <ListItemIcon><EventIcon color="primary" /></ListItemIcon>
+                <ListItemText primary="Appointments" />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
@@ -473,6 +480,9 @@ const TopBar = () => {
                   </NavButton>
                   <NavButton to="/staff/listing-requests" icon={<AssignmentIcon sx={{ fontSize: 18 }} />}>
                     Listings
+                  </NavButton>
+                  <NavButton to="/staff/appointments" icon={<EventIcon sx={{ fontSize: 18 }} />}>
+                    Appointments
                   </NavButton>
                   <NavButton to="/admin/inquiries" icon={<ContactMailIcon sx={{ fontSize: 18 }} />}>
                     Inquiries

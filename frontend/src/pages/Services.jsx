@@ -36,6 +36,7 @@ import {
 } from "@mui/icons-material";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import AppointmentBookingWidget from "../components/AppointmentBookingWidget";
 
 const initialAppraisal = {
   name: "",
@@ -104,6 +105,7 @@ const Services = () => {
   const [notice, setNotice] = useState(null);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showBooking, setShowBooking] = useState(null); // { serviceType, serviceRequestId }
 
   const handleAppraisalSubmit = async (e) => {
     e.preventDefault();
@@ -126,6 +128,7 @@ const Services = () => {
         `Appraisal request submitted successfully! Estimated rate: PHP ${res.data.rate?.toLocaleString() || "TBD"} (50% upfront required).`
       );
       setAppraisal(initialAppraisal);
+      setShowBooking({ serviceType: "APPRAISAL", serviceRequestId: res.data._id });
     } catch (err) {
       setError(
         err.response?.data?.message || "Failed to submit appraisal request"
@@ -149,11 +152,12 @@ const Services = () => {
         if (k !== "documents") data.append(k, v);
       });
       titling.documents.forEach((file) => data.append("documents", file));
-      await client.post("/services/titling", data, {
+      const res = await client.post("/services/titling", data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setNotice("Titling/transfer request submitted successfully! We will contact you shortly.");
       setTitling(initialTitling);
+      setShowBooking({ serviceType: "TITLING", serviceRequestId: res.data._id });
     } catch (err) {
       setError(
         err.response?.data?.message || "Failed to submit titling request"
@@ -172,9 +176,10 @@ const Services = () => {
     setError(null);
     setSubmitting(true);
     try {
-      await client.post("/services/consultancy", consultancy);
+      const res = await client.post("/services/consultancy", consultancy);
       setNotice("Consultancy appointment requested successfully! We will contact you to confirm.");
       setConsultancy(initialConsultancy);
+      setShowBooking({ serviceType: "CONSULTANCY", serviceRequestId: res.data._id });
     } catch (err) {
       setError(
         err.response?.data?.message || "Failed to submit consultancy request"
@@ -359,6 +364,30 @@ const Services = () => {
           >
             {error}
           </Alert>
+        )}
+
+        {/* Appointment Booking Widget - shown after successful service request submission */}
+        {showBooking && user && (
+          <Paper sx={{ mb: 4, p: 3, borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
+            <AppointmentBookingWidget
+              serviceType={showBooking.serviceType}
+              serviceRequestId={showBooking.serviceRequestId}
+              title="Schedule Your Appointment"
+              onBooked={() => {
+                setShowBooking(null);
+                setNotice("Your appointment has been booked. We will confirm it shortly!");
+              }}
+            />
+            <Box sx={{ mt: 2, textAlign: "center" }}>
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => setShowBooking(null)}
+              >
+                Skip booking for now
+              </Button>
+            </Box>
+          </Paper>
         )}
 
         {!user && (

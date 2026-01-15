@@ -21,6 +21,7 @@ import CreateListingRequest from "./pages/CreateListingRequest";
 import StaffServiceRequests from "./pages/StaffServiceRequests";
 import StaffEarnestMoney from "./pages/StaffEarnestMoney";
 import StaffAppraisalReports from "./pages/StaffAppraisalReports";
+import StaffAppointments from "./pages/StaffAppointments";
 import TopBar from "./components/TopBar";
 import Notifications from "./pages/Notifications";
 import ApplicationMessages from "./pages/ApplicationMessages";
@@ -567,6 +568,14 @@ const App = () => {
             element={
               <ProtectedRoute roles={["staff", "admin"]}>
                 <StaffAppraisalReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/appointments"
+            element={
+              <ProtectedRoute roles={["staff", "admin"]}>
+                <StaffAppointments />
               </ProtectedRoute>
             }
           />
