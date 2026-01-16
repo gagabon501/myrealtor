@@ -6,8 +6,12 @@ import {
   Button,
   Checkbox,
   Container,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
   Grid,
+  IconButton,
   Paper,
   Stack,
   Tab,
@@ -33,6 +37,8 @@ import {
   Home as HomeIcon,
   Business as BuildingIcon,
   AttachMoney as MoneyIcon,
+  Close as CloseIcon,
+  CalendarMonth as CalendarMonthIcon,
 } from "@mui/icons-material";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -106,6 +112,8 @@ const Services = () => {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [showBooking, setShowBooking] = useState(null); // { serviceType, serviceRequestId }
+  const [showBookingDialog, setShowBookingDialog] = useState(null); // serviceType for pre-submission booking
+  const [bookedAppointmentInfo, setBookedAppointmentInfo] = useState({}); // { APPRAISAL: {...}, TITLING: {...}, etc. }
 
   const handleAppraisalSubmit = async (e) => {
     e.preventDefault();
@@ -366,18 +374,40 @@ const Services = () => {
           </Alert>
         )}
 
-        {/* Appointment Booking Widget - shown after successful service request submission */}
-        {showBooking && user && (
-          <Paper sx={{ mb: 4, p: 3, borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
-            <AppointmentBookingWidget
-              serviceType={showBooking.serviceType}
-              serviceRequestId={showBooking.serviceRequestId}
-              title="Schedule Your Appointment"
-              onBooked={() => {
-                setShowBooking(null);
-                setNotice("Your appointment has been booked. We will confirm it shortly!");
-              }}
-            />
+        {/* Appointment Booking Modal - shown after successful service request submission */}
+        <Dialog
+          open={!!showBooking && !!user}
+          onClose={() => setShowBooking(null)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: { borderRadius: 3 }
+          }}
+        >
+          <DialogTitle sx={{ pr: 6 }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <ScheduleIcon color="primary" />
+              <Typography variant="h6">Schedule Your Appointment</Typography>
+            </Stack>
+            <IconButton
+              onClick={() => setShowBooking(null)}
+              sx={{ position: "absolute", right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            {showBooking && (
+              <AppointmentBookingWidget
+                serviceType={showBooking.serviceType}
+                serviceRequestId={showBooking.serviceRequestId}
+                title=""
+                onBooked={() => {
+                  setShowBooking(null);
+                  setNotice("Your appointment has been booked. We will confirm it shortly!");
+                }}
+              />
+            )}
             <Box sx={{ mt: 2, textAlign: "center" }}>
               <Button
                 variant="text"
@@ -387,8 +417,48 @@ const Services = () => {
                 Skip booking for now
               </Button>
             </Box>
-          </Paper>
-        )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Pre-submission Appointment Booking Dialog */}
+        <Dialog
+          open={!!showBookingDialog && !!user}
+          onClose={() => setShowBookingDialog(null)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: { borderRadius: 3 }
+          }}
+        >
+          <DialogTitle sx={{ pr: 6 }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <CalendarMonthIcon color="primary" />
+              <Typography variant="h6">Schedule Appointment</Typography>
+            </Stack>
+            <IconButton
+              onClick={() => setShowBookingDialog(null)}
+              sx={{ position: "absolute", right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            {showBookingDialog && (
+              <AppointmentBookingWidget
+                serviceType={showBookingDialog}
+                title=""
+                onBooked={(appointment) => {
+                  setBookedAppointmentInfo((prev) => ({
+                    ...prev,
+                    [showBookingDialog]: appointment,
+                  }));
+                  setShowBookingDialog(null);
+                  setNotice("Appointment scheduled! Please complete and submit your service request.");
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {!user && (
           <Paper
@@ -679,18 +749,33 @@ const Services = () => {
                     </>
                   )}
                   <Grid item xs={12} md={6}>
-                    <TextField
+                    <Button
+                      variant="outlined"
                       fullWidth
-                      label="Preferred Appointment Date"
-                      type="date"
-                      value={appraisal.appointment}
-                      onChange={(e) => setAppraisal({ ...appraisal, appointment: e.target.value })}
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{
-                        startAdornment: <ScheduleIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                      startIcon={<CalendarMonthIcon />}
+                      onClick={() => setShowBookingDialog("APPRAISAL")}
+                      disabled={!user}
+                      sx={{
+                        py: 1.75,
+                        borderRadius: 2,
+                        justifyContent: "flex-start",
+                        textTransform: "none",
+                        borderColor: bookedAppointmentInfo.APPRAISAL ? "success.main" : undefined,
+                        color: bookedAppointmentInfo.APPRAISAL ? "success.main" : undefined,
                       }}
-                      sx={inputStyles}
-                    />
+                    >
+                      {bookedAppointmentInfo.APPRAISAL
+                        ? `Scheduled: ${new Date(bookedAppointmentInfo.APPRAISAL.requestedStartAt).toLocaleDateString()}`
+                        : "Schedule Appointment"}
+                    </Button>
+                    {bookedAppointmentInfo.APPRAISAL && (
+                      <Chip
+                        label="Appointment Booked"
+                        size="small"
+                        color="success"
+                        sx={{ mt: 1 }}
+                      />
+                    )}
                   </Grid>
                   <Grid item xs={12}>
                     <Button
@@ -858,18 +943,33 @@ const Services = () => {
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField
+                    <Button
+                      variant="outlined"
                       fullWidth
-                      label="Preferred Appointment Date"
-                      type="date"
-                      value={titling.appointment}
-                      onChange={(e) => setTitling({ ...titling, appointment: e.target.value })}
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{
-                        startAdornment: <ScheduleIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                      startIcon={<CalendarMonthIcon />}
+                      onClick={() => setShowBookingDialog("TITLING")}
+                      disabled={!user}
+                      sx={{
+                        py: 1.75,
+                        borderRadius: 2,
+                        justifyContent: "flex-start",
+                        textTransform: "none",
+                        borderColor: bookedAppointmentInfo.TITLING ? "success.main" : "#10b981",
+                        color: bookedAppointmentInfo.TITLING ? "success.main" : "#10b981",
                       }}
-                      sx={inputStyles}
-                    />
+                    >
+                      {bookedAppointmentInfo.TITLING
+                        ? `Scheduled: ${new Date(bookedAppointmentInfo.TITLING.requestedStartAt).toLocaleDateString()}`
+                        : "Schedule Appointment"}
+                    </Button>
+                    {bookedAppointmentInfo.TITLING && (
+                      <Chip
+                        label="Appointment Booked"
+                        size="small"
+                        color="success"
+                        sx={{ mt: 1 }}
+                      />
+                    )}
                   </Grid>
                   <Grid item xs={12}>
                     <Button
@@ -1010,18 +1110,33 @@ const Services = () => {
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField
+                    <Button
+                      variant="outlined"
                       fullWidth
-                      label="Preferred Appointment Date"
-                      type="date"
-                      value={consultancy.appointment}
-                      onChange={(e) => setConsultancy({ ...consultancy, appointment: e.target.value })}
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{
-                        startAdornment: <ScheduleIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                      startIcon={<CalendarMonthIcon />}
+                      onClick={() => setShowBookingDialog("CONSULTANCY")}
+                      disabled={!user}
+                      sx={{
+                        py: 1.75,
+                        borderRadius: 2,
+                        justifyContent: "flex-start",
+                        textTransform: "none",
+                        borderColor: bookedAppointmentInfo.CONSULTANCY ? "success.main" : "#8b5cf6",
+                        color: bookedAppointmentInfo.CONSULTANCY ? "success.main" : "#8b5cf6",
                       }}
-                      sx={inputStyles}
-                    />
+                    >
+                      {bookedAppointmentInfo.CONSULTANCY
+                        ? `Scheduled: ${new Date(bookedAppointmentInfo.CONSULTANCY.requestedStartAt).toLocaleDateString()}`
+                        : "Schedule Appointment"}
+                    </Button>
+                    {bookedAppointmentInfo.CONSULTANCY && (
+                      <Chip
+                        label="Appointment Booked"
+                        size="small"
+                        color="success"
+                        sx={{ mt: 1 }}
+                      />
+                    )}
                   </Grid>
                   <Grid item xs={12}>
                     <TextField

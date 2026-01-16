@@ -68,11 +68,18 @@ const AppointmentDetailModal = ({
   const [confirmedDateTime, setConfirmedDateTime] = useState(
     appointment ? dayjs(appointment.requestedStartAt) : dayjs()
   );
+  const [confirmedEndDateTime, setConfirmedEndDateTime] = useState(
+    appointment ? dayjs(appointment.requestedEndAt || appointment.requestedStartAt).add(1, "hour") : dayjs().add(1, "hour")
+  );
   const [cancelReason, setCancelReason] = useState("");
   const [rescheduleDateTime, setRescheduleDateTime] = useState(
     appointment ? dayjs(appointment.requestedStartAt) : dayjs()
   );
+  const [rescheduleEndDateTime, setRescheduleEndDateTime] = useState(
+    appointment ? dayjs(appointment.requestedEndAt || appointment.requestedStartAt).add(1, "hour") : dayjs().add(1, "hour")
+  );
   const [actionNotes, setActionNotes] = useState("");
+  const [showGoogleCalPrompt, setShowGoogleCalPrompt] = useState(false);
 
   if (!appointment) return null;
 
@@ -91,7 +98,7 @@ const AppointmentDetailModal = ({
           endpoint = `/appointments/${appointment._id}/confirm`;
           payload = {
             confirmedStartAt: confirmedDateTime.toISOString(),
-            confirmedEndAt: confirmedDateTime.add(1, "hour").toISOString(),
+            confirmedEndAt: confirmedEndDateTime.toISOString(),
             internalNotes: actionNotes || undefined,
           };
           break;
@@ -105,7 +112,7 @@ const AppointmentDetailModal = ({
           endpoint = `/appointments/${appointment._id}/reschedule`;
           payload = {
             requestedStartAt: rescheduleDateTime.toISOString(),
-            requestedEndAt: rescheduleDateTime.add(1, "hour").toISOString(),
+            requestedEndAt: rescheduleEndDateTime.toISOString(),
           };
           break;
 
@@ -132,6 +139,10 @@ const AppointmentDetailModal = ({
       onUpdate(res.data);
       setActionMode(null);
       resetActionFields();
+      // Show Google Calendar prompt after confirmation
+      if (action === "confirm") {
+        setShowGoogleCalPrompt(true);
+      }
     } catch (err) {
       setError(err.response?.data?.message || `Failed to ${action} appointment`);
     } finally {
@@ -143,12 +154,15 @@ const AppointmentDetailModal = ({
     setCancelReason("");
     setActionNotes("");
     setConfirmedDateTime(dayjs(appointment.requestedStartAt));
+    setConfirmedEndDateTime(dayjs(appointment.requestedEndAt || appointment.requestedStartAt).add(1, "hour"));
     setRescheduleDateTime(dayjs(appointment.requestedStartAt));
+    setRescheduleEndDateTime(dayjs(appointment.requestedEndAt || appointment.requestedStartAt).add(1, "hour"));
   };
 
   const handleClose = () => {
     setActionMode(null);
     setError(null);
+    setShowGoogleCalPrompt(false);
     resetActionFields();
     onClose();
   };
@@ -175,12 +189,27 @@ const AppointmentDetailModal = ({
             <Typography variant="subtitle2">Confirm Appointment</Typography>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateTimePicker
-                label="Confirmed Date & Time"
+                label="Start Date & Time"
                 value={confirmedDateTime}
-                onChange={setConfirmedDateTime}
+                onChange={(val) => {
+                  setConfirmedDateTime(val);
+                  // Auto-adjust end time to maintain duration
+                  const duration = confirmedEndDateTime.diff(confirmedDateTime, "minute");
+                  setConfirmedEndDateTime(val.add(duration > 0 ? duration : 60, "minute"));
+                }}
+                slotProps={{ textField: { fullWidth: true } }}
+              />
+              <DateTimePicker
+                label="End Date & Time"
+                value={confirmedEndDateTime}
+                onChange={setConfirmedEndDateTime}
+                minDateTime={confirmedDateTime}
                 slotProps={{ textField: { fullWidth: true } }}
               />
             </LocalizationProvider>
+            <Typography variant="body2" color="text.secondary">
+              Duration: {Math.round(confirmedEndDateTime.diff(confirmedDateTime, "minute"))} minutes
+            </Typography>
             <TextField
               fullWidth
               label="Internal Notes (optional)"
@@ -242,13 +271,28 @@ const AppointmentDetailModal = ({
             <Typography variant="subtitle2">Reschedule Appointment</Typography>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateTimePicker
-                label="New Date & Time"
+                label="New Start Date & Time"
                 value={rescheduleDateTime}
-                onChange={setRescheduleDateTime}
+                onChange={(val) => {
+                  setRescheduleDateTime(val);
+                  // Auto-adjust end time to maintain duration
+                  const duration = rescheduleEndDateTime.diff(rescheduleDateTime, "minute");
+                  setRescheduleEndDateTime(val.add(duration > 0 ? duration : 60, "minute"));
+                }}
                 minDate={dayjs()}
                 slotProps={{ textField: { fullWidth: true } }}
               />
+              <DateTimePicker
+                label="New End Date & Time"
+                value={rescheduleEndDateTime}
+                onChange={setRescheduleEndDateTime}
+                minDateTime={rescheduleDateTime}
+                slotProps={{ textField: { fullWidth: true } }}
+              />
             </LocalizationProvider>
+            <Typography variant="body2" color="text.secondary">
+              Duration: {Math.round(rescheduleEndDateTime.diff(rescheduleDateTime, "minute"))} minutes
+            </Typography>
             <Stack direction="row" spacing={1}>
               <Button
                 variant="contained"
@@ -429,18 +473,36 @@ const AppointmentDetailModal = ({
         </Typography>
         <Grid container spacing={1} sx={{ mb: 2 }}>
           <Grid size={12}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <EventIcon fontSize="small" color="action" />
+            <Stack direction="row" alignItems="flex-start" spacing={1}>
+              <EventIcon fontSize="small" color="action" sx={{ mt: 0.5 }} />
               <Box>
                 <Typography variant="body2">
                   <strong>Requested:</strong>{" "}
                   {dayjs(appointment.requestedStartAt).format("dddd, MMMM D, YYYY h:mm A")}
+                  {appointment.requestedEndAt && (
+                    <> - {dayjs(appointment.requestedEndAt).format("h:mm A")}</>
+                  )}
                 </Typography>
-                {appointment.confirmedStartAt && (
-                  <Typography variant="body2" color="success.main">
-                    <strong>Confirmed:</strong>{" "}
-                    {dayjs(appointment.confirmedStartAt).format("dddd, MMMM D, YYYY h:mm A")}
+                {appointment.requestedEndAt && (
+                  <Typography variant="body2" color="text.secondary" sx={{ ml: 0 }}>
+                    Duration: {Math.round(dayjs(appointment.requestedEndAt).diff(dayjs(appointment.requestedStartAt), "minute"))} minutes
                   </Typography>
+                )}
+                {appointment.confirmedStartAt && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2" color="success.main">
+                      <strong>Confirmed:</strong>{" "}
+                      {dayjs(appointment.confirmedStartAt).format("dddd, MMMM D, YYYY h:mm A")}
+                      {appointment.confirmedEndAt && (
+                        <> - {dayjs(appointment.confirmedEndAt).format("h:mm A")}</>
+                      )}
+                    </Typography>
+                    {appointment.confirmedEndAt && (
+                      <Typography variant="body2" color="success.light">
+                        Duration: {Math.round(dayjs(appointment.confirmedEndAt).diff(dayjs(appointment.confirmedStartAt), "minute"))} minutes
+                      </Typography>
+                    )}
+                  </Box>
                 )}
               </Box>
             </Stack>
@@ -487,6 +549,40 @@ const AppointmentDetailModal = ({
 
         {/* Action Form */}
         {actionMode && renderActionForm()}
+
+        {/* Google Calendar Prompt - shows after successful confirmation */}
+        {showGoogleCalPrompt && (
+          <Alert
+            severity="success"
+            sx={{ mt: 2 }}
+            action={
+              <Stack direction="row" spacing={1}>
+                <Button
+                  color="inherit"
+                  size="small"
+                  startIcon={<GoogleIcon />}
+                  onClick={() => {
+                    handleGoogleCalendar();
+                    setShowGoogleCalPrompt(false);
+                  }}
+                >
+                  Add to Google Calendar
+                </Button>
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => setShowGoogleCalPrompt(false)}
+                >
+                  Skip
+                </Button>
+              </Stack>
+            }
+          >
+            <Typography variant="body2">
+              Appointment confirmed! Would you like to add it to your Google Calendar?
+            </Typography>
+          </Alert>
+        )}
 
         {/* Action Buttons (when no action mode) */}
         {!actionMode && (
