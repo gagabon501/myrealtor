@@ -530,12 +530,16 @@ const PropertyCard = ({
         >
           {property.earnestMoneyRequired && (
             <Chip
-              label="Earnest Money"
+              label={
+                property.earnestMoneyAmount
+                  ? `Earnest: ₱${Number(property.earnestMoneyAmount).toLocaleString()}`
+                  : "Earnest Money Required"
+              }
               size="small"
               sx={{
                 background: "rgba(245, 158, 11, 0.1)",
                 color: "#d97706",
-                fontWeight: 500,
+                fontWeight: 600,
                 fontSize: "0.7rem",
               }}
             />

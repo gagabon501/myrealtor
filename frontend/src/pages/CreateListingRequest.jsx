@@ -3,7 +3,10 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Container,
+  Divider,
+  FormControlLabel,
   Snackbar,
   Stack,
   TextField,
@@ -36,6 +39,16 @@ const CreateListingRequest = () => {
   const [photoDescription, setPhotoDescription] = useState("");
   const [atsPreviews, setAtsPreviews] = useState([]);
   const [photoPreviews, setPhotoPreviews] = useState([]);
+  // Earnest money state
+  const [earnestMoneyRequired, setEarnestMoneyRequired] = useState(false);
+  const [earnestMoneyAmount, setEarnestMoneyAmount] = useState("");
+  // Seller details state
+  const [sellerName, setSellerName] = useState("");
+  const [sellerAddress, setSellerAddress] = useState("");
+  const [sellerPhone, setSellerPhone] = useState("");
+  const [sellerEmail, setSellerEmail] = useState("");
+  // Signature consent
+  const [signatureConsent, setSignatureConsent] = useState(false);
 
   const handleRemoveAts = (index) => {
     setAtsFiles((prev) => prev.filter((_, i) => i !== index));
@@ -64,6 +77,27 @@ const CreateListingRequest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitLockRef.current || submitting) return;
+
+    // Validate earnest money fields if required
+    if (earnestMoneyRequired) {
+      if (!earnestMoneyAmount || Number(earnestMoneyAmount) <= 0) {
+        setError("Earnest money amount is required when earnest money is enabled");
+        return;
+      }
+      if (!sellerName.trim()) {
+        setError("Seller name is required when earnest money is enabled");
+        return;
+      }
+      if (!sellerAddress.trim()) {
+        setError("Seller address is required when earnest money is enabled");
+        return;
+      }
+      if (!signatureConsent) {
+        setError("You must agree to the signature consent to proceed");
+        return;
+      }
+    }
+
     submitLockRef.current = true;
     // eslint-disable-next-line no-console
     console.log("[LR-FE] submit fired", Date.now());
@@ -86,7 +120,21 @@ const CreateListingRequest = () => {
             .split(",")
             .map((t) => t.trim())
             .filter(Boolean),
+          earnestMoneyRequired,
+          ...(earnestMoneyRequired && { earnestMoneyAmount: Number(earnestMoneyAmount) }),
         },
+        ...(earnestMoneyRequired && {
+          seller: {
+            fullName: sellerName.trim(),
+            address: sellerAddress.trim(),
+            phone: sellerPhone.trim(),
+            email: sellerEmail.trim(),
+          },
+          signature: {
+            signedName: sellerName.trim(),
+            consentChecked: signatureConsent,
+          },
+        }),
       };
       const createdRes = await client.post(
         "/listing-requests",
@@ -187,6 +235,95 @@ const CreateListingRequest = () => {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
           />
+
+          {/* Earnest Money Section */}
+          <Divider sx={{ my: 1 }} />
+          <Box>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={earnestMoneyRequired}
+                  onChange={(e) => setEarnestMoneyRequired(e.target.checked)}
+                />
+              }
+              label={
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  Earnest Money Required
+                </Typography>
+              }
+            />
+            <Typography variant="body2" color="text.secondary" sx={{ ml: 4, mt: -1 }}>
+              Check this if buyers are required to pay earnest money for this property
+            </Typography>
+
+            {earnestMoneyRequired && (
+              <Box sx={{ mt: 2, p: 2, bgcolor: "rgba(245, 158, 11, 0.05)", borderRadius: 2, border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: "#d97706" }}>
+                  Earnest Money Agreement Details
+                </Typography>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Earnest Money Amount (₱)"
+                    required
+                    fullWidth
+                    type="number"
+                    inputProps={{ min: 0, step: "0.01" }}
+                    value={earnestMoneyAmount}
+                    onChange={(e) => setEarnestMoneyAmount(e.target.value)}
+                  />
+                  <Divider />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    Seller Information
+                  </Typography>
+                  <TextField
+                    label="Seller Full Name"
+                    required
+                    fullWidth
+                    value={sellerName}
+                    onChange={(e) => setSellerName(e.target.value)}
+                  />
+                  <TextField
+                    label="Seller Address"
+                    required
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    value={sellerAddress}
+                    onChange={(e) => setSellerAddress(e.target.value)}
+                  />
+                  <TextField
+                    label="Seller Phone"
+                    fullWidth
+                    value={sellerPhone}
+                    onChange={(e) => setSellerPhone(e.target.value)}
+                  />
+                  <TextField
+                    label="Seller Email"
+                    fullWidth
+                    type="email"
+                    value={sellerEmail}
+                    onChange={(e) => setSellerEmail(e.target.value)}
+                  />
+                  <Divider />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={signatureConsent}
+                        onChange={(e) => setSignatureConsent(e.target.checked)}
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">
+                        I, <strong>{sellerName || "[Seller Name]"}</strong>, hereby confirm that the information provided is accurate and I consent to the Earnest Money Agreement terms for this listing.
+                      </Typography>
+                    }
+                  />
+                </Stack>
+              </Box>
+            )}
+          </Box>
+          <Divider sx={{ my: 1 }} />
+
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
               Authority to Sell (ATS) Document

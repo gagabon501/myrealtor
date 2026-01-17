@@ -6,6 +6,35 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Backend 1.5.0 / Frontend 0.6.0] – Earnest Money Agreement & Seller Name Display
+
+### Backend Changes
+
+- **Listing Request API Enhancement:**
+  - `listAllListingRequests` now populates `createdBy` with user firstName, lastName, and email
+  - `createListingRequest` now accepts `earnestMoneyRequired`, `earnestMoneyAmount`, `seller`, and `signature` fields
+  - `publishListingRequest` copies `earnestMoneyAmount` to published Property
+
+- **Model Updates:**
+  - Added `earnestMoneyAmount` field to PropertyListingRequest propertyDraft schema
+  - Added `earnestMoneyAmount` field to Property model
+
+### Frontend Changes
+
+- **Staff Listing Requests Page:**
+  - Seller column now displays actual seller name with fallback chain: `seller.fullName` → `createdBy name` → `email` → "N/A"
+
+- **Create Listing Request Form:**
+  - Added "Earnest Money Required" checkbox toggle
+  - When enabled, displays Earnest Money Agreement section:
+    - Earnest money amount field (required)
+    - Seller information fields (name, address, phone, email)
+    - Signature consent checkbox with dynamic seller name
+  - Form validation ensures all required fields before submission
+
+- **Property Card:**
+  - Earnest money chip now displays amount: "Earnest: ₱X,XXX" instead of just "Earnest Money Required"
+
 ## [Backend 1.4.0 / Frontend 0.5.0] – Property Status Display in Dashboard
 
 ### Backend Changes

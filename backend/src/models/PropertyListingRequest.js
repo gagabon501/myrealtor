@@ -52,6 +52,7 @@ const propertyDraftSchema = new mongoose.Schema(
     description: String,
     tags: [String],
     earnestMoneyRequired: { type: Boolean, default: false },
+    earnestMoneyAmount: { type: Number },
   },
   { _id: false }
 );

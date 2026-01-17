@@ -79,11 +79,17 @@ export const createListingRequest = async (req, res, next) => {
         price: draft.price,
         description: draft.description,
         tags: draft.tags,
-        earnestMoneyRequired: false,
+        earnestMoneyRequired: Boolean(draft.earnestMoneyRequired),
+        ...(draft.earnestMoneyRequired && draft.earnestMoneyAmount && {
+          earnestMoneyAmount: Number(draft.earnestMoneyAmount),
+        }),
       },
       status: "ATS_PENDING",
       idempotencyKey: clientRequestId,
       clientRequestId,
+      // Include seller and signature if provided
+      ...(req.body.seller && { seller: req.body.seller }),
+      ...(req.body.signature && { signature: req.body.signature }),
     };
     const doc = await PropertyListingRequest.findOneAndUpdate(
       { createdBy: req.user.id, clientRequestId },
@@ -211,7 +217,9 @@ export const listMyListingRequests = async (req, res, next) => {
 
 export const listAllListingRequests = async (_req, res, next) => {
   try {
-    const docs = await PropertyListingRequest.find().sort({ createdAt: -1 });
+    const docs = await PropertyListingRequest.find()
+      .populate("createdBy", "firstName lastName email")
+      .sort({ createdAt: -1 });
     return res.json(docs);
   } catch (err) {
     return next(err);
@@ -260,6 +268,7 @@ export const publishListingRequest = async (req, res, next) => {
       description: listing.propertyDraft?.description,
       tags: listing.propertyDraft?.tags,
       earnestMoneyRequired: listing.propertyDraft?.earnestMoneyRequired,
+      earnestMoneyAmount: listing.propertyDraft?.earnestMoneyAmount,
       status: "PUBLISHED",
       published: true,
       publishedAt: new Date(),

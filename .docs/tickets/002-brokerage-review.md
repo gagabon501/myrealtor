@@ -1,7 +1,7 @@
 # 0002 — Brokerage Workflow Review
 
 **Status:** ✅ COMPLETED
-**Version:** Backend 1.4.0 / Frontend 0.5.0
+**Version:** Backend 1.5.0 / Frontend 0.6.0
 **Completed:** 2026-01-18
 
 ## This is the ticket holder for all brokerage workflow reviews and changes
@@ -85,5 +85,41 @@ Per the current implementation, appointments tie into **secondary services** (Ap
 **Backend:** Already populates `propertyId.status` in `/services/brokerage/interest/mine` (serviceRoutes.js:147)
 
 **Frontend:**
+
 - `Dashboard.jsx:462` — Added `flexWrap` and `useFlexGap` for chip layout
 - `Dashboard.jsx:474-479` — Display **SOLD** (green, bold) and **Reserved** (warning) chips in "My Interests (Brokerage)" section
+
+## 1c Revision 1c
+
+- In the Listing Request (staff) page, the "Seller's" name should be displayed instead of "N/A".
+- When a seller is creating a Listing Request, he should indicate that an Earnest Money is required. If he says so, he will be required to fill-in the Earnest Money Agreement form. Use the @EARNEST MONEY AGREEMENT-form.docx in creating the online form. Require the Seller to sign this form before allowing allowing to submit. Once this request is submitted, the display in the Properties page should indicate this including the amount of the Earnest Money.
+
+### Implementation (Completed)
+
+**Part 1: Seller Name Display**
+
+**Backend:**
+- `listingRequestController.js:214-216` — Added `.populate("createdBy", "firstName lastName email")` to `listAllListingRequests`
+
+**Frontend:**
+- `StaffListingRequests.jsx:216-221` — Display seller name with fallback: `seller.fullName` → `createdBy.firstName lastName` → `createdBy.email` → "N/A"
+
+**Part 2: Earnest Money Agreement**
+
+**Backend:**
+- `PropertyListingRequest.js:55` — Added `earnestMoneyAmount` field to propertyDraft schema
+- `Property.js:19` — Added `earnestMoneyAmount` field to Property model
+- `listingRequestController.js:82-85` — Updated create to accept earnestMoneyRequired and earnestMoneyAmount
+- `listingRequestController.js:91-92` — Updated create to accept seller and signature fields
+- `listingRequestController.js:265` — Updated publish to copy earnestMoneyAmount to Property
+
+**Frontend:**
+- `CreateListingRequest.jsx:43-51` — Added state for earnest money, seller details, and signature consent
+- `CreateListingRequest.jsx:81-98` — Added validation for earnest money fields before submit
+- `CreateListingRequest.jsx:123-137` — Updated payload to include earnest money and seller data
+- `CreateListingRequest.jsx:239-325` — Added Earnest Money section with:
+  - Checkbox toggle for earnest money required
+  - Earnest money amount field
+  - Seller information fields (name, address, phone, email)
+  - Signature consent checkbox with dynamic seller name
+- `PropertyCard.jsx:531-546` — Updated to display earnest money amount: "Earnest: ₱X,XXX" or "Earnest Money Required"

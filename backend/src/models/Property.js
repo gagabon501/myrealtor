@@ -16,6 +16,7 @@ const propertySchema = new mongoose.Schema(
     tags: [String],
     images: [String],
     earnestMoneyRequired: { type: Boolean, default: false },
+    earnestMoneyAmount: { type: Number },
     metadata: mongoose.Schema.Types.Mixed,
   },
   { timestamps: true }

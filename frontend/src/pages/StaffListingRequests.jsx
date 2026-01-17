@@ -213,7 +213,12 @@ const StaffListingRequests = () => {
               return (
               <TableRow key={req._id} hover>
                 <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell>{req.createdBy?.email || "N/A"}</TableCell>
+                <TableCell>
+                  {req.seller?.fullName ||
+                    (req.createdBy?.firstName
+                      ? `${req.createdBy.firstName} ${req.createdBy.lastName || ""}`.trim()
+                      : req.createdBy?.email || "N/A")}
+                </TableCell>
                 <TableCell>{req.propertyDraft?.title || "Untitled"}</TableCell>
                 <TableCell>{req.propertyDraft?.location}</TableCell>
                 <TableCell>
