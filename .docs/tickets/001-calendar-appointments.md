@@ -18,3 +18,7 @@
 - "Prefferred Appointment Date" date picker in Services tabs, make this a button that when clicked will display the appointment dialog box @AppointmentBookingWidget.jsx
 - A submitted appointment request, should display in the "Appointment Management" dashoard under "Pending Appts" box and display in the Calendar as well.
 - Update the Calendar accordingly.
+
+## 1c. Revision 1c
+
+- In the "Review" button inside the Appointment Management, connect this now to the appropriate services review process

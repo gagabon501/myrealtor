@@ -450,7 +450,7 @@ router.patch(
       if (item.userId && statusMessages[status]) {
         await createNotification({
           userId: item.userId,
-          type: "appraisal_status",
+          type: "APPRAISAL_STATUS",
           title: "Appraisal Status Update",
           message: statusMessages[status],
           link: "/dashboard",
@@ -516,7 +516,7 @@ router.patch(
       if (item.userId) {
         await createNotification({
           userId: item.userId,
-          type: "appraisal_appointment",
+          type: "APPRAISAL_APPOINTMENT",
           title: "Appraisal Appointment Scheduled",
           message: `Your appraisal appointment has been scheduled for ${appointmentDate.toLocaleDateString()} at ${appointmentDate.toLocaleTimeString()}.`,
           link: "/dashboard",

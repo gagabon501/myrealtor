@@ -37,6 +37,7 @@ import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import AppointmentCalendar from "../components/AppointmentCalendar";
 import AppointmentDetailModal from "../components/AppointmentDetailModal";
+import ServiceReviewDialog from "../components/ServiceReviewDialog";
 import dayjs from "dayjs";
 
 const SERVICE_ICONS = {
@@ -61,6 +62,8 @@ const StaffAppointments = () => {
   const [serviceRequests, setServiceRequests] = useState([]);
   const [loadingPending, setLoadingPending] = useState(true);
   const [pendingError, setPendingError] = useState(null);
+  const [selectedServiceRequest, setSelectedServiceRequest] = useState(null);
+  const [serviceReviewOpen, setServiceReviewOpen] = useState(false);
   const [stats, setStats] = useState({
     requested: 0,
     confirmed: 0,
@@ -191,6 +194,30 @@ const StaffAppointments = () => {
     setSelectedAppointment(null);
   };
 
+  const handleReviewService = (request) => {
+    setSelectedServiceRequest(request);
+    setServiceReviewOpen(true);
+  };
+
+  const handleServiceUpdate = (updatedRequest) => {
+    // Remove the updated request from the list if status changed from SUBMITTED
+    if (updatedRequest.status !== "SUBMITTED") {
+      setServiceRequests((prev) =>
+        prev.filter((r) => r._id !== updatedRequest._id)
+      );
+      // Update stats
+      setStats((prev) => ({
+        ...prev,
+        newServiceRequests: Math.max(0, prev.newServiceRequests - 1),
+      }));
+    }
+  };
+
+  const handleCloseServiceReview = () => {
+    setServiceReviewOpen(false);
+    setSelectedServiceRequest(null);
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Stack spacing={3}>
@@ -319,15 +346,7 @@ const StaffAppointments = () => {
                 {serviceRequests.map((request, index) => (
                   <ListItem key={request._id} disablePadding divider={index < serviceRequests.length - 1}>
                     <ListItemButton
-                      onClick={() => {
-                        // Navigate to the appropriate service management page
-                        const routes = {
-                          APPRAISAL: `/staff/appraisals/${request._id}`,
-                          TITLING: `/staff/titling/${request._id}`,
-                          CONSULTANCY: `/staff/consultancy/${request._id}`,
-                        };
-                        window.location.href = routes[request._serviceType] || "/staff/appointments";
-                      }}
+                      onClick={() => handleReviewService(request)}
                       sx={{ py: 2 }}
                     >
                       <ListItemIcon sx={{ color: "primary.main" }}>
@@ -504,12 +523,20 @@ const StaffAppointments = () => {
           />
         </Paper>
 
-        {/* Detail Modal */}
+        {/* Appointment Detail Modal */}
         <AppointmentDetailModal
           open={modalOpen}
           onClose={handleCloseModal}
           appointment={selectedAppointment}
           onUpdate={handleAppointmentUpdate}
+        />
+
+        {/* Service Review Dialog */}
+        <ServiceReviewDialog
+          open={serviceReviewOpen}
+          onClose={handleCloseServiceReview}
+          serviceRequest={selectedServiceRequest}
+          onUpdate={handleServiceUpdate}
         />
       </Stack>
     </Container>
