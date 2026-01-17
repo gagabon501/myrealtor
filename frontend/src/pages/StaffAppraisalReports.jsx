@@ -18,7 +18,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import client from "../api/client";
+import client, { apiBase } from "../api/client";
 
 const StaffAppraisalReports = () => {
   const [requests, setRequests] = useState([]);
@@ -266,7 +266,7 @@ const StaffAppraisalReports = () => {
                               <Button
                                 size="small"
                                 variant="outlined"
-                                href={report.finalPdf.url}
+                                href={`${apiBase}${report.finalPdf.url}`}
                                 target="_blank"
                               >
                                 Download PDF
@@ -278,7 +278,7 @@ const StaffAppraisalReports = () => {
                           <Button
                             size="small"
                             variant="outlined"
-                            href={report.finalPdf.url}
+                            href={`${apiBase}${report.finalPdf.url}`}
                             target="_blank"
                           >
                             Download PDF

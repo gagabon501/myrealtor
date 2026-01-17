@@ -22,7 +22,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import client from "../api/client";
+import client, { apiBase } from "../api/client";
 
 const StaffEarnestMoney = () => {
   const [agreements, setAgreements] = useState([]);
@@ -237,7 +237,7 @@ const StaffEarnestMoney = () => {
                         <Button
                           size="small"
                           variant="outlined"
-                          href={ema.finalPdf.url}
+                          href={`${apiBase}${ema.finalPdf.url}`}
                           target="_blank"
                         >
                           Download PDF
