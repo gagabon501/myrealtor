@@ -198,9 +198,11 @@ export const listMyListingRequests = async (req, res, next) => {
   try {
     const docs = await PropertyListingRequest.find({
       createdBy: req.user.id,
-    }).sort({
-      createdAt: -1,
-    });
+    })
+      .populate("publishedPropertyId", "status title location price")
+      .sort({
+        createdAt: -1,
+      });
     return res.json(docs);
   } catch (err) {
     return next(err);

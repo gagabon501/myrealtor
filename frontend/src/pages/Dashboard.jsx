@@ -364,6 +364,7 @@ const Dashboard = () => {
               const loc = req.propertyDraft?.location;
               const price = req.propertyDraft?.price;
               const isPublished = !!req.publishedPropertyId;
+              const propertyStatus = req.publishedPropertyId?.status;
               return (
                 <Card key={req._id} variant="outlined">
                   <CardContent>
@@ -373,7 +374,7 @@ const Dashboard = () => {
                         {loc}
                       </Typography>
                     )}
-                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap" useFlexGap>
                       <Chip
                         label={status.replace("ATS_", "ATS ").replace("_", " ")}
                         color={
@@ -385,9 +386,13 @@ const Dashboard = () => {
                         }
                         size="small"
                       />
-                      {isPublished && (
+                      {isPublished && propertyStatus === "SOLD" ? (
+                        <Chip label="SOLD" size="small" color="success" sx={{ fontWeight: 700 }} />
+                      ) : isPublished && propertyStatus === "RESERVED" ? (
+                        <Chip label="Reserved" size="small" color="warning" />
+                      ) : isPublished ? (
                         <Chip label="Published" size="small" color="primary" />
-                      )}
+                      ) : null}
                       {price !== undefined && (
                         <Chip
                           label={`₱${Number(price).toLocaleString()}`}
@@ -454,7 +459,7 @@ const Dashboard = () => {
                     <Typography color="text.secondary">
                       {interest.propertyId?.location}
                     </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap" useFlexGap>
                       <Chip
                         label={interest.status || "NEW"}
                         color={
@@ -466,6 +471,12 @@ const Dashboard = () => {
                         }
                         size="small"
                       />
+                      {interest.propertyId?.status === "SOLD" && (
+                        <Chip label="SOLD" size="small" color="success" sx={{ fontWeight: 700 }} />
+                      )}
+                      {interest.propertyId?.status === "RESERVED" && (
+                        <Chip label="Reserved" size="small" color="warning" />
+                      )}
                       {interest.propertyId?.price && (
                         <Chip
                           label={`₱${Number(

@@ -6,6 +6,33 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Backend 1.4.0 / Frontend 0.5.0] – Property Status Display in Dashboard
+
+### Backend Changes
+
+- **Listing Request API Enhancement:**
+  - `listMyListingRequests` now populates `publishedPropertyId` with status, title, location, and price fields
+  - Enables seller dashboard to display property status after publishing
+
+### Frontend Changes
+
+- **Dashboard "My Selling" Tab:**
+  - Displays property status chips for published properties:
+    - **SOLD** (green, bold) - property has been sold
+    - **Reserved** (warning) - property is reserved
+    - **Published** (primary) - property is active listing
+
+- **Dashboard "My Buying" Tab:**
+  - "My Interests (Brokerage)" section now displays property status chips:
+    - **SOLD** (green, bold) - property has been sold
+    - **Reserved** (warning) - property is reserved
+  - Improved chip layout with `flexWrap` and `useFlexGap` for better responsiveness
+
+### Documentation
+
+- Created `002-brokerage-review.md` ticket to track brokerage workflow reviews and changes
+- Documented Revision 1a and 1b implementation details
+
 ## [Backend 1.3.0 / Frontend 0.4.0] – Appointment Booking System
 
 ### Backend Changes
