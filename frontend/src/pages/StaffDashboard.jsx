@@ -40,7 +40,7 @@ const StaffDashboard = () => {
     try {
       const [listingRes, inquiriesRes, servicesRes, emaRes] = await Promise.allSettled([
         client.get("/listing-requests"),
-        client.get("/admin/inquiries?status=NEW"),
+        client.get("/inquiries?status=NEW"),
         client.get("/services/pending-count"),
         client.get("/earnest-money?status=PENDING_REVIEW"),
       ]);
