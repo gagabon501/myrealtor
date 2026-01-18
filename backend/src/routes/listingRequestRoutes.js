@@ -11,6 +11,7 @@ import {
   publishListingRequest,
   updateSellerDetails,
   finalizeAts,
+  getSellerByPropertyId,
 } from "../controllers/listingRequestController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
 
@@ -68,6 +69,14 @@ router.post(
   authenticate,
   authorizeRoles("staff", "admin"),
   finalizeAts
+);
+
+// Get seller info by published property ID (for EMA pre-population)
+router.get(
+  "/by-property/:propertyId/seller",
+  authenticate,
+  authorizeRoles("staff", "admin"),
+  getSellerByPropertyId
 );
 
 export default router;

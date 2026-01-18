@@ -48,6 +48,8 @@ const StaffEarnestMoney = () => {
   const [selectedAgreement, setSelectedAgreement] = useState(null);
   const [form, setForm] = useState(initialFormState);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [inquiries, setInquiries] = useState([]);
+  const [selectedInquiryId, setSelectedInquiryId] = useState("");
 
   const loadAgreements = async () => {
     try {
@@ -78,6 +80,85 @@ const StaffEarnestMoney = () => {
 
   const resetForm = () => {
     setForm(initialFormState);
+    setInquiries([]);
+    setSelectedInquiryId("");
+  };
+
+  const handlePropertyChange = async (propertyId) => {
+    setForm({ ...form, propertyId });
+    setInquiries([]);
+    setSelectedInquiryId("");
+
+    if (!propertyId) return;
+
+    // Fetch seller info and inquiries for the selected property
+    try {
+      const [sellerRes, inquiriesRes] = await Promise.allSettled([
+        client.get(`/listing-requests/by-property/${propertyId}/seller`),
+        client.get(`/inquiries?propertyId=${propertyId}`),
+      ]);
+
+      // Pre-populate seller info
+      if (sellerRes.status === "fulfilled" && sellerRes.value.data) {
+        const { seller, atsDetails, propertyDraft } = sellerRes.value.data;
+        const selectedProperty = properties.find((p) => p._id === propertyId);
+        setForm((prev) => ({
+          ...prev,
+          seller: {
+            name: seller?.fullName || "",
+            address: seller?.address || "",
+          },
+          titleNo: atsDetails?.titleNosTaxDec || "",
+          areaSqm: atsDetails?.lotArea || "",
+          totalPurchasePrice: selectedProperty?.price || propertyDraft?.price || "",
+          earnestMoneyAmount: selectedProperty?.earnestMoneyAmount || propertyDraft?.earnestMoneyAmount || "",
+        }));
+      }
+
+      // Load inquiries for buyer dropdown
+      if (inquiriesRes.status === "fulfilled" && Array.isArray(inquiriesRes.value.data)) {
+        setInquiries(inquiriesRes.value.data);
+        // Auto-select if only one inquiry
+        if (inquiriesRes.value.data.length === 1) {
+          const inquiry = inquiriesRes.value.data[0];
+          setSelectedInquiryId(inquiry._id);
+          setForm((prev) => ({
+            ...prev,
+            buyer: {
+              name: inquiry.buyer?.name || "",
+              address: inquiry.buyer?.address || "",
+              phone: inquiry.buyer?.phone || "",
+              email: inquiry.buyer?.email || "",
+            },
+          }));
+        }
+      }
+    } catch {
+      // Silently fail - pre-population is optional
+    }
+  };
+
+  const handleInquiryChange = (inquiryId) => {
+    setSelectedInquiryId(inquiryId);
+    if (!inquiryId) {
+      setForm((prev) => ({
+        ...prev,
+        buyer: { name: "", address: "", phone: "", email: "" },
+      }));
+      return;
+    }
+    const inquiry = inquiries.find((i) => i._id === inquiryId);
+    if (inquiry) {
+      setForm((prev) => ({
+        ...prev,
+        buyer: {
+          name: inquiry.buyer?.name || "",
+          address: inquiry.buyer?.address || "",
+          phone: inquiry.buyer?.phone || "",
+          email: inquiry.buyer?.email || "",
+        },
+      }));
+    }
   };
 
   const handleCreate = async () => {
@@ -88,6 +169,7 @@ const StaffEarnestMoney = () => {
         areaSqm: Number(form.areaSqm),
         earnestMoneyAmount: Number(form.earnestMoneyAmount),
         totalPurchasePrice: Number(form.totalPurchasePrice),
+        ...(selectedInquiryId && { inquiryId: selectedInquiryId }),
       };
       await client.post("/earnest-money", payload);
       setNotice("Earnest Money Agreement created successfully");
@@ -200,7 +282,7 @@ const StaffEarnestMoney = () => {
             <Select
               value={form.propertyId}
               label="Property"
-              onChange={(e) => setForm({ ...form, propertyId: e.target.value })}
+              onChange={(e) => handlePropertyChange(e.target.value)}
             >
               {properties.map((p) => (
                 <MenuItem key={p._id} value={p._id}>
@@ -261,6 +343,27 @@ const StaffEarnestMoney = () => {
       <Grid item xs={12}>
         <Divider>Buyer Information</Divider>
       </Grid>
+      {!isEdit && inquiries.length > 0 && (
+        <Grid item xs={12}>
+          <FormControl fullWidth>
+            <InputLabel>Select Interested Buyer</InputLabel>
+            <Select
+              value={selectedInquiryId}
+              label="Select Interested Buyer"
+              onChange={(e) => handleInquiryChange(e.target.value)}
+            >
+              <MenuItem value="">
+                <em>Enter manually</em>
+              </MenuItem>
+              {inquiries.map((inq) => (
+                <MenuItem key={inq._id} value={inq._id}>
+                  {inq.buyer?.name} - {inq.buyer?.email} ({inq.status})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+      )}
       <Grid item xs={12} md={6}>
         <TextField
           fullWidth

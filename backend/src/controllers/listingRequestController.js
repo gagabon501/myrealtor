@@ -441,3 +441,24 @@ export const finalizeAts = async (req, res, next) => {
     return next(err);
   }
 };
+
+export const getSellerByPropertyId = async (req, res, next) => {
+  try {
+    const { propertyId } = req.params;
+    const listing = await PropertyListingRequest.findOne({
+      publishedPropertyId: propertyId,
+    }).select("seller atsDetails propertyDraft");
+
+    if (!listing) {
+      return res.status(404).json({ message: "Listing request not found for this property" });
+    }
+
+    return res.json({
+      seller: listing.seller || {},
+      atsDetails: listing.atsDetails || {},
+      propertyDraft: listing.propertyDraft || {},
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
