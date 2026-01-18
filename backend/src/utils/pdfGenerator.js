@@ -177,7 +177,7 @@ export const generateAtsPdf = async (data) => {
 };
 
 /**
- * Generate Earnest Money Agreement PDF (Single Page)
+ * Generate Earnest Money Agreement PDF (Single Page, Compact Layout)
  */
 export const generateEmaPdf = async (data) => {
   const { emaId, executionDate, executionLocation, propertyTitle, propertyLocation, seller, buyer, titleNo, areaSqm, earnestMoneyAmount, totalPurchasePrice, deedExecutionDeadline, version = 1, isPreview = false } = data;
@@ -197,8 +197,8 @@ export const generateEmaPdf = async (data) => {
   const totalPriceWords = `${numberToWords(Number(totalPurchasePrice || 0))} Pesos`;
 
   return new Promise((resolve, reject) => {
-    // Tighter margins for single page layout
-    const doc = new PDFDocument({ margin: 40, size: "LETTER" });
+    // Use LETTER size with tight margins for single page
+    const doc = new PDFDocument({ margin: 45, size: "LETTER" });
     const writeStream = fs.createWriteStream(outputPath);
 
     doc.pipe(writeStream);
@@ -216,7 +216,7 @@ export const generateEmaPdf = async (data) => {
     doc.fontSize(14).font("Helvetica-Bold").text("EARNEST MONEY AGREEMENT", { align: "center" });
     doc.moveDown(0.8);
 
-    // Opening paragraph - smaller font for single page
+    // Opening paragraph
     doc.fontSize(9).font("Helvetica");
     doc.text(
       `This Earnest Money Agreement is made and executed this ${execDateFormatted}, in ${execLocationFormatted}, Philippines, by and between `,
@@ -308,19 +308,22 @@ export const generateEmaPdf = async (data) => {
     );
     doc.moveDown(1);
 
-    // Signature section - side by side to save space
+    // Signature section - side by side
     const signatureY = doc.y;
-    doc.text("___________________________________", 40, signatureY);
-    doc.font("Helvetica-Bold").text("SELLER", 40, signatureY + 15);
-    doc.font("Helvetica").fontSize(8).text("Signature over Printed Name", 40, signatureY + 27);
+    const leftCol = 45;
+    const rightCol = 310;
 
-    doc.fontSize(9).text("___________________________________", 320, signatureY);
-    doc.font("Helvetica-Bold").text("BUYER", 320, signatureY + 15);
-    doc.font("Helvetica").fontSize(8).text("Signature over Printed Name", 320, signatureY + 27);
+    doc.text("___________________________________", leftCol, signatureY);
+    doc.font("Helvetica-Bold").text("SELLER", leftCol, signatureY + 12);
+    doc.font("Helvetica").fontSize(7).text("Signature over Printed Name", leftCol, signatureY + 23);
+
+    doc.fontSize(9).text("___________________________________", rightCol, signatureY);
+    doc.font("Helvetica-Bold").text("BUYER", rightCol, signatureY + 12);
+    doc.font("Helvetica").fontSize(7).text("Signature over Printed Name", rightCol, signatureY + 23);
 
     // Footer at bottom of page
     doc.fontSize(7).font("Helvetica");
-    doc.text(`Document ID: ${emaId} | Version: ${isPreview ? "Preview" : version} | Generated: ${new Date().toLocaleString()}`, 40, 740, { align: "center", width: 532 });
+    doc.text(`Document ID: ${emaId} | Version: ${isPreview ? "Preview" : version} | Generated: ${new Date().toLocaleString()}`, 45, 745, { align: "center", width: 522 });
 
     doc.end();
 
