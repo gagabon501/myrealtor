@@ -6,6 +6,35 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Frontend 0.9.0] – Dashboard Revamp & Cleanup
+
+### Frontend Changes
+
+- **Client Dashboard Cleanup:**
+  - Removed "My Applications" section and "Upload documents" form
+  - Removed "Refresh applications" button and "Last updated" timestamp
+  - Removed Documents, Compliance tasks, and Payments sections
+  - Cleaned up unused state, functions, and imports
+
+- **Staff Dashboard Revamp:**
+  - Complete visual redesign with modern, professional look
+  - Added gradient header banner with welcome message and "Pending Actions" stat
+  - Quick Actions grid with 7 action cards featuring:
+    - Color-coded icons in circular avatars
+    - Hover effects with lift animation and colored borders
+    - Pulsing red notification badges for pending items
+  - Visual cues for new transactions:
+    - Listing Requests: shows count of ATS_PENDING requests not yet published
+    - Buyer Inquiries: shows count of NEW inquiries
+    - Service Requests: shows pending service request count
+    - Earnest Money: shows PENDING_REVIEW count
+  - Removed unused sections: Recent Applications, Document Review, Applications button
+  - Removed Compliance Tasks and Payments sections (not implemented)
+
+- **Listing Request Badge Logic:**
+  - Only counts requests where status is ATS_PENDING AND not yet published
+  - Published listings no longer trigger the "pending" notification badge
+
 ## [Backend 1.7.0 / Frontend 0.8.0] – EMA Enhancements
 
 ### Backend Changes
