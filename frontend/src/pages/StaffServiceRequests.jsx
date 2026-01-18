@@ -185,13 +185,15 @@ const StaffServiceRequests = () => {
               color={statusColors[item.status] || "default"}
               size="small"
             />
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => openStatusDialog(item, type)}
-            >
-              Update Status
-            </Button>
+            {item.status !== "CLOSED" && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => openStatusDialog(item, type)}
+              >
+                Update Status
+              </Button>
+            )}
           </Stack>
         </Stack>
         <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>

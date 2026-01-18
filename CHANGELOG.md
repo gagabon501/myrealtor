@@ -6,6 +6,18 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Frontend 0.9.1] – CLOSED Status Lock
+
+### Frontend Changes
+
+- **Buyer Inquiries Page (`AdminInquiries.jsx`):**
+  - Status dropdown replaced with non-editable "CLOSED" chip when inquiry is closed
+  - Prevents accidental status changes on closed inquiries
+
+- **Service Requests Page (`StaffServiceRequests.jsx`):**
+  - "Update Status" button hidden for items with CLOSED status
+  - Applies to Buyer Interests tab
+
 ## [Frontend 0.9.0] – Dashboard Revamp & Cleanup
 
 ### Frontend Changes

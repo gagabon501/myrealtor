@@ -217,20 +217,24 @@ const AdminInquiries = () => {
                     </Button>
                   </TableCell>
                   <TableCell>
-                    <FormControl size="small" fullWidth>
-                      <InputLabel>Status</InputLabel>
-                      <Select
-                        label="Status"
-                        value={row.status || "NEW"}
-                        onChange={(e) => handleStatusChange(row._id, e.target.value)}
-                      >
-                        {statusOptions.map((opt) => (
-                          <MenuItem key={opt} value={opt}>
-                            {opt}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    {row.status === "CLOSED" ? (
+                      <Chip label="CLOSED" color="success" size="small" />
+                    ) : (
+                      <FormControl size="small" fullWidth>
+                        <InputLabel>Status</InputLabel>
+                        <Select
+                          label="Status"
+                          value={row.status || "NEW"}
+                          onChange={(e) => handleStatusChange(row._id, e.target.value)}
+                        >
+                          {statusOptions.map((opt) => (
+                            <MenuItem key={opt} value={opt}>
+                              {opt}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
