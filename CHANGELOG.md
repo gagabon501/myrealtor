@@ -6,6 +6,23 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Backend 1.6.0 / Frontend 0.7.0] – Legal EMA PDF Template
+
+### Backend Changes
+
+- **PDF Generator Enhancement (`pdfGenerator.js`):**
+  - Added `numberToWords()` helper function for converting numeric amounts to words (e.g., 100000 → "One Hundred Thousand")
+  - Added `formatLegalDate()` helper for proper legal date formatting (e.g., "18th day of January 2026")
+  - Completely rewrote `generateEmaPdf()` to use official Philippine legal template:
+    - Opening clause with execution date and location
+    - Seller/Buyer identification with full addresses
+    - Property description with TCT/CCT title number and area in sqm
+    - Financial terms with amounts shown numerically AND in words
+    - Deed of Absolute Sale deadline
+    - Forfeiture clauses for buyer/seller default
+    - Tax allocation and governing law clauses
+    - Witness clause with signature sections for both parties
+
 ## [Backend 1.5.0 / Frontend 0.6.0] – Earnest Money Agreement & Seller Name Display
 
 ### Backend Changes

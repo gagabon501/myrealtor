@@ -5,6 +5,74 @@ import path from "path";
 const uploadsRoot = process.env.UPLOADS_ROOT || path.resolve(process.cwd(), "uploads");
 const generatedDir = path.join(uploadsRoot, "generated");
 
+/**
+ * Convert number to words (Philippine Peso format)
+ */
+const numberToWords = (num) => {
+  if (num === 0) return "Zero";
+
+  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+                "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+                "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  const scales = ["", "Thousand", "Million", "Billion", "Trillion"];
+
+  const convertHundreds = (n) => {
+    let result = "";
+    if (n >= 100) {
+      result += ones[Math.floor(n / 100)] + " Hundred";
+      n %= 100;
+      if (n > 0) result += " ";
+    }
+    if (n >= 20) {
+      result += tens[Math.floor(n / 10)];
+      n %= 10;
+      if (n > 0) result += "-" + ones[n];
+    } else if (n > 0) {
+      result += ones[n];
+    }
+    return result;
+  };
+
+  let result = "";
+  let scaleIndex = 0;
+
+  while (num > 0) {
+    const chunk = num % 1000;
+    if (chunk > 0) {
+      const chunkWords = convertHundreds(chunk);
+      if (scaleIndex > 0) {
+        result = chunkWords + " " + scales[scaleIndex] + (result ? " " + result : "");
+      } else {
+        result = chunkWords + (result ? " " + result : "");
+      }
+    }
+    num = Math.floor(num / 1000);
+    scaleIndex++;
+  }
+
+  return result.trim();
+};
+
+/**
+ * Format date to "Xth day of Month 20XX" format
+ */
+const formatLegalDate = (date) => {
+  if (!date) return "________";
+  const d = new Date(date);
+  const day = d.getDate();
+  const month = d.toLocaleString("en-US", { month: "long" });
+  const year = d.getFullYear();
+
+  const ordinal = (n) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
+  return `${ordinal(day)} day of ${month} ${year}`;
+};
+
 // Ensure directories exist
 const ensureDir = (dirPath) => {
   if (!fs.existsSync(dirPath)) {
@@ -118,79 +186,134 @@ export const generateEmaPdf = async (data) => {
   ensureDir(outputDir);
   const outputPath = path.join(outputDir, `v${version}.pdf`);
 
+  // Format values for the legal document
+  const today = new Date();
+  const todayFormatted = formatLegalDate(today);
+  const deadlineFormatted = deedExecutionDeadline ? new Date(deedExecutionDeadline).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "________";
+  const earnestAmountFormatted = `₱${Number(earnestMoneyAmount || 0).toLocaleString()}`;
+  const earnestAmountWords = `${numberToWords(Number(earnestMoneyAmount || 0))} Pesos`;
+  const totalPriceFormatted = `₱${Number(totalPurchasePrice || 0).toLocaleString()}`;
+  const totalPriceWords = `${numberToWords(Number(totalPurchasePrice || 0))} Pesos`;
+  const locationCity = propertyLocation?.split(",").pop()?.trim() || propertyLocation || "________";
+
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ margin: 50, size: "LETTER" });
     const writeStream = fs.createWriteStream(outputPath);
 
     doc.pipe(writeStream);
 
     // Header
-    doc.fontSize(18).font("Helvetica-Bold").text("EARNEST MONEY AGREEMENT", { align: "center" });
-    doc.moveDown(0.5);
-    doc.fontSize(10).font("Helvetica").text("Goshen Realty ABCD", { align: "center" });
-    doc.moveDown(2);
-
-    // Introduction
-    doc.fontSize(10).font("Helvetica");
-    doc.text("This Earnest Money Agreement is entered into by and between:");
+    doc.fontSize(16).font("Helvetica-Bold").text("EARNEST MONEY AGREEMENT", { align: "center" });
     doc.moveDown(1.5);
 
-    // Seller Information
-    doc.fontSize(12).font("Helvetica-Bold").text("THE SELLER:");
-    doc.moveDown(0.5);
-    doc.fontSize(10).font("Helvetica");
-    doc.text(`Name: ${seller?.name || "N/A"}`);
-    doc.text(`Address: ${seller?.address || "N/A"}`);
+    // Opening paragraph
+    doc.fontSize(11).font("Helvetica");
+    doc.text(
+      `This Earnest Money Agreement is made and executed this ${todayFormatted}, in ${locationCity}, Philippines, by and between `,
+      { continued: true }
+    );
+    doc.font("Helvetica-Bold").text(seller?.name || "________", { continued: true });
+    doc.font("Helvetica").text(", of legal age, Filipino, with address at ", { continued: true });
+    doc.font("Helvetica-Bold").text(seller?.address || "________", { continued: true });
+    doc.font("Helvetica").text(", hereinafter referred to as the SELLER, and ", { continued: true });
+    doc.font("Helvetica-Bold").text(buyer?.name || "________", { continued: true });
+    doc.font("Helvetica").text(", of legal age, Filipino, with address at ", { continued: true });
+    doc.font("Helvetica-Bold").text(buyer?.address || "________", { continued: true });
+    doc.font("Helvetica").text(", hereinafter referred to as the BUYER.");
     doc.moveDown(1);
 
-    // Buyer Information
-    doc.fontSize(12).font("Helvetica-Bold").text("THE BUYER:");
-    doc.moveDown(0.5);
-    doc.fontSize(10).font("Helvetica");
-    doc.text(`Name: ${buyer?.name || "N/A"}`);
-    doc.text(`Address: ${buyer?.address || "N/A"}`);
-    doc.text(`Phone: ${buyer?.phone || "N/A"}`);
-    doc.text(`Email: ${buyer?.email || "N/A"}`);
-    doc.moveDown(1.5);
+    // Property description paragraph
+    doc.text(
+      "The Seller is the lawful owner of a parcel of land, with or without improvements, situated at ",
+      { continued: true }
+    );
+    doc.font("Helvetica-Bold").text(propertyLocation || "________", { continued: true });
+    doc.font("Helvetica").text(", covered by Transfer Certificate of Title/Condominium Certificate of Title No. ", { continued: true });
+    doc.font("Helvetica-Bold").text(titleNo || "________", { continued: true });
+    doc.font("Helvetica").text(", containing an area of ", { continued: true });
+    doc.font("Helvetica-Bold").text(`${areaSqm || "________"} square meters`, { continued: true });
+    doc.font("Helvetica").text(", more particularly described in said title.");
+    doc.moveDown(1);
 
-    // Property Information
-    doc.fontSize(12).font("Helvetica-Bold").text("PROPERTY DETAILS:");
-    doc.moveDown(0.5);
-    doc.fontSize(10).font("Helvetica");
-    doc.text(`Property: ${propertyTitle || "N/A"}`);
-    doc.text(`Location: ${propertyLocation || "N/A"}`);
-    doc.text(`Title No.: ${titleNo || "N/A"}`);
-    doc.text(`Area: ${areaSqm || "N/A"} sqm`);
-    doc.moveDown(1.5);
+    // Buyer intention paragraph
+    doc.text(
+      "The Buyer has manifested a firm intention to purchase the above-described property, and the Seller has agreed to sell the same, subject to the execution of a Deed of Absolute Sale under the terms and conditions hereinafter stated."
+    );
+    doc.moveDown(1);
 
-    // Financial Terms
-    doc.fontSize(12).font("Helvetica-Bold").text("FINANCIAL TERMS:");
-    doc.moveDown(0.5);
-    doc.fontSize(10).font("Helvetica");
-    doc.text(`Total Purchase Price: PHP ${Number(totalPurchasePrice || 0).toLocaleString()}`);
-    doc.text(`Earnest Money Amount: PHP ${Number(earnestMoneyAmount || 0).toLocaleString()}`);
-    doc.text(`Deed Execution Deadline: ${deedExecutionDeadline ? new Date(deedExecutionDeadline).toLocaleDateString() : "N/A"}`);
-    doc.moveDown(1.5);
+    // Earnest money payment paragraph
+    doc.text(
+      "For and in consideration of the foregoing, the Buyer has paid, and the Seller has received, the amount of PESOS: ",
+      { continued: true }
+    );
+    doc.font("Helvetica-Bold").text(`${earnestAmountFormatted} (${earnestAmountWords})`, { continued: true });
+    doc.font("Helvetica").text(
+      " as Earnest Money, which amount shall form part of and be credited toward the total purchase price of the property."
+    );
+    doc.moveDown(1);
 
-    // Terms
-    doc.fontSize(12).font("Helvetica-Bold").text("TERMS AND CONDITIONS:");
-    doc.moveDown(0.5);
-    doc.fontSize(9).font("Helvetica");
-    doc.text("1. The Buyer agrees to pay the above earnest money as a deposit for the property.");
-    doc.text("2. The earnest money shall be applied to the total purchase price upon execution of the Deed of Absolute Sale.");
-    doc.text("3. If the Buyer fails to proceed with the purchase, the earnest money may be forfeited.");
-    doc.text("4. If the Seller fails to deliver the property as agreed, the earnest money shall be returned to the Buyer.");
-    doc.text("5. Both parties agree to execute the Deed of Absolute Sale on or before the deadline specified above.");
+    // Total purchase price paragraph
+    doc.text(
+      "The Parties have mutually agreed that the total purchase price of the property is PESOS: ",
+      { continued: true }
+    );
+    doc.font("Helvetica-Bold").text(`${totalPriceFormatted} (${totalPriceWords})`, { continued: true });
+    doc.font("Helvetica").text(
+      ". The Earnest Money shall be deducted from the total purchase price upon the execution of the Deed of Absolute Sale."
+    );
+    doc.moveDown(1);
+
+    // Deadline paragraph
+    doc.text(
+      "The Parties further agree that the Deed of Absolute Sale shall be executed on or before ",
+      { continued: true }
+    );
+    doc.font("Helvetica-Bold").text(deadlineFormatted, { continued: true });
+    doc.font("Helvetica").text(
+      ", subject to the completion and submission of all necessary documents and compliance with all legal requirements, including but not limited to verification of ownership, settlement of taxes, and other lawful conditions relevant to the transfer of title."
+    );
+    doc.moveDown(1);
+
+    // Forfeiture clause
+    doc.text(
+      "In the event that the Buyer unjustifiably fails or refuses to proceed with the purchase, the Earnest Money shall be forfeited in favor of the Seller as liquidated damages. Conversely, if the Seller unjustifiably fails or refuses to proceed with the sale, the Seller shall return the Earnest Money in full to the Buyer. Should the sale fail to be consummated due to causes beyond the control of both Parties, the Earnest Money shall be returned to the Buyer, unless otherwise agreed in writing."
+    );
+    doc.moveDown(1);
+
+    // Taxes clause
+    doc.text(
+      "Unless otherwise stipulated, all taxes, fees, and expenses incident to the sale and transfer of the property shall be borne by the Parties in accordance with law and prevailing practice."
+    );
+    doc.moveDown(1);
+
+    // Governing law clause
+    doc.text(
+      "This Agreement shall be governed by and construed in accordance with the laws of the Republic of the Philippines and shall be binding upon the Parties, their heirs, successors, and assigns."
+    );
+    doc.moveDown(1);
+
+    // Witness clause
+    doc.text(
+      "IN WITNESS WHEREOF, the Parties have hereunto affixed their signatures on the date and place first above written."
+    );
     doc.moveDown(2);
 
-    // Signature Lines
-    doc.fontSize(10).font("Helvetica");
-    doc.text("_________________________                    _________________________");
-    doc.text("        SELLER                                              BUYER");
+    // Signature section
+    doc.text("___________________________________________");
+    doc.moveDown(0.5);
+    doc.font("Helvetica-Bold").text("SELLER", { align: "left" });
+    doc.font("Helvetica").text("Signature over Printed Name");
+    doc.moveDown(2);
+
+    doc.text("___________________________________________");
+    doc.moveDown(0.5);
+    doc.font("Helvetica-Bold").text("BUYER", { align: "left" });
+    doc.font("Helvetica").text("Signature over Printed Name");
     doc.moveDown(2);
 
     // Footer
     doc.fontSize(8).font("Helvetica");
+    doc.text("─".repeat(80), { align: "center" });
     doc.text(`Document ID: ${emaId}`, { align: "left" });
     doc.text(`Version: ${version}`, { align: "left" });
     doc.text(`Generated: ${new Date().toLocaleString()}`, { align: "left" });

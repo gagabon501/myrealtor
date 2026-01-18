@@ -99,14 +99,17 @@ Per the current implementation, appointments tie into **secondary services** (Ap
 **Part 1: Seller Name Display**
 
 **Backend:**
+
 - `listingRequestController.js:214-216` — Added `.populate("createdBy", "firstName lastName email")` to `listAllListingRequests`
 
 **Frontend:**
+
 - `StaffListingRequests.jsx:216-221` — Display seller name with fallback: `seller.fullName` → `createdBy.firstName lastName` → `createdBy.email` → "N/A"
 
 **Part 2: Earnest Money Agreement**
 
 **Backend:**
+
 - `PropertyListingRequest.js:55` — Added `earnestMoneyAmount` field to propertyDraft schema
 - `Property.js:19` — Added `earnestMoneyAmount` field to Property model
 - `listingRequestController.js:82-85` — Updated create to accept earnestMoneyRequired and earnestMoneyAmount
@@ -114,6 +117,7 @@ Per the current implementation, appointments tie into **secondary services** (Ap
 - `listingRequestController.js:265` — Updated publish to copy earnestMoneyAmount to Property
 
 **Frontend:**
+
 - `CreateListingRequest.jsx:43-51` — Added state for earnest money, seller details, and signature consent
 - `CreateListingRequest.jsx:81-98` — Added validation for earnest money fields before submit
 - `CreateListingRequest.jsx:123-137` — Updated payload to include earnest money and seller data
@@ -123,3 +127,36 @@ Per the current implementation, appointments tie into **secondary services** (Ap
   - Seller information fields (name, address, phone, email)
   - Signature consent checkbox with dynamic seller name
 - `PropertyCard.jsx:531-546` — Updated to display earnest money amount: "Earnest: ₱X,XXX" or "Earnest Money Required"
+
+## 1d Revision 1d
+
+- Use the following text in producing the Earnest Money PDF download: "EARNEST MONEY AGREEMENT
+  This Earnest Money Agreement is made and executed this **\_ day of **\_\_\_\_**** 20**\_, in ********\_\_\_\_**********, Philippines, by and between************\_\_************, of legal age, Filipino, with address at ******************\_******************, hereinafter referred to as the SELLER, and ****************\_\_\_****************, of legal age, Filipino, with address at ******************\_\_\_******************, hereinafter referred to as the BUYER.
+  The Seller is the lawful owner of a parcel of land, with or without improvements, situated at ******************\_\_\_******************, covered by Transfer Certificate of Title/Condominium Certificate of Title No. ********\_\_\_\_********, containing an area of ****\_\_**** square meters, more particularly described in said title.
+  The Buyer has manifested a firm intention to purchase the above-described property, and the Seller has agreed to sell the same, subject to the execution of a Deed of Absolute Sale under the terms and conditions hereinafter stated.
+  For and in consideration of the foregoing, the Buyer has paid, and the Seller has received, the amount of PESOS: ₱********\_\_******** (****************\_\_\_**************** Pesos) as Earnest Money, which amount shall form part of and be credited toward the total purchase price of the property.
+  The Parties have mutually agreed that the total purchase price of the property is PESOS: ₱********\_\_******** (************\_\_\_\_************ Pesos). The Earnest Money shall be deducted from the total purchase price upon the execution of the Deed of Absolute Sale.
+  The Parties further agree that the Deed of Absolute Sale shall be executed on or before ******\_\_\_******, 2026, subject to the completion and submission of all necessary documents and compliance with all legal requirements, including but not limited to verification of ownership, settlement of taxes, and other lawful conditions relevant to the transfer of title.
+  In the event that the Buyer unjustifiably fails or refuses to proceed with the purchase, the Earnest Money shall be forfeited in favor of the Seller as liquidated damages. Conversely, if the Seller unjustifiably fails or refuses to proceed with the sale, the Seller shall return the Earnest Money in full to the Buyer. Should the sale fail to be consummated due to causes beyond the control of both Parties, the Earnest Money shall be returned to the Buyer, unless otherwise agreed in writing.
+  Unless otherwise stipulated, all taxes, fees, and expenses incident to the sale and transfer of the property shall be borne by the Parties in accordance with law and prevailing practice.
+  This Agreement shall be governed by and construed in accordance with the laws of the Republic of the Philippines and shall be binding upon the Parties, their heirs, successors, and assigns.
+  IN WITNESS WHEREOF, the Parties have hereunto affixed their signatures on the date and place first above written.
+
+---
+
+                  SELLER
+    Signature over Printed Name" - fill-in the blanks accordingly when printing this to PDF
+
+### Implementation (Completed)
+
+**Backend:**
+
+- `pdfGenerator.js:11-55` — Added `numberToWords()` helper function to convert amounts to words (e.g., "One Million Five Hundred Thousand Pesos")
+- `pdfGenerator.js:60-74` — Added `formatLegalDate()` helper to format dates as "Xth day of Month Year"
+- `pdfGenerator.js:182-332` — Completely rewrote `generateEmaPdf()` to use the legal template format with:
+  - Opening paragraph with date, location, seller/buyer names and addresses
+  - Property description with location, title number (TCT/CCT), and area in sqm
+  - Financial terms with amounts shown both numerically and in words (e.g., "₱100,000 (One Hundred Thousand Pesos)")
+  - Deed execution deadline date
+  - Full legal clauses: forfeiture, taxes, governing law, witness
+  - Signature sections for both SELLER and BUYER
