@@ -23,7 +23,7 @@ const normalizeUrl = (u) => {
   return `${apiBase}${cleaned}`;
 };
 
-const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
+const DocumentList = ({ module, ownerId, refreshKey = 0, readOnly = false }) => {
   const { user } = useAuth();
   const canManage = ["staff", "admin"].includes(user?.role);
   const userId = user?.id || user?._id;
@@ -149,11 +149,12 @@ const DocumentList = ({ module, ownerId, refreshKey = 0 }) => {
                             View
                           </Button>
                         )}
-                        {(canManage ||
-                          ((isServiceModule || isPropertyRequest) &&
-                            userId &&
-                            d.uploadedBy &&
-                            String(d.uploadedBy) === String(userId))) && (
+                        {!readOnly &&
+                          (canManage ||
+                            ((isServiceModule || isPropertyRequest) &&
+                              userId &&
+                              d.uploadedBy &&
+                              String(d.uploadedBy) === String(userId))) && (
                           <Button
                             size="small"
                             color="error"

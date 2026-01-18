@@ -38,8 +38,7 @@ const MyListingRequests = () => {
   const [error, setError] = useState("");
   const [requests, setRequests] = useState([]);
   const navigate = useNavigate();
-  const [docModal, setDocModal] = useState({ open: false, id: null });
-  const [photoModal, setPhotoModal] = useState({ open: false, id: null });
+  const [docModal, setDocModal] = useState({ open: false, id: null, readOnly: false });
 
   const load = async () => {
     setLoading(true);
@@ -161,16 +160,13 @@ const MyListingRequests = () => {
                   <Button
                     size="small"
                     variant={isAtsApproved ? "text" : "contained"}
-                    onClick={() => setDocModal({ open: true, id: req._id })}
+                    onClick={() => setDocModal({
+                      open: true,
+                      id: req._id,
+                      readOnly: req.publishedPropertyId?.status === "SOLD",
+                    })}
                   >
                     {buttonLabel}
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => setPhotoModal({ open: true, id: req._id })}
-                  >
-                    Photos
                   </Button>
                 </CardActions>
               </CardContent>
@@ -181,18 +177,11 @@ const MyListingRequests = () => {
       <ListingRequestDocumentsDialog
         open={docModal.open}
         listingRequestId={docModal.id}
-        onClose={() => setDocModal({ open: false, id: null })}
+        onClose={() => setDocModal({ open: false, id: null, readOnly: false })}
         mode="client"
         categories={["ATTACHMENT"]}
         defaultCategory="ATTACHMENT"
-      />
-      <ListingRequestDocumentsDialog
-        open={photoModal.open}
-        listingRequestId={photoModal.id}
-        onClose={() => setPhotoModal({ open: false, id: null })}
-        mode="client"
-        categories={["PHOTO"]}
-        defaultCategory="PHOTO"
+        readOnly={docModal.readOnly}
       />
     </Container>
   );

@@ -219,6 +219,7 @@ export const listAllListingRequests = async (_req, res, next) => {
   try {
     const docs = await PropertyListingRequest.find()
       .populate("createdBy", "firstName lastName email")
+      .populate("publishedPropertyId", "status title location price")
       .sort({ createdAt: -1 });
     return res.json(docs);
   } catch (err) {

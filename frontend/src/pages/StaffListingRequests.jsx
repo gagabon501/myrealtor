@@ -58,7 +58,7 @@ const StaffListingRequests = () => {
   const [reason, setReason] = useState("");
   const [actionError, setActionError] = useState("");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-  const [docModal, setDocModal] = useState({ open: false, id: null });
+  const [docModal, setDocModal] = useState({ open: false, id: null, readOnly: false });
   const [actionBusyId, setActionBusyId] = useState(null);
 
   const load = async () => {
@@ -248,7 +248,11 @@ const StaffListingRequests = () => {
                   <Button
                     size="small"
                     variant="outlined"
-                    onClick={() => setDocModal({ open: true, id: req._id })}
+                    onClick={() => setDocModal({
+                      open: true,
+                      id: req._id,
+                      readOnly: req.publishedPropertyId?.status === "SOLD",
+                    })}
                   >
                     View ATS
                   </Button>
@@ -321,8 +325,9 @@ const StaffListingRequests = () => {
       <ListingRequestDocumentsDialog
         open={docModal.open}
         listingRequestId={docModal.id}
-        onClose={() => setDocModal({ open: false, id: null })}
+        onClose={() => setDocModal({ open: false, id: null, readOnly: false })}
         mode="company"
+        readOnly={docModal.readOnly}
       />
       <Snackbar
         open={snackbar.open}
