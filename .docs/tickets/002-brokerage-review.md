@@ -160,3 +160,40 @@ Per the current implementation, appointments tie into **secondary services** (Ap
   - Deed execution deadline date
   - Full legal clauses: forfeiture, taxes, governing law, witness
   - Signature sections for both SELLER and BUYER
+
+## 1e Revision 1e — EMA Enhancements
+
+- Use PHP as the symbol for Pesos (not ₱)
+- Execution date and location should be asked from staff during EMA creation
+- Allow preview and editing of EMA before FINAL creation
+- Make EMA PDF fit on one page
+
+### Implementation (Completed)
+
+**Backend:**
+
+- `EarnestMoneyAgreement.js:37-38` — Added `executionDate` (Date) and `executionLocation` (String) fields to schema
+- `earnestMoneyController.js:17,29-30` — Updated `createEarnestMoneyAgreement` to accept new fields
+- `earnestMoneyController.js:101` — Updated `allowedFields` in `updateEarnestMoneyAgreement` to include new fields
+- `earnestMoneyController.js:140-141` — Updated `finalizeEarnestMoneyAgreement` to pass new fields to PDF generator
+- `earnestMoneyController.js:177-213` — Added `previewEarnestMoneyAgreement` endpoint to generate preview PDF with watermark
+- `earnestMoneyRoutes.js:9,24-25,44` — Added preview import, execution date/location validation, and preview route
+- `pdfGenerator.js:182-337` — Updated `generateEmaPdf()`:
+  - Changed peso symbol from ₱ to PHP
+  - Uses executionDate and executionLocation from data instead of auto-generating
+  - Optimized layout for single page (9pt font, 40px margins, 0.5 line spacing)
+  - Side-by-side signature sections
+  - Added "PREVIEW" watermark for preview PDFs
+  - Footer positioned at page bottom
+
+**Frontend:**
+
+- `StaffEarnestMoney.jsx:27-38` — Added `executionDate` and `executionLocation` to initial form state
+- `StaffEarnestMoney.jsx:46-50` — Added `editDialogOpen`, `selectedAgreement`, and `previewLoading` state
+- `StaffEarnestMoney.jsx:102-122` — Added `handleOpenEdit` function to populate edit form
+- `StaffEarnestMoney.jsx:124-147` — Added `handleUpdate` function to save changes
+- `StaffEarnestMoney.jsx:149-162` — Added `handlePreview` function to generate and open preview PDF
+- `StaffEarnestMoney.jsx:214-239` — Added "Agreement Execution Details" section with date and location fields
+- `StaffEarnestMoney.jsx:435-442` — Display execution date/location in agreement cards
+- `StaffEarnestMoney.jsx:451-483` — Added Edit and Preview PDF buttons for DRAFT agreements
+- `StaffEarnestMoney.jsx:519-537` — Added Edit dialog with Preview button in actions

@@ -34,6 +34,8 @@ const earnestMoneyAgreementSchema = new mongoose.Schema(
     propertyId: { type: mongoose.Schema.Types.ObjectId, ref: "Property", required: true },
     inquiryId: { type: mongoose.Schema.Types.ObjectId, ref: "BuyerInquiry" },
     applicationId: { type: mongoose.Schema.Types.ObjectId, ref: "Application" },
+    executionDate: { type: Date, required: true },
+    executionLocation: { type: String, required: true },
     seller: { type: sellerSchema, required: true },
     buyer: { type: buyerSchema, required: true },
     titleNo: { type: String, required: true },

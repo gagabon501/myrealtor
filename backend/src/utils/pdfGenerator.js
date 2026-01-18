@@ -177,39 +177,49 @@ export const generateAtsPdf = async (data) => {
 };
 
 /**
- * Generate Earnest Money Agreement PDF
+ * Generate Earnest Money Agreement PDF (Single Page)
  */
 export const generateEmaPdf = async (data) => {
-  const { emaId, propertyTitle, propertyLocation, seller, buyer, titleNo, areaSqm, earnestMoneyAmount, totalPurchasePrice, deedExecutionDeadline, version = 1 } = data;
+  const { emaId, executionDate, executionLocation, propertyTitle, propertyLocation, seller, buyer, titleNo, areaSqm, earnestMoneyAmount, totalPurchasePrice, deedExecutionDeadline, version = 1, isPreview = false } = data;
 
   const outputDir = path.join(generatedDir, "earnest-money", emaId);
   ensureDir(outputDir);
-  const outputPath = path.join(outputDir, `v${version}.pdf`);
+  const filename = isPreview ? "preview.pdf" : `v${version}.pdf`;
+  const outputPath = path.join(outputDir, filename);
 
   // Format values for the legal document
-  const today = new Date();
-  const todayFormatted = formatLegalDate(today);
+  const execDateFormatted = executionDate ? formatLegalDate(new Date(executionDate)) : "________";
+  const execLocationFormatted = executionLocation || "________";
   const deadlineFormatted = deedExecutionDeadline ? new Date(deedExecutionDeadline).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "________";
-  const earnestAmountFormatted = `₱${Number(earnestMoneyAmount || 0).toLocaleString()}`;
+  const earnestAmountFormatted = `PHP ${Number(earnestMoneyAmount || 0).toLocaleString()}`;
   const earnestAmountWords = `${numberToWords(Number(earnestMoneyAmount || 0))} Pesos`;
-  const totalPriceFormatted = `₱${Number(totalPurchasePrice || 0).toLocaleString()}`;
+  const totalPriceFormatted = `PHP ${Number(totalPurchasePrice || 0).toLocaleString()}`;
   const totalPriceWords = `${numberToWords(Number(totalPurchasePrice || 0))} Pesos`;
-  const locationCity = propertyLocation?.split(",").pop()?.trim() || propertyLocation || "________";
 
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: "LETTER" });
+    // Tighter margins for single page layout
+    const doc = new PDFDocument({ margin: 40, size: "LETTER" });
     const writeStream = fs.createWriteStream(outputPath);
 
     doc.pipe(writeStream);
 
-    // Header
-    doc.fontSize(16).font("Helvetica-Bold").text("EARNEST MONEY AGREEMENT", { align: "center" });
-    doc.moveDown(1.5);
+    // Preview watermark
+    if (isPreview) {
+      doc.save();
+      doc.rotate(45, { origin: [306, 396] });
+      doc.fontSize(72).fillColor("#cccccc").fillOpacity(0.3).text("PREVIEW", 150, 300, { align: "center" });
+      doc.restore();
+      doc.fillColor("#000000").fillOpacity(1);
+    }
 
-    // Opening paragraph
-    doc.fontSize(11).font("Helvetica");
+    // Header
+    doc.fontSize(14).font("Helvetica-Bold").text("EARNEST MONEY AGREEMENT", { align: "center" });
+    doc.moveDown(0.8);
+
+    // Opening paragraph - smaller font for single page
+    doc.fontSize(9).font("Helvetica");
     doc.text(
-      `This Earnest Money Agreement is made and executed this ${todayFormatted}, in ${locationCity}, Philippines, by and between `,
+      `This Earnest Money Agreement is made and executed this ${execDateFormatted}, in ${execLocationFormatted}, Philippines, by and between `,
       { continued: true }
     );
     doc.font("Helvetica-Bold").text(seller?.name || "________", { continued: true });
@@ -220,11 +230,11 @@ export const generateEmaPdf = async (data) => {
     doc.font("Helvetica").text(", of legal age, Filipino, with address at ", { continued: true });
     doc.font("Helvetica-Bold").text(buyer?.address || "________", { continued: true });
     doc.font("Helvetica").text(", hereinafter referred to as the BUYER.");
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Property description paragraph
     doc.text(
-      "The Seller is the lawful owner of a parcel of land, with or without improvements, situated at ",
+      "The Seller is the lawful owner of a parcel of property, with or without improvements, situated at ",
       { continued: true }
     );
     doc.font("Helvetica-Bold").text(propertyLocation || "________", { continued: true });
@@ -233,13 +243,13 @@ export const generateEmaPdf = async (data) => {
     doc.font("Helvetica").text(", containing an area of ", { continued: true });
     doc.font("Helvetica-Bold").text(`${areaSqm || "________"} square meters`, { continued: true });
     doc.font("Helvetica").text(", more particularly described in said title.");
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Buyer intention paragraph
     doc.text(
       "The Buyer has manifested a firm intention to purchase the above-described property, and the Seller has agreed to sell the same, subject to the execution of a Deed of Absolute Sale under the terms and conditions hereinafter stated."
     );
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Earnest money payment paragraph
     doc.text(
@@ -250,7 +260,7 @@ export const generateEmaPdf = async (data) => {
     doc.font("Helvetica").text(
       " as Earnest Money, which amount shall form part of and be credited toward the total purchase price of the property."
     );
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Total purchase price paragraph
     doc.text(
@@ -261,7 +271,7 @@ export const generateEmaPdf = async (data) => {
     doc.font("Helvetica").text(
       ". The Earnest Money shall be deducted from the total purchase price upon the execution of the Deed of Absolute Sale."
     );
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Deadline paragraph
     doc.text(
@@ -272,58 +282,52 @@ export const generateEmaPdf = async (data) => {
     doc.font("Helvetica").text(
       ", subject to the completion and submission of all necessary documents and compliance with all legal requirements, including but not limited to verification of ownership, settlement of taxes, and other lawful conditions relevant to the transfer of title."
     );
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Forfeiture clause
     doc.text(
       "In the event that the Buyer unjustifiably fails or refuses to proceed with the purchase, the Earnest Money shall be forfeited in favor of the Seller as liquidated damages. Conversely, if the Seller unjustifiably fails or refuses to proceed with the sale, the Seller shall return the Earnest Money in full to the Buyer. Should the sale fail to be consummated due to causes beyond the control of both Parties, the Earnest Money shall be returned to the Buyer, unless otherwise agreed in writing."
     );
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Taxes clause
     doc.text(
       "Unless otherwise stipulated, all taxes, fees, and expenses incident to the sale and transfer of the property shall be borne by the Parties in accordance with law and prevailing practice."
     );
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Governing law clause
     doc.text(
       "This Agreement shall be governed by and construed in accordance with the laws of the Republic of the Philippines and shall be binding upon the Parties, their heirs, successors, and assigns."
     );
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Witness clause
     doc.text(
       "IN WITNESS WHEREOF, the Parties have hereunto affixed their signatures on the date and place first above written."
     );
-    doc.moveDown(2);
+    doc.moveDown(1);
 
-    // Signature section
-    doc.text("___________________________________________");
-    doc.moveDown(0.5);
-    doc.font("Helvetica-Bold").text("SELLER", { align: "left" });
-    doc.font("Helvetica").text("Signature over Printed Name");
-    doc.moveDown(2);
+    // Signature section - side by side to save space
+    const signatureY = doc.y;
+    doc.text("___________________________________", 40, signatureY);
+    doc.font("Helvetica-Bold").text("SELLER", 40, signatureY + 15);
+    doc.font("Helvetica").fontSize(8).text("Signature over Printed Name", 40, signatureY + 27);
 
-    doc.text("___________________________________________");
-    doc.moveDown(0.5);
-    doc.font("Helvetica-Bold").text("BUYER", { align: "left" });
-    doc.font("Helvetica").text("Signature over Printed Name");
-    doc.moveDown(2);
+    doc.fontSize(9).text("___________________________________", 320, signatureY);
+    doc.font("Helvetica-Bold").text("BUYER", 320, signatureY + 15);
+    doc.font("Helvetica").fontSize(8).text("Signature over Printed Name", 320, signatureY + 27);
 
-    // Footer
-    doc.fontSize(8).font("Helvetica");
-    doc.text("─".repeat(80), { align: "center" });
-    doc.text(`Document ID: ${emaId}`, { align: "left" });
-    doc.text(`Version: ${version}`, { align: "left" });
-    doc.text(`Generated: ${new Date().toLocaleString()}`, { align: "left" });
+    // Footer at bottom of page
+    doc.fontSize(7).font("Helvetica");
+    doc.text(`Document ID: ${emaId} | Version: ${isPreview ? "Preview" : version} | Generated: ${new Date().toLocaleString()}`, 40, 740, { align: "center", width: 532 });
 
     doc.end();
 
     writeStream.on("finish", () => {
       resolve({
-        storageKey: `earnest-money/${emaId}/v${version}.pdf`,
-        url: `/uploads/generated/earnest-money/${emaId}/v${version}.pdf`,
+        storageKey: `earnest-money/${emaId}/${filename}`,
+        url: `/uploads/generated/earnest-money/${emaId}/${filename}`,
         localPath: outputPath,
       });
     });

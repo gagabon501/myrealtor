@@ -14,7 +14,7 @@ export const createEarnestMoneyAgreement = async (req, res, next) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { propertyId, seller, buyer, titleNo, areaSqm, earnestMoneyAmount, totalPurchasePrice, deedExecutionDeadline, inquiryId, applicationId, notes } = req.body;
+    const { propertyId, executionDate, executionLocation, seller, buyer, titleNo, areaSqm, earnestMoneyAmount, totalPurchasePrice, deedExecutionDeadline, inquiryId, applicationId, notes } = req.body;
 
     // Verify property exists
     const property = await Property.findById(propertyId);
@@ -26,6 +26,8 @@ export const createEarnestMoneyAgreement = async (req, res, next) => {
       propertyId,
       inquiryId,
       applicationId,
+      executionDate,
+      executionLocation,
       seller,
       buyer,
       titleNo,
@@ -96,7 +98,7 @@ export const updateEarnestMoneyAgreement = async (req, res, next) => {
       return res.status(400).json({ message: "Cannot edit finalized agreement" });
     }
 
-    const allowedFields = ["seller", "buyer", "titleNo", "areaSqm", "earnestMoneyAmount", "totalPurchasePrice", "deedExecutionDeadline", "notes"];
+    const allowedFields = ["executionDate", "executionLocation", "seller", "buyer", "titleNo", "areaSqm", "earnestMoneyAmount", "totalPurchasePrice", "deedExecutionDeadline", "notes"];
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
         ema[field] = req.body[field];
@@ -135,6 +137,8 @@ export const finalizeEarnestMoneyAgreement = async (req, res, next) => {
     const version = (ema.finalPdf?.version || 0) + 1;
     const pdfResult = await generateEmaPdf({
       emaId: ema._id.toString(),
+      executionDate: ema.executionDate,
+      executionLocation: ema.executionLocation,
       propertyTitle: ema.propertyId?.title,
       propertyLocation: ema.propertyId?.location,
       seller: ema.seller,
@@ -165,6 +169,44 @@ export const finalizeEarnestMoneyAgreement = async (req, res, next) => {
     });
 
     res.json(ema);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const previewEarnestMoneyAgreement = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const ema = await EarnestMoneyAgreement.findById(id)
+      .populate("propertyId", "title location");
+
+    if (!ema) {
+      return res.status(404).json({ message: "Earnest Money Agreement not found" });
+    }
+
+    if (ema.status === "FINAL") {
+      return res.status(400).json({ message: "Agreement already finalized, use download instead" });
+    }
+
+    // Generate preview PDF (version 0 = preview)
+    const pdfResult = await generateEmaPdf({
+      emaId: ema._id.toString(),
+      executionDate: ema.executionDate,
+      executionLocation: ema.executionLocation,
+      propertyTitle: ema.propertyId?.title,
+      propertyLocation: ema.propertyId?.location,
+      seller: ema.seller,
+      buyer: ema.buyer,
+      titleNo: ema.titleNo,
+      areaSqm: ema.areaSqm,
+      earnestMoneyAmount: ema.earnestMoneyAmount,
+      totalPurchasePrice: ema.totalPurchasePrice,
+      deedExecutionDeadline: ema.deedExecutionDeadline,
+      version: 0,
+      isPreview: true,
+    });
+
+    res.json({ previewUrl: pdfResult.url });
   } catch (err) {
     next(err);
   }

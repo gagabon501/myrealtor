@@ -6,6 +6,32 @@ All notable changes to this project are documented here. Version numbers refer t
 
 - Pending changes not yet tagged.
 
+## [Backend 1.7.0 / Frontend 0.8.0] – EMA Enhancements
+
+### Backend Changes
+
+- **EarnestMoneyAgreement Model:**
+  - Added `executionDate` and `executionLocation` fields for staff to specify when/where agreement is executed
+
+- **EarnestMoneyController:**
+  - Updated create and update endpoints to handle new execution date/location fields
+  - Added `previewEarnestMoneyAgreement` endpoint to generate preview PDF with watermark
+
+- **PDF Generator:**
+  - Changed peso symbol from ₱ to PHP (e.g., "PHP 100,000")
+  - Uses staff-provided execution date/location instead of auto-generating
+  - Optimized layout to fit on single page (9pt font, 40px margins, side-by-side signatures)
+  - Added "PREVIEW" watermark for preview PDFs
+  - Changed "parcel of land" to "parcel of property"
+
+### Frontend Changes
+
+- **Staff Earnest Money Page:**
+  - Added execution date and location fields in Create/Edit dialogs
+  - Added Edit button for DRAFT agreements
+  - Added Preview PDF button to generate preview with watermark
+  - Display execution date/location in agreement cards
+
 ## [Backend 1.6.0 / Frontend 0.7.0] – Legal EMA PDF Template
 
 ### Backend Changes

@@ -6,6 +6,7 @@ import {
   listEarnestMoneyAgreements,
   updateEarnestMoneyAgreement,
   finalizeEarnestMoneyAgreement,
+  previewEarnestMoneyAgreement,
   voidEarnestMoneyAgreement,
   getEarnestMoneyByProperty,
 } from "../controllers/earnestMoneyController.js";
@@ -20,6 +21,8 @@ router.post(
   "/",
   [
     body("propertyId").notEmpty().withMessage("Property ID is required"),
+    body("executionDate").isISO8601().withMessage("Execution date is required"),
+    body("executionLocation").notEmpty().withMessage("Execution location is required"),
     body("seller.name").notEmpty().withMessage("Seller name is required"),
     body("seller.address").notEmpty().withMessage("Seller address is required"),
     body("buyer.name").notEmpty().withMessage("Buyer name is required"),
@@ -38,6 +41,7 @@ router.get("/", listEarnestMoneyAgreements);
 router.get("/property/:propertyId", getEarnestMoneyByProperty);
 router.get("/:id", getEarnestMoneyAgreement);
 router.patch("/:id", updateEarnestMoneyAgreement);
+router.post("/:id/preview", previewEarnestMoneyAgreement);
 router.post("/:id/finalize", finalizeEarnestMoneyAgreement);
 router.post("/:id/void", voidEarnestMoneyAgreement);
 
